@@ -29,6 +29,18 @@ func TestHealthcheckHandler(t *testing.T) {
 		got := getAppStateFromResponse(t, response.Body)
 		assertEnv(t, got.Env, env)
 	})
+	t.Run("can't POST", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodPost, "/v1/healthcheck", nil)
+		response := httptest.NewRecorder()
+
+		env := "testing"
+		cfg := app.Config{Port: 4000, Env: env}
+		logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+		server := app.New(cfg, logger)
+		server.ServeHTTP(response, request)
+
+		assertStatus(t, response.Code, http.StatusMethodNotAllowed)
+	})
 }
 
 func assertStatus(t *testing.T, got int, want int) {
