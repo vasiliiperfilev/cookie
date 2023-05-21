@@ -12,6 +12,7 @@ func (a *Application) healthcheckHandler(w http.ResponseWriter, r *http.Request)
 		json.NewEncoder(w).Encode(a.GetState())
 		w.WriteHeader(http.StatusOK)
 	default:
+		w.Header().Set("Allow", http.MethodGet)
 		http.Error(w, "Not Allowed", http.StatusMethodNotAllowed)
 	}
 }
