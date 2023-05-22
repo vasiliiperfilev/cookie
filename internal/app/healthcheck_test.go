@@ -39,7 +39,7 @@ func TestHealthcheckHandler(t *testing.T) {
 		logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 		server := app.New(cfg, logger)
 		server.ServeHTTP(response, request)
-
+		assertHeader(t, response.Header().Get("Allow"), http.MethodGet)
 		assertStatus(t, response.Code, http.StatusMethodNotAllowed)
 	})
 }
@@ -48,6 +48,13 @@ func assertStatus(t *testing.T, got int, want int) {
 	t.Helper()
 	if got != want {
 		t.Errorf("Expected %v status, got %v", want, got)
+	}
+}
+
+func assertHeader(t *testing.T, got string, want string) {
+	t.Helper()
+	if got != want {
+		t.Errorf("Expected %v header, got %v", want, got)
 	}
 }
 
