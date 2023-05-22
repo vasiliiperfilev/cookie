@@ -1,7 +1,6 @@
 package app
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -27,7 +26,9 @@ func New(config Config, logger *log.Logger) *Application {
 	a.logger = logger
 
 	router := http.NewServeMux()
+	router.Handle("/", http.HandlerFunc(a.notFoundResponse))
 	router.Handle("/v1/healthcheck", http.HandlerFunc(a.healthcheckHandler))
+	router.Handle("/v1/auth/register", http.HandlerFunc(a.authRegisterHandler))
 
 	a.Handler = router
 	return a
@@ -35,23 +36,4 @@ func New(config Config, logger *log.Logger) *Application {
 
 func (a *Application) GetState() data.AppState {
 	return data.AppState{Status: "available", Env: a.config.Env, Version: 1}
-}
-
-func writeJSON(w http.ResponseWriter, status int, data any, headers http.Header) error {
-	js, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-
-	js = append(js, '\n')
-
-	for key, value := range headers {
-		w.Header()[key] = value
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	w.Write(js)
-
-	return nil
 }
