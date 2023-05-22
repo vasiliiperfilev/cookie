@@ -24,34 +24,45 @@ func TestAuthRegister(t *testing.T) {
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	server := app.New(cfg, logger)
 
-	t.Run("it registers", func(t *testing.T) {
+	t.Run("it returns correct response", func(t *testing.T) {
 		userInput := data.RegisterUserInput{
 			Email:    "test@nowhere.com",
 			Password: "test123!A",
 			Type:     "Supplier",
 			ImageId:  "imageid",
 		}
-		requestBody := new(bytes.Buffer)
-		json.NewEncoder(requestBody).Encode(userInput)
-		request, _ := http.NewRequest(http.MethodPost, "/v1/auth/register", requestBody)
-		response := httptest.NewRecorder()
-
-		server.ServeHTTP(response, request)
-
-		assertStatus(t, response.Code, http.StatusOK)
-		assertContentType(t, response, app.JsonContentType)
-
-		userResponse := data.RegisterUserResponse{
+		expectedResponse := data.RegisterUserResponse{
 			Email:   userInput.Email,
 			Type:    userInput.Type,
 			ImageId: userInput.ImageId,
 		}
-		// extract user from response
-		var responseBody data.RegisterUserResponse
-		json.NewDecoder(response.Body).Decode(&responseBody)
+		requestBody := new(bytes.Buffer)
+		json.NewEncoder(requestBody).Encode(userInput)
 
-		if !reflect.DeepEqual(userResponse, responseBody) {
-			t.Fatalf("Expected user to be %v, got %v", userResponse, responseBody)
-		}
+		request, err := http.NewRequest(http.MethodPost, "/v1/auth/register", requestBody)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
+
+		assertNoError(t, err)
+		assertStatus(t, response.Code, http.StatusOK)
+		assertContentType(t, response, app.JsonContentType)
+		assertResponseJson(t, response.Body, expectedResponse)
 	})
+}
+
+func assertResponseJson[T any](t *testing.T, body *bytes.Buffer, expectedStruct T) {
+	t.Helper()
+	var response T
+	json.NewDecoder(body).Decode(&response)
+
+	if !reflect.DeepEqual(expectedStruct, response) {
+		t.Fatalf("Expected user to be %v, got %v", expectedStruct, response)
+	}
+}
+
+func assertNoError(t *testing.T, err error) {
+	t.Helper()
+	if err != nil {
+		t.Fatalf("Expected no error, but got %v", err)
+	}
 }
