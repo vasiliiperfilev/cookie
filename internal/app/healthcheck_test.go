@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/vasiliiperfilev/cookie/internal/app"
+	"github.com/vasiliiperfilev/cookie/internal/data"
 )
 
 func TestHealthcheckHandler(t *testing.T) {
@@ -57,7 +58,7 @@ func assertContentType(t testing.TB, response *httptest.ResponseRecorder, want s
 	}
 }
 
-func getAppStateFromResponse(t testing.TB, body io.Reader) (appState app.State) {
+func getAppStateFromResponse(t testing.TB, body io.Reader) (appState data.AppState) {
 	t.Helper()
 	err := json.NewDecoder(body).Decode(&appState)
 

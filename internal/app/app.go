@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/vasiliiperfilev/cookie/internal/data"
 )
 
 const JsonContentType = "application/json"
@@ -19,12 +21,6 @@ type Application struct {
 	http.Handler
 }
 
-type State struct {
-	Status  string
-	Env     string
-	Version int
-}
-
 func New(config Config, logger *log.Logger) *Application {
 	a := new(Application)
 	a.config = config
@@ -37,8 +33,8 @@ func New(config Config, logger *log.Logger) *Application {
 	return a
 }
 
-func (a *Application) GetState() State {
-	return State{Status: "available", Env: a.config.Env, Version: 1}
+func (a *Application) GetState() data.AppState {
+	return data.AppState{Status: "available", Env: a.config.Env, Version: 1}
 }
 
 func writeJSON(w http.ResponseWriter, status int, data any, headers http.Header) error {
