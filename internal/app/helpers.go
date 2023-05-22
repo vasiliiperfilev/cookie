@@ -27,9 +27,13 @@ func writeJSON(w http.ResponseWriter, status int, data any, headers http.Header)
 	return nil
 }
 
-func readJSON(w http.ResponseWriter, r *http.Request, dst any) error {
+func readJSON[T any](w http.ResponseWriter, r *http.Request, dst *T) error {
+	maxBytes := 1_048_576
+	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
 	// Decode the request body into the target destination.
-	err := json.NewDecoder(r.Body).Decode(dst)
+	err := dec.Decode(dst)
 	if err != nil {
 		var syntaxError *json.SyntaxError
 		var unmarshalTypeError *json.UnmarshalTypeError
@@ -66,6 +70,12 @@ func readJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 		default:
 			return err
 		}
+	}
+
+	//check that there is only one JSON in body
+	err = dec.Decode(&struct{}{})
+	if err != io.EOF {
+		return errors.New("body must only contain a single JSON value")
 	}
 
 	return nil
