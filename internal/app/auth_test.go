@@ -28,7 +28,7 @@ func TestAuthRegister(t *testing.T) {
 		userInput := data.RegisterUserInput{
 			Email:    "test@nowhere.com",
 			Password: "test123!A",
-			Type:     "Supplier",
+			Type:     "supplier",
 			ImageId:  "imageid",
 		}
 		expectedResponse := data.RegisterUserResponse{
