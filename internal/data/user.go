@@ -34,12 +34,6 @@ type RegisterUserInput struct {
 	ImageId  string `json:"imageId"`
 }
 
-type RegisterUserResponse struct {
-	Email   string `json:"email"`
-	Type    int    `json:"type"`
-	ImageId string `json:"imageId"`
-}
-
 // The plaintext field is a *pointer* to a string,
 // so that we're able to distinguish between a plaintext password not being present in
 // the struct at all, versus a plaintext password which is the empty string "".

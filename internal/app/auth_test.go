@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"reflect"
 	"testing"
 
 	"github.com/vasiliiperfilev/cookie/internal/app"
@@ -32,7 +31,7 @@ func TestAuthRegister(t *testing.T) {
 			Type:     1,
 			ImageId:  "imageid",
 		}
-		expectedResponse := data.RegisterUserResponse{
+		expectedResponse := data.User{
 			Email:   userInput.Email,
 			Type:    userInput.Type,
 			ImageId: userInput.ImageId,
@@ -47,17 +46,25 @@ func TestAuthRegister(t *testing.T) {
 		assertNoError(t, err)
 		assertStatus(t, response.Code, http.StatusOK)
 		assertContentType(t, response, app.JsonContentType)
-		assertResponseJson(t, response.Body, expectedResponse)
+		assertRegisterResponse(t, response.Body, expectedResponse)
 	})
 }
 
-func assertResponseJson[T any](t *testing.T, body *bytes.Buffer, expectedStruct T) {
+func assertRegisterResponse(t *testing.T, body *bytes.Buffer, expectedUser data.User) {
 	t.Helper()
-	var response T
+	var response data.User
 	json.NewDecoder(body).Decode(&response)
 
-	if !reflect.DeepEqual(expectedStruct, response) {
-		t.Fatalf("Expected user to be %v, got %v", expectedStruct, response)
+	if response.Email != expectedUser.Email {
+		t.Fatalf("Expected email to be %v, got %v", expectedUser.Email, response.Email)
+	}
+
+	if response.Type != expectedUser.Type {
+		t.Fatalf("Expected type to be %v, got %v", expectedUser.Type, response.Type)
+	}
+
+	if response.ImageId != expectedUser.ImageId {
+		t.Fatalf("Expected email to be %v, got %v", expectedUser.ImageId, response.ImageId)
 	}
 }
 

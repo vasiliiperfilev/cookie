@@ -21,6 +21,6 @@ func (a *Application) authRegisterHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	registerUserResponse := data.RegisterUserResponse{Email: registerUserInput.Email, Type: registerUserInput.Type, ImageId: registerUserInput.ImageId}
-	writeJSON(w, http.StatusOK, registerUserResponse, nil)
+	user := data.User{Email: registerUserInput.Email, Type: registerUserInput.Type, ImageId: registerUserInput.ImageId}
+	writeJSON(w, http.StatusOK, user, nil)
 }

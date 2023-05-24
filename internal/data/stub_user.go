@@ -1,13 +1,16 @@
 package data
 
 type StubUserModel struct {
-	users []User
+	users   []User
+	idCount int
 }
 
 func (s *StubUserModel) Insert(user *User) error {
 	if _, err := s.GetByEmail(user.Email); err == nil {
 		return ErrDuplicateEmail
 	}
+	s.idCount++
+	user.Id = s.idCount
 	s.users = append(s.users, *user)
 	return nil
 }
