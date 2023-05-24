@@ -23,13 +23,15 @@ type Config struct {
 type Application struct {
 	config Config
 	logger *log.Logger
+	models data.Models
 	http.Handler
 }
 
-func New(config Config, logger *log.Logger) *Application {
+func New(config Config, logger *log.Logger, models data.Models) *Application {
 	a := new(Application)
 	a.config = config
 	a.logger = logger
+	a.models = models
 
 	router := http.NewServeMux()
 	router.Handle("/", http.HandlerFunc(a.notFoundResponse))

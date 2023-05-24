@@ -22,7 +22,8 @@ func TestAuthRegister(t *testing.T) {
 	env := "testing"
 	cfg := app.Config{Port: 4000, Env: env}
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	server := app.New(cfg, logger)
+	models := data.Models{User: data.NewStubUserModel()}
+	server := app.New(cfg, logger, models)
 
 	t.Run("it returns correct response", func(t *testing.T) {
 		userInput := data.RegisterUserInput{

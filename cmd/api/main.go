@@ -12,6 +12,7 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/vasiliiperfilev/cookie/internal/app"
+	"github.com/vasiliiperfilev/cookie/internal/data"
 )
 
 func main() {
@@ -34,8 +35,8 @@ func main() {
 	}
 	defer db.Close()
 	logger.Printf("database connection pool established")
-
-	app := app.New(cfg, logger)
+	models := data.NewModels(db)
+	app := app.New(cfg, logger, models)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),

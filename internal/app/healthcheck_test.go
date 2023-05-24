@@ -21,7 +21,8 @@ func TestHealthcheckHandler(t *testing.T) {
 		env := "testing"
 		cfg := app.Config{Port: 4000, Env: env}
 		logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-		server := app.New(cfg, logger)
+		models := data.Models{User: data.NewStubUserModel()}
+		server := app.New(cfg, logger, models)
 		server.ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
@@ -37,7 +38,8 @@ func TestHealthcheckHandler(t *testing.T) {
 		env := "testing"
 		cfg := app.Config{Port: 4000, Env: env}
 		logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-		server := app.New(cfg, logger)
+		models := data.Models{User: data.NewStubUserModel()}
+		server := app.New(cfg, logger, models)
 		server.ServeHTTP(response, request)
 		assertHeader(t, response.Header().Get("Allow"), http.MethodGet)
 		assertStatus(t, response.Code, http.StatusMethodNotAllowed)
