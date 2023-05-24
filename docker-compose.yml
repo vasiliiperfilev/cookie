@@ -1,0 +1,23 @@
+version: '3'
+services:
+
+  cookie-postgres:
+    image: postgres
+    container_name: cookie-postgres
+    user: postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: cookie
+      POSTGRES_USER: cookie
+      POSTGRES_PASSWORD: cookie
+
+  cookie-app:
+    build: 
+      context: ./
+      dockerfile: ./cmd/api/dockerfile
+    container_name: cookie-app
+    ports:
+      - 4000:4000
+    links:
+      - cookie-postgres
