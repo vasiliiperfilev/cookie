@@ -11,20 +11,20 @@ type User struct {
 	Id           int    `json:"id"`
 	Email        string `json:"email"`
 	PasswordHash string `json:"-"`
-	Type         string `json:"type"`
+	Type         int    `json:"type"`
 	ImageId      string `json:"imageId"`
 }
 
 type RegisterUserInput struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
-	Type     string `json:"type"`
+	Type     int    `json:"type"`
 	ImageId  string `json:"imageId"`
 }
 
 type RegisterUserResponse struct {
 	Email   string `json:"email"`
-	Type    string `json:"type"`
+	Type    int    `json:"type"`
 	ImageId string `json:"imageId"`
 }
 
@@ -64,10 +64,10 @@ func verifyPassword(s string) bool {
 	return number && upper && lower && special && size
 }
 
-func verifyUserType(s string) bool {
-	userTypes := []string{"supplier", "business"}
+func verifyUserType(i int) bool {
+	userTypes := map[string]int{"supplier": 1, "business": 2}
 	for _, value := range userTypes {
-		if value == s {
+		if value == i {
 			return true
 		}
 	}

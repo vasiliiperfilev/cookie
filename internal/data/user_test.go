@@ -16,37 +16,37 @@ func TestValidateRegisterUserInput(t *testing.T) {
 		{Input: data.RegisterUserInput{
 			Email:    "test@test.com",
 			Password: "pa5$wOrd123",
-			Type:     "supplier",
+			Type:     1,
 			ImageId:  "testid",
 		}, Keys: make([]string, 0)},
 		{Input: data.RegisterUserInput{
 			Email:    "test@test.com",
 			Password: "",
-			Type:     "wrong",
+			Type:     3,
 			ImageId:  "",
 		}, Keys: []string{"password", "type", "imageId"}},
 		{Input: data.RegisterUserInput{
 			Email:    "test-test.com",
 			Password: "pa5swOrd123",
-			Type:     "supplier",
+			Type:     1,
 			ImageId:  "testId",
 		}, Keys: []string{"email", "password"}},
 		{Input: data.RegisterUserInput{
 			Email:    "test@test.com",
 			Password: "pa5$word123",
-			Type:     "supplier",
+			Type:     1,
 			ImageId:  "testId",
 		}, Keys: []string{"password"}},
 		{Input: data.RegisterUserInput{
 			Email:    "test@test.com",
 			Password: "pas$wOrdabc",
-			Type:     "supplier",
+			Type:     1,
 			ImageId:  "testId",
 		}, Keys: []string{"password"}},
 		{Input: data.RegisterUserInput{
 			Email:    "test@test.com",
 			Password: "PAS$WORD123",
-			Type:     "supplier",
+			Type:     1,
 			ImageId:  "testId",
 		}, Keys: []string{"password"}},
 	}
