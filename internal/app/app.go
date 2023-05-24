@@ -12,6 +12,12 @@ const JsonContentType = "application/json"
 type Config struct {
 	Port int
 	Env  string
+	Db   struct {
+		Dsn          string
+		MaxOpenConns int
+		MaxIdleConns int
+		MaxIdleTime  string
+	}
 }
 
 type Application struct {
