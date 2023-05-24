@@ -8,12 +8,11 @@ import (
 
 // add type enum
 type User struct {
-	Id                int    `json:"id"`
-	Email             string `json:"email"`
-	PasswordHash      string `json:"-"`
-	Type              string `json:"type"`
-	ImageId           string `json:"imageId"`
-	LastReadMessageId int    `json:"-"`
+	Id           int    `json:"id"`
+	Email        string `json:"email"`
+	PasswordHash string `json:"-"`
+	Type         string `json:"type"`
+	ImageId      string `json:"imageId"`
 }
 
 type RegisterUserInput struct {
