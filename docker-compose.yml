@@ -2,7 +2,7 @@ version: '3'
 services:
 
   cookie-postgres:
-    image: postgres
+    image: postgres:14.8-alpine
     container_name: cookie-postgres
     user: postgres
     ports:
@@ -11,6 +11,23 @@ services:
       POSTGRES_DB: cookie
       POSTGRES_USER: cookie
       POSTGRES_PASSWORD: cookie
+    volumes:
+      - ./scripts/db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: pg_isready -U cookie
+      interval: 1s
+      timeout: 1s
+      retries: 5
+
+  migrate:
+    image: migrate/migrate
+    depends_on:
+      cookie-postgres:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/migrations
+    command:
+      [ "-path", "/migrations", "-database",  "postgres://cookie:cookie@cookie-postgres:5432/cookie?sslmode=disable", "up" ]
 
   cookie-app:
     build: 
@@ -19,5 +36,5 @@ services:
     container_name: cookie-app
     ports:
       - 4000:4000
-    links:
-      - cookie-postgres
+    depends_on:
+      - migrate
