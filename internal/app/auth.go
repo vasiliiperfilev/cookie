@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/vasiliiperfilev/cookie/internal/data"
@@ -22,5 +23,23 @@ func (a *Application) authRegisterHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	user := data.User{Email: registerUserInput.Email, Type: registerUserInput.Type, ImageId: registerUserInput.ImageId}
+	err = user.Password.Set(registerUserInput.Password)
+	if err != nil {
+		a.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = a.models.User.Insert(&user)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrDuplicateEmail):
+			v.AddError("email", "a user with this email address already exists")
+			a.failedValidationResponse(w, r, v.Errors)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
 	writeJSON(w, http.StatusOK, user, nil)
 }

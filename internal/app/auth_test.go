@@ -13,10 +13,7 @@ import (
 	"github.com/vasiliiperfilev/cookie/internal/data"
 )
 
-// can register
-// can't not allowed methods
-// can't register with the same email
-// can't register without enough fields
+// bad request if incorrect json
 func TestAuthRegister(t *testing.T) {
 	env := "testing"
 	cfg := app.Config{Port: 4000, Env: env}

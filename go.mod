@@ -4,9 +4,12 @@ go 1.20
 
 require (
 	github.com/lib/pq v1.10.9
+	github.com/testcontainers/testcontainers-go v0.20.1
 	github.com/testcontainers/testcontainers-go/modules/compose v0.20.1
 	golang.org/x/crypto v0.9.0
 )
+
+require go.uber.org/atomic v1.7.0 // indirect
 
 replace (
 	github.com/cucumber/godog => github.com/laurazard/godog v0.0.0-20220922095256-4c4b17abdae7
@@ -69,6 +72,7 @@ require (
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
@@ -125,7 +129,6 @@ require (
 	github.com/spf13/cobra v1.7.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.8.2 // indirect
-	github.com/testcontainers/testcontainers-go v0.20.1 // indirect
 	github.com/theupdateframework/notary v0.7.0 // indirect
 	github.com/tilt-dev/fsnotify v1.4.8-0.20220602155310-fff9c274a375 // indirect
 	github.com/tonistiigi/fsutil v0.0.0-20230105215944-fb433841cbfa // indirect
