@@ -1,8 +1,6 @@
 package main
 
 import (
-	"context"
-	"database/sql"
 	"flag"
 	"fmt"
 	"log"
@@ -29,7 +27,7 @@ func main() {
 
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 
-	db, err := openDB(cfg)
+	db, err := app.OpenDB(cfg)
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -49,40 +47,4 @@ func main() {
 	logger.Printf("starting %s server on %s", cfg.Env, srv.Addr)
 	err = srv.ListenAndServe()
 	logger.Fatal(err)
-}
-
-func openDB(cfg app.Config) (*sql.DB, error) {
-	db, err := sql.Open("postgres", cfg.Db.Dsn)
-	if err != nil {
-		return nil, err
-	}
-
-	// Set the maximum number of open (in-use + idle) connections in the pool. Note that
-	// passing a value less than or equal to 0 will mean there is no limit.
-	db.SetMaxOpenConns(cfg.Db.MaxOpenConns)
-
-	// Set the maximum number of idle connections in the pool. Again, passing a value
-	// less than or equal to 0 will mean there is no limit.
-	db.SetMaxIdleConns(cfg.Db.MaxIdleConns)
-
-	// Use the time.ParseDuration() function to convert the idle timeout duration string
-	// to a time.Duration type.
-	duration, err := time.ParseDuration(cfg.Db.MaxIdleTime)
-	if err != nil {
-		return nil, err
-	}
-
-	// Set the maximum idle timeout.
-	db.SetConnMaxIdleTime(duration)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	// ping to test connection
-	err = db.PingContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
 }

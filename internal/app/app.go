@@ -1,8 +1,11 @@
 package app
 
 import (
+	"context"
+	"database/sql"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/vasiliiperfilev/cookie/internal/data"
 )
@@ -44,4 +47,40 @@ func New(config Config, logger *log.Logger, models data.Models) *Application {
 
 func (a *Application) GetState() data.AppState {
 	return data.AppState{Status: "available", Env: a.config.Env, Version: 1}
+}
+
+func OpenDB(cfg Config) (*sql.DB, error) {
+	db, err := sql.Open("postgres", cfg.Db.Dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set the maximum number of open (in-use + idle) connections in the pool. Note that
+	// passing a value less than or equal to 0 will mean there is no limit.
+	db.SetMaxOpenConns(cfg.Db.MaxOpenConns)
+
+	// Set the maximum number of idle connections in the pool. Again, passing a value
+	// less than or equal to 0 will mean there is no limit.
+	db.SetMaxIdleConns(cfg.Db.MaxIdleConns)
+
+	// Use the time.ParseDuration() function to convert the idle timeout duration string
+	// to a time.Duration type.
+	duration, err := time.ParseDuration(cfg.Db.MaxIdleTime)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set the maximum idle timeout.
+	db.SetConnMaxIdleTime(duration)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// ping to test connection
+	err = db.PingContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }
