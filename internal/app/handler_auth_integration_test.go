@@ -28,8 +28,6 @@ const (
 	POSTGRES_PORT     = "54350"
 )
 
-// can register
-// can't register with the same email
 // can register and log in
 func TestIntegrationAuthRegister(t *testing.T) {
 	dbCfg := app.DbConfig{
