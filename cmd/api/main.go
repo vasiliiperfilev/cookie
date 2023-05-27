@@ -27,7 +27,7 @@ func main() {
 
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 
-	db, err := app.OpenDB(cfg)
+	db, err := app.OpenDB(cfg.Db)
 	if err != nil {
 		logger.Fatal(err)
 	}
