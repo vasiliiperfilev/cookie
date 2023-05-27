@@ -18,7 +18,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 	"github.com/vasiliiperfilev/cookie/internal/app"
 	"github.com/vasiliiperfilev/cookie/internal/data"
-	migrations "github.com/vasiliiperfilev/cookie/migrate"
+	"github.com/vasiliiperfilev/cookie/internal/migrate"
 )
 
 const (
@@ -82,7 +82,7 @@ func prepareTestDb(t *testing.T, cfg app.DbConfig) *sql.DB {
 	db, err := app.OpenDB(cfg)
 	assertNoError(t, err)
 	// migrations
-	err = migrations.MigrateUp(cfg.Dsn)
+	err = migrate.Up(cfg.Dsn)
 	assertNoError(t, err)
 
 	return db

@@ -1,4 +1,4 @@
-package migrations
+package migrate
 
 import (
 	"embed"
@@ -14,7 +14,7 @@ import (
 //go:embed migrations/*.sql
 var fs embed.FS
 
-func MigrateUp(dsn string) error {
+func Up(dsn string) error {
 	d, err := iofs.New(fs, "migrations")
 	if err != nil {
 		log.Fatal(err)
