@@ -16,17 +16,19 @@ import (
 )
 
 func TestPostToken(t *testing.T) {
+	email := "test@test.com"
+	password := "pa5$wOrd123"
 	cfg := app.Config{Port: 4000, Env: "development"}
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	user := data.User{
 		Id:        1,
 		CreatedAt: time.Now(),
-		Email:     "test@test.com",
+		Email:     email,
 		Type:      1,
 		ImageId:   "id",
 		Version:   1,
 	}
-	user.Password.Set("pa5$wOrd123")
+	user.Password.Set(password)
 	models := data.Models{User: data.NewStubUserModel([]data.User{user}), Token: data.NewStubTokenModel([]data.Token{})}
 	server := app.New(cfg, logger, models)
 
@@ -35,8 +37,8 @@ func TestPostToken(t *testing.T) {
 			Email    string
 			Password string
 		}{
-			Email:    "test@test.com",
-			Password: "pa5$wOrd123",
+			Email:    email,
+			Password: password,
 		}
 		requestBody := new(bytes.Buffer)
 		json.NewEncoder(requestBody).Encode(userInput)
