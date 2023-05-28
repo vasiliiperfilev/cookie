@@ -11,6 +11,7 @@ import (
 
 	"github.com/vasiliiperfilev/cookie/internal/app"
 	"github.com/vasiliiperfilev/cookie/internal/data"
+	"github.com/vasiliiperfilev/cookie/internal/tester"
 )
 
 func TestHealthcheckHandler(t *testing.T) {
@@ -40,24 +41,15 @@ func TestHealthcheckHandler(t *testing.T) {
 }
 
 func assertStatus(t *testing.T, got int, want int) {
-	t.Helper()
-	if got != want {
-		t.Errorf("Expected %v status, got %v", want, got)
-	}
+	tester.AssertValue(t, got, want, "Wrong http response status")
 }
 
 func assertHeader(t *testing.T, got string, want string) {
-	t.Helper()
-	if got != want {
-		t.Errorf("Expected %v header, got %v", want, got)
-	}
+	tester.AssertValue(t, got, want, "Wrong http header")
 }
 
-func assertContentType(t testing.TB, response *httptest.ResponseRecorder, want string) {
-	t.Helper()
-	if response.Result().Header.Get("content-type") != want {
-		t.Errorf("response did not have content-type of %s, got %v", want, response.Result().Header)
-	}
+func assertContentType(t *testing.T, response *httptest.ResponseRecorder, want string) {
+	tester.AssertValue(t, response.Result().Header.Get("content-type"), want, "Wrong http response content-type")
 }
 
 func getAppStateFromResponse(t testing.TB, body io.Reader) (appState data.AppState) {
@@ -72,8 +64,5 @@ func getAppStateFromResponse(t testing.TB, body io.Reader) (appState data.AppSta
 }
 
 func assertEnv(t *testing.T, got string, want string) {
-	t.Helper()
-	if got != want {
-		t.Fatalf("Expected env %v, got %v", want, got)
-	}
+	tester.AssertValue(t, got, want, "Wrong application Env config")
 }

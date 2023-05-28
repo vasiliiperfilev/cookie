@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/vasiliiperfilev/cookie/internal/tester"
 )
 
 func TestReadJson(t *testing.T) {
@@ -26,7 +28,7 @@ func TestReadJson(t *testing.T) {
 		json.NewEncoder(requestBody).Encode(got)
 		request, _ := http.NewRequest(http.MethodPost, "/v1/user", requestBody)
 		err := readJSON(httptest.NewRecorder(), request, &want)
-		assertError(t, err)
+		tester.AssertError(t, err)
 	})
 
 	t.Run("it errors if incorrectJson", func(t *testing.T) {
@@ -38,7 +40,7 @@ func TestReadJson(t *testing.T) {
 		}
 		request, _ := http.NewRequest(http.MethodPost, "/v1/user", bytes.NewBuffer(requestBody))
 		err := readJSON(httptest.NewRecorder(), request, &want)
-		assertError(t, err)
+		tester.AssertError(t, err)
 	})
 
 	t.Run("it errors if incorrect field type", func(t *testing.T) {
@@ -50,7 +52,7 @@ func TestReadJson(t *testing.T) {
 		}
 		request, _ := http.NewRequest(http.MethodPost, "/v1/user", bytes.NewBuffer(requestBody))
 		err := readJSON(httptest.NewRecorder(), request, &want)
-		assertError(t, err)
+		tester.AssertError(t, err)
 	})
 
 	t.Run("it errors if body is empty", func(t *testing.T) {
@@ -62,7 +64,7 @@ func TestReadJson(t *testing.T) {
 		}
 		request, _ := http.NewRequest(http.MethodPost, "/v1/user", bytes.NewBuffer(requestBody))
 		err := readJSON(httptest.NewRecorder(), request, &want)
-		assertError(t, err)
+		tester.AssertError(t, err)
 	})
 
 	t.Run("it errors if there is something after the JSON", func(t *testing.T) {
@@ -74,13 +76,6 @@ func TestReadJson(t *testing.T) {
 		}
 		request, _ := http.NewRequest(http.MethodPost, "/v1/user", bytes.NewBuffer(requestBody))
 		err := readJSON(httptest.NewRecorder(), request, &want)
-		assertError(t, err)
+		tester.AssertError(t, err)
 	})
-}
-
-func assertError(t *testing.T, err error) {
-	t.Helper()
-	if err == nil {
-		t.Fatal("Error was expected but didn't happen")
-	}
 }

@@ -12,7 +12,6 @@ import (
 	"github.com/vasiliiperfilev/cookie/internal/data"
 )
 
-// can register and log in
 func TestIntegrationTokenPost(t *testing.T) {
 	dsn := fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT, POSTGRES_DB)
 	db := prepareTestDb(t, dsn)
@@ -30,23 +29,26 @@ func TestIntegrationTokenPost(t *testing.T) {
 		}
 		registerUser(t, server, registerInput)
 
-		loginInput := struct {
-			Email    string
-			Password string
-		}{
-			email,
-			password,
+		loginInput := map[string]string{
+			"Email":    email,
+			"Password": password,
 		}
-		requestBody := new(bytes.Buffer)
-		json.NewEncoder(requestBody).Encode(loginInput)
-
-		request, err := http.NewRequest(http.MethodPost, "/v1/token", requestBody)
-		assertNoError(t, err)
-		response := httptest.NewRecorder()
-		server.ServeHTTP(response, request)
+		response := loginUser(t, server, loginInput)
 
 		assertStatus(t, response.Code, http.StatusCreated)
 		assertContentType(t, response, app.JsonContentType)
 		assertTokenResponse(t, response.Body)
 	})
+}
+
+func loginUser(t *testing.T, server http.Handler, input map[string]string) *httptest.ResponseRecorder {
+	t.Helper()
+	requestBody := new(bytes.Buffer)
+	json.NewEncoder(requestBody).Encode(input)
+
+	request, err := http.NewRequest(http.MethodPost, "/v1/token", requestBody)
+	assertNoError(t, err)
+	response := httptest.NewRecorder()
+	server.ServeHTTP(response, request)
+	return response
 }
