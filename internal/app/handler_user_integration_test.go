@@ -18,6 +18,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 	"github.com/vasiliiperfilev/cookie/internal/app"
 	"github.com/vasiliiperfilev/cookie/internal/data"
+	"github.com/vasiliiperfilev/cookie/internal/db"
 	"github.com/vasiliiperfilev/cookie/internal/migrate"
 )
 
@@ -30,19 +31,9 @@ const (
 
 // can register and log in
 func TestIntegrationUserPost(t *testing.T) {
-	dbCfg := app.DbConfig{
-		MaxOpenConns: 25,
-		MaxIdleConns: 25,
-		MaxIdleTime:  "15m",
-		Dsn:          fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT, POSTGRES_DB),
-	}
-	cfg := app.Config{Port: 4000, Env: "development", Db: dbCfg}
-
-	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	db := prepareTestDb(t, dbCfg)
-	models := data.NewModels(db)
-
-	server := app.New(cfg, logger, models)
+	dsn := fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT, POSTGRES_DB)
+	db := prepareTestDb(t, dsn)
+	server := prepareServer(db, 4000)
 
 	t.Run("it allows registration with correct values", func(t *testing.T) {
 		applyFixtures(t, db, "../fixtures")
@@ -57,27 +48,48 @@ func TestIntegrationUserPost(t *testing.T) {
 			Type:    userInput.Type,
 			ImageId: userInput.ImageId,
 		}
-		requestBody := new(bytes.Buffer)
-		json.NewEncoder(requestBody).Encode(userInput)
-
-		request, err := http.NewRequest(http.MethodPost, "/v1/user", requestBody)
-		response := httptest.NewRecorder()
-		server.ServeHTTP(response, request)
-
-		assertNoError(t, err)
+		response := registerUser(t, server, userInput)
 		assertStatus(t, response.Code, http.StatusOK)
 		assertContentType(t, response, app.JsonContentType)
 		assertRegisterResponse(t, response.Body, expectedResponse)
 	})
 }
 
-func prepareTestDb(t *testing.T, cfg app.DbConfig) *sql.DB {
+func prepareServer(db *sql.DB, port int) *app.Application {
+	cfg := app.Config{Port: port, Env: "development"}
+
+	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	models := data.NewModels(db)
+
+	server := app.New(cfg, logger, models)
+	return server
+}
+
+func registerUser(t *testing.T, server http.Handler, input data.RegisterUserInput) *httptest.ResponseRecorder {
+	requestBody := new(bytes.Buffer)
+	json.NewEncoder(requestBody).Encode(input)
+
+	request, err := http.NewRequest(http.MethodPost, "/v1/user", requestBody)
+	assertNoError(t, err)
+	response := httptest.NewRecorder()
+	server.ServeHTTP(response, request)
+
+	return response
+}
+
+func prepareTestDb(t *testing.T, dsn string) *sql.DB {
 	t.Helper()
+	cfg := db.Config{
+		MaxOpenConns: 25,
+		MaxIdleConns: 25,
+		MaxIdleTime:  "15m",
+		Dsn:          dsn,
+	}
 	// start a container
 	err := startDockerPostgres(t)
 	assertNoError(t, err)
 	// open connection
-	db, err := app.OpenDB(cfg)
+	db, err := db.OpenDB(cfg)
 	assertNoError(t, err)
 	// migrations
 	err = migrate.Up(cfg.Dsn)
