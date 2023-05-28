@@ -11,15 +11,23 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/vasiliiperfilev/cookie/internal/app"
 	"github.com/vasiliiperfilev/cookie/internal/data"
+	"github.com/vasiliiperfilev/cookie/internal/database"
+	"github.com/vasiliiperfilev/cookie/internal/tester"
 )
 
 func TestIntegrationUserPost(t *testing.T) {
-	dsn := fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT, POSTGRES_DB)
-	db := prepareTestDb(t, dsn)
-	server := prepareServer(db, 4000)
+	dsn := fmt.Sprintf(
+		"postgres://%s:%s@localhost:%s/%s?sslmode=disable",
+		database.POSTGRES_USER,
+		database.POSTGRES_PASSWORD,
+		database.POSTGRES_PORT,
+		database.POSTGRES_DB,
+	)
+	db := database.PrepareTestDb(t, dsn)
+	server := app.PrepareServer(db, 4000)
 
 	t.Run("it allows registration with correct values", func(t *testing.T) {
-		applyFixtures(t, db, "../fixtures")
+		database.ApplyFixtures(t, db, "../fixtures")
 		userInput := data.RegisterUserInput{
 			Email:    "test@nowhere.com",
 			Password: "test123!A",
@@ -44,7 +52,7 @@ func registerUser(t *testing.T, server http.Handler, input data.RegisterUserInpu
 	json.NewEncoder(requestBody).Encode(input)
 
 	request, err := http.NewRequest(http.MethodPost, "/v1/user", requestBody)
-	assertNoError(t, err)
+	tester.AssertNoError(t, err)
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
 

@@ -1,20 +1,16 @@
-package app_test
+package database
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
-	"os"
 	"testing"
 
 	"github.com/go-testfixtures/testfixtures/v3"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"github.com/vasiliiperfilev/cookie/internal/app"
-	"github.com/vasiliiperfilev/cookie/internal/data"
-	"github.com/vasiliiperfilev/cookie/internal/db"
 	"github.com/vasiliiperfilev/cookie/internal/migrate"
+	"github.com/vasiliiperfilev/cookie/internal/tester"
 )
 
 const (
@@ -24,39 +20,29 @@ const (
 	POSTGRES_PORT     = "54350"
 )
 
-func prepareServer(db *sql.DB, port int) *app.Application {
-	cfg := app.Config{Port: port, Env: "development"}
-
-	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	models := data.NewModels(db)
-
-	server := app.New(cfg, logger, models)
-	return server
-}
-
-func prepareTestDb(t *testing.T, dsn string) *sql.DB {
+func PrepareTestDb(t *testing.T, dsn string) *sql.DB {
 	t.Helper()
-	cfg := db.Config{
+	cfg := Config{
 		MaxOpenConns: 25,
 		MaxIdleConns: 25,
 		MaxIdleTime:  "15m",
 		Dsn:          dsn,
 	}
 	// start a container
-	err := startDockerPostgres(t)
-	assertNoError(t, err)
+	err := StartDockerPostgres(t)
+	tester.AssertNoError(t, err)
 	// open connection
-	db, err := db.OpenDB(cfg)
-	assertNoError(t, err)
+	db, err := OpenDB(cfg)
+	tester.AssertNoError(t, err)
 	// migrations
 	err = migrate.Up(cfg.Dsn)
-	assertNoError(t, err)
+	tester.AssertNoError(t, err)
 
 	return db
 }
 
 // starts postgress container with default testing credentials
-func startDockerPostgres(t *testing.T) error {
+func StartDockerPostgres(t *testing.T) error {
 	t.Helper()
 	ctx := context.Background()
 	req := testcontainers.ContainerRequest{
@@ -94,7 +80,7 @@ func startDockerPostgres(t *testing.T) error {
 }
 
 // Clears up the DB and loads fixtures from filepath
-func applyFixtures(t *testing.T, db *sql.DB, fixturesPath string) {
+func ApplyFixtures(t *testing.T, db *sql.DB, fixturesPath string) {
 	t.Helper()
 	fixtures, err := testfixtures.New(
 		testfixtures.Database(db),

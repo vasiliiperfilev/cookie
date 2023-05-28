@@ -11,6 +11,7 @@ import (
 
 	"github.com/vasiliiperfilev/cookie/internal/app"
 	"github.com/vasiliiperfilev/cookie/internal/data"
+	"github.com/vasiliiperfilev/cookie/internal/tester"
 )
 
 // bad request if incorrect json
@@ -101,16 +102,9 @@ func assertRegisterResponse(t *testing.T, body *bytes.Buffer, expectedUser data.
 	}
 }
 
-func assertNoError(t *testing.T, err error) {
-	t.Helper()
-	if err != nil {
-		t.Fatalf("Expected no error, but got %v", err)
-	}
-}
-
 func createRegisterRequest(t *testing.T, requestBody *bytes.Buffer, userInput data.RegisterUserInput) *http.Request {
 	json.NewEncoder(requestBody).Encode(userInput)
 	request, err := http.NewRequest(http.MethodPost, "/v1/user", requestBody)
-	assertNoError(t, err)
+	tester.AssertNoError(t, err)
 	return request
 }
