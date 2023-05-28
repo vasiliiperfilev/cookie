@@ -14,7 +14,7 @@ func (a *Application) tokenHandler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		handlePostToken(w, r, a)
 	default:
-		a.methodNotAllowedResponse(w, r, http.MethodGet)
+		a.methodNotAllowedResponse(w, r, http.MethodPost)
 	}
 }
 

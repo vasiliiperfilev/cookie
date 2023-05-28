@@ -8,7 +8,6 @@ import (
 
 type TokenModel interface {
 	New(userID int64, ttl time.Duration, scope string) (*Token, error)
-	Insert(token *Token) error
 	DeleteAllForUser(scope string, userID int64) error
 }
 
@@ -22,11 +21,11 @@ func (m PsqlTokenModel) New(userID int64, ttl time.Duration, scope string) (*Tok
 		return nil, err
 	}
 
-	err = m.Insert(token)
+	err = m.insert(token)
 	return token, err
 }
 
-func (m PsqlTokenModel) Insert(token *Token) error {
+func (m PsqlTokenModel) insert(token *Token) error {
 	query := `
         INSERT INTO tokens (hash, user_id, expiry, scope) 
         VALUES ($1, $2, $3, $4)`

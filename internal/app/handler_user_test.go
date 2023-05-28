@@ -18,7 +18,7 @@ func TestUserPost(t *testing.T) {
 	env := "testing"
 	cfg := app.Config{Port: 4000, Env: env}
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	models := data.Models{User: data.NewStubUserModel()}
+	models := data.Models{User: data.NewStubUserModel([]data.User{})}
 	server := app.New(cfg, logger, models)
 
 	t.Run("it allows registration with correct values", func(t *testing.T) {

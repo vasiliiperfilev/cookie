@@ -8,58 +8,55 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/vasiliiperfilev/cookie/internal/app"
 	"github.com/vasiliiperfilev/cookie/internal/data"
+	"github.com/vasiliiperfilev/cookie/internal/validator"
 )
 
-// bad request if incorrect json
-func TestAuthRegister(t *testing.T) {
-	env := "testing"
-	cfg := app.Config{Port: 4000, Env: env}
+func TestPostToken(t *testing.T) {
+	cfg := app.Config{Port: 4000, Env: "development"}
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	models := data.Models{User: data.NewStubUserModel()}
+	user := data.User{
+		Id:        1,
+		CreatedAt: time.Now(),
+		Email:     "test@test.com",
+		Type:      1,
+		ImageId:   "id",
+		Version:   1,
+	}
+	user.Password.Set("pa5$wOrd123")
+	models := data.Models{User: data.NewStubUserModel([]data.User{user}), Token: data.NewStubTokenModel([]data.Token{})}
 	server := app.New(cfg, logger, models)
 
-	t.Run("it allows registration with correct values", func(t *testing.T) {
-		userInput := data.RegisterUserInput{
-			Email:    "test@nowhere.com",
-			Password: "test123!A",
-			Type:     1,
-			ImageId:  "imageid",
-		}
-		expectedResponse := data.User{
-			Email:   userInput.Email,
-			Type:    userInput.Type,
-			ImageId: userInput.ImageId,
-		}
-		requestBody := new(bytes.Buffer)
-		request := createRegisterRequest(t, requestBody, userInput)
-		response := httptest.NewRecorder()
-		server.ServeHTTP(response, request)
-
-		assertStatus(t, response.Code, http.StatusOK)
-		assertContentType(t, response, app.JsonContentType)
-		assertRegisterResponse(t, response.Body, expectedResponse)
-	})
-
-	t.Run("it fails registration with duplicate email", func(t *testing.T) {
-		userInput := data.RegisterUserInput{
-			Email:    "test@nowhere.com",
-			Password: "test123!A",
-			Type:     1,
-			ImageId:  "imageid",
+	t.Run("it sends token response", func(t *testing.T) {
+		userInput := struct {
+			Email    string
+			Password string
+		}{
+			Email:    "test@test.com",
+			Password: "pa5$wOrd123",
 		}
 		requestBody := new(bytes.Buffer)
 		json.NewEncoder(requestBody).Encode(userInput)
-
-		request := createRegisterRequest(t, requestBody, userInput)
+		request, _ := http.NewRequest(http.MethodPost, "/v1/token", requestBody)
 		response := httptest.NewRecorder()
-		server.ServeHTTP(httptest.NewRecorder(), request)
-		// second request with the same email
-		request = createRegisterRequest(t, requestBody, userInput)
 		server.ServeHTTP(response, request)
 
-		assertStatus(t, response.Code, http.StatusUnprocessableEntity)
+		assertStatus(t, response.Code, http.StatusCreated)
+		assertContentType(t, response, app.JsonContentType)
+		assertTokenResponse(t, response.Body)
 	})
+}
+
+func assertTokenResponse(t *testing.T, body *bytes.Buffer) {
+	t.Helper()
+	var response data.Token
+	v := validator.New()
+	json.NewDecoder(body).Decode(&response)
+	data.ValidateTokenPlaintext(v, response.Plaintext)
+	if len(v.Errors) != 0 {
+		t.Fatalf("Incorrect token %v", v.Errors)
+	}
 }

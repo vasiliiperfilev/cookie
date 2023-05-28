@@ -36,6 +36,6 @@ func (s *StubUserModel) Update(user *User) error {
 	return nil
 }
 
-func NewStubUserModel() *StubUserModel {
-	return &StubUserModel{users: []User{}}
+func NewStubUserModel(users []User) *StubUserModel {
+	return &StubUserModel{users: users}
 }
