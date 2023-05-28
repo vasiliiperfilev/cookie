@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS app_user (
-    user_id bigserial PRIMARY KEY,  
+    app_user_id bigserial PRIMARY KEY,  
     created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
     email citext UNIQUE NOT NULL,
     password_hash bytea NOT NULL,

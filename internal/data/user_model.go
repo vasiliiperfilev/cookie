@@ -21,7 +21,7 @@ func (m PsqlUserModel) Insert(user *User) error {
 	query := `
         INSERT INTO app_user (email, password_hash, user_type_id) 
         VALUES ($1, $2, $3)
-        RETURNING user_id, created_at, version`
+        RETURNING app_user_id, created_at, version`
 
 	args := []any{user.Email, user.Password.hash, user.Type}
 
@@ -45,8 +45,8 @@ func (m PsqlUserModel) Insert(user *User) error {
 
 func (m PsqlUserModel) GetByEmail(email string) (*User, error) {
 	query := `
-        SELECT user_id, created_at, email, password_hash, user_type_id, version
-        FROM users
+        SELECT app_user_id, created_at, email, password_hash, user_type_id, version
+        FROM app_user
         WHERE email = $1`
 
 	var user User
@@ -59,6 +59,7 @@ func (m PsqlUserModel) GetByEmail(email string) (*User, error) {
 		&user.CreatedAt,
 		&user.Email,
 		&user.Password.hash,
+		&user.Type,
 		&user.Version,
 	)
 
@@ -81,9 +82,9 @@ func (m PsqlUserModel) GetByEmail(email string) (*User, error) {
 // record originally.
 func (m PsqlUserModel) Update(user *User) error {
 	query := `
-        UPDATE users 
+        UPDATE app_user 
         SET email = $1, password_hash = $2, version = version + 1
-        WHERE id = $3 AND version = $4
+        WHERE app_user_id = $3 AND version = $4
         RETURNING version`
 
 	args := []any{

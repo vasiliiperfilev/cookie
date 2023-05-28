@@ -24,7 +24,7 @@ func (s *StubTokenModel) New(userID int64, ttl time.Duration, scope string) (*To
 
 func (s *StubTokenModel) DeleteAllForUser(scope string, userID int64) error {
 	for i, token := range s.tokens {
-		if token.Scope == scope && token.UserID == userID {
+		if token.Scope == scope && token.UserId == userID {
 			s.tokens = remove(s.tokens, i)
 		}
 	}
