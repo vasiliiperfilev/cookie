@@ -2,7 +2,7 @@ package data
 
 type StubUserModel struct {
 	users   []User
-	idCount int
+	idCount int64
 }
 
 func (s *StubUserModel) Insert(user *User) error {

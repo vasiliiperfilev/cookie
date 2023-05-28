@@ -8,7 +8,16 @@ import (
 	"github.com/vasiliiperfilev/cookie/internal/validator"
 )
 
-func (a *Application) authRegisterHandler(w http.ResponseWriter, r *http.Request) {
+func (a *Application) userHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
+		handlePostUser(w, r, a)
+	default:
+		a.methodNotAllowedResponse(w, r, http.MethodPost)
+	}
+}
+
+func handlePostUser(w http.ResponseWriter, r *http.Request, a *Application) {
 	registerUserInput := new(data.RegisterUserInput)
 	err := readJSON(w, r, registerUserInput)
 	if err != nil {

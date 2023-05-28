@@ -24,7 +24,7 @@ func TestReadJson(t *testing.T) {
 		}
 		requestBody := new(bytes.Buffer)
 		json.NewEncoder(requestBody).Encode(got)
-		request, _ := http.NewRequest(http.MethodPost, "/v1/auth/register", requestBody)
+		request, _ := http.NewRequest(http.MethodPost, "/v1/user", requestBody)
 		err := readJSON(httptest.NewRecorder(), request, &want)
 		assertError(t, err)
 	})
@@ -36,7 +36,7 @@ func TestReadJson(t *testing.T) {
 		}{
 			TestField: "",
 		}
-		request, _ := http.NewRequest(http.MethodPost, "/v1/auth/register", bytes.NewBuffer(requestBody))
+		request, _ := http.NewRequest(http.MethodPost, "/v1/user", bytes.NewBuffer(requestBody))
 		err := readJSON(httptest.NewRecorder(), request, &want)
 		assertError(t, err)
 	})
@@ -48,7 +48,7 @@ func TestReadJson(t *testing.T) {
 		}{
 			TestField: 0,
 		}
-		request, _ := http.NewRequest(http.MethodPost, "/v1/auth/register", bytes.NewBuffer(requestBody))
+		request, _ := http.NewRequest(http.MethodPost, "/v1/user", bytes.NewBuffer(requestBody))
 		err := readJSON(httptest.NewRecorder(), request, &want)
 		assertError(t, err)
 	})
@@ -60,7 +60,7 @@ func TestReadJson(t *testing.T) {
 		}{
 			TestField: 0,
 		}
-		request, _ := http.NewRequest(http.MethodPost, "/v1/auth/register", bytes.NewBuffer(requestBody))
+		request, _ := http.NewRequest(http.MethodPost, "/v1/user", bytes.NewBuffer(requestBody))
 		err := readJSON(httptest.NewRecorder(), request, &want)
 		assertError(t, err)
 	})
@@ -72,7 +72,7 @@ func TestReadJson(t *testing.T) {
 		}{
 			TestField: "",
 		}
-		request, _ := http.NewRequest(http.MethodPost, "/v1/auth/register", bytes.NewBuffer(requestBody))
+		request, _ := http.NewRequest(http.MethodPost, "/v1/user", bytes.NewBuffer(requestBody))
 		err := readJSON(httptest.NewRecorder(), request, &want)
 		assertError(t, err)
 	})

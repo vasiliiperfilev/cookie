@@ -7,14 +7,17 @@ import (
 
 var (
 	ErrRecordNotFound = errors.New("record not found")
+	ErrEditConflict   = errors.New("edit conflict")
 )
 
 type Models struct {
-	User IUserModel
+	User  UserModel
+	Token TokenModel
 }
 
 func NewModels(db *sql.DB) Models {
 	return Models{
-		User: UserModel{DB: db},
+		User:  PsqlUserModel{DB: db},
+		Token: PsqlTokenModel{DB: db},
 	}
 }

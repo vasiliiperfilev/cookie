@@ -1,8 +1,6 @@
 package data
 
 import (
-	"context"
-	"database/sql"
 	"errors"
 	"time"
 	"unicode"
@@ -13,12 +11,11 @@ import (
 
 var (
 	ErrDuplicateEmail = errors.New("duplicate email")
-	ErrEditConflict   = errors.New("edit conflict")
 )
 
 // add type enum
 type User struct {
-	Id        int       `json:"id"`
+	Id        int64     `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 	Email     string    `json:"email"`
 	Password  password  `json:"-"`
@@ -69,17 +66,25 @@ func (p *password) Matches(plaintextPassword string) (bool, error) {
 }
 
 func ValidateRegisterUserInput(v *validator.Validator, input *RegisterUserInput) {
-	v.Check(input.Email != "", "email", "must be provided")
-	v.Check(validator.Matches(input.Email, validator.EmailRX), "email", "must be an email")
+	ValidateEmail(v, input.Email)
 
-	v.Check(verifyPassword(input.Password), "password", "must be at least 8 chars, have a special symbol, number, lower and upper case letter")
+	ValidatePasswordPlaintext(v, input.Password)
 
 	v.Check(verifyUserType(input.Type), "type", "must be a valid user type")
 
 	v.Check(input.ImageId != "", "imageId", "must be provided")
 }
 
-func verifyPassword(s string) bool {
+func ValidateEmail(v *validator.Validator, email string) {
+	v.Check(email != "", "email", "must be provided")
+	v.Check(validator.Matches(email, validator.EmailRX), "email", "must be an email")
+}
+
+func ValidatePasswordPlaintext(v *validator.Validator, password string) {
+	v.Check(verifyNewPassword(password), "password", "must be at least 8 chars, have a special symbol, number, lower and upper case letter")
+}
+
+func verifyNewPassword(s string) bool {
 	number := false
 	upper := false
 	lower := false
@@ -113,108 +118,4 @@ func verifyUserType(i int) bool {
 		}
 	}
 	return false
-}
-
-type IUserModel interface {
-	Insert(user *User) error
-	GetByEmail(email string) (*User, error)
-	Update(user *User) error
-}
-
-type UserModel struct {
-	DB *sql.DB
-}
-
-func (m UserModel) Insert(user *User) error {
-	query := `
-        INSERT INTO app_user (email, password_hash, user_type_id) 
-        VALUES ($1, $2, $3)
-        RETURNING user_id, created_at, version`
-
-	args := []any{user.Email, user.Password.hash, user.Type}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	// We check for a violation of the UNIQUE "users_email_key"
-	// specifically, and return custom ErrDuplicateEmail error instead.
-	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.Id, &user.CreatedAt, &user.Version)
-	if err != nil {
-		switch {
-		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
-			return ErrDuplicateEmail
-		default:
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (m UserModel) GetByEmail(email string) (*User, error) {
-	query := `
-        SELECT user_id, created_at, email, password_hash, user_type_id, version
-        FROM users
-        WHERE email = $1`
-
-	var user User
-
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	err := m.DB.QueryRowContext(ctx, query, email).Scan(
-		&user.Id,
-		&user.CreatedAt,
-		&user.Email,
-		&user.Password.hash,
-		&user.Version,
-	)
-
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return nil, ErrRecordNotFound
-		default:
-			return nil, err
-		}
-	}
-
-	return &user, nil
-}
-
-// Update the details for a specific user. Notice that we check against the version
-// field to help prevent any race conditions during the request cycle, just like we did
-// when updating a movie. And we also check for a violation of the "users_email_key"
-// constraint when performing the update, just like we did when inserting the user
-// record originally.
-func (m UserModel) Update(user *User) error {
-	query := `
-        UPDATE users 
-        SET email = $1, password_hash = $2, version = version + 1
-        WHERE id = $3 AND version = $4
-        RETURNING version`
-
-	args := []any{
-		user.Email,
-		user.Password.hash,
-		user.Id,
-		user.Version,
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.Version)
-	if err != nil {
-		switch {
-		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
-			return ErrDuplicateEmail
-		case errors.Is(err, sql.ErrNoRows):
-			return ErrEditConflict
-		default:
-			return err
-		}
-	}
-
-	return nil
 }

@@ -63,35 +63,3 @@ func TestAuthRegister(t *testing.T) {
 		assertStatus(t, response.Code, http.StatusUnprocessableEntity)
 	})
 }
-
-func assertRegisterResponse(t *testing.T, body *bytes.Buffer, expectedUser data.User) {
-	t.Helper()
-	var response data.User
-	json.NewDecoder(body).Decode(&response)
-
-	if response.Email != expectedUser.Email {
-		t.Fatalf("Expected email to be %v, got %v", expectedUser.Email, response.Email)
-	}
-
-	if response.Type != expectedUser.Type {
-		t.Fatalf("Expected type to be %v, got %v", expectedUser.Type, response.Type)
-	}
-
-	if response.ImageId != expectedUser.ImageId {
-		t.Fatalf("Expected email to be %v, got %v", expectedUser.ImageId, response.ImageId)
-	}
-}
-
-func assertNoError(t *testing.T, err error) {
-	t.Helper()
-	if err != nil {
-		t.Fatalf("Expected no error, but got %v", err)
-	}
-}
-
-func createRegisterRequest(t *testing.T, requestBody *bytes.Buffer, userInput data.RegisterUserInput) *http.Request {
-	json.NewEncoder(requestBody).Encode(userInput)
-	request, err := http.NewRequest(http.MethodPost, "/v1/auth/register", requestBody)
-	assertNoError(t, err)
-	return request
-}

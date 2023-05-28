@@ -29,7 +29,7 @@ const (
 )
 
 // can register and log in
-func TestIntegrationAuthRegister(t *testing.T) {
+func TestIntegrationUserPost(t *testing.T) {
 	dbCfg := app.DbConfig{
 		MaxOpenConns: 25,
 		MaxIdleConns: 25,
@@ -60,7 +60,7 @@ func TestIntegrationAuthRegister(t *testing.T) {
 		requestBody := new(bytes.Buffer)
 		json.NewEncoder(requestBody).Encode(userInput)
 
-		request, err := http.NewRequest(http.MethodPost, "/v1/auth/register", requestBody)
+		request, err := http.NewRequest(http.MethodPost, "/v1/user", requestBody)
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
 

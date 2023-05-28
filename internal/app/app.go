@@ -41,7 +41,8 @@ func New(config Config, logger *log.Logger, models data.Models) *Application {
 	router := http.NewServeMux()
 	router.Handle("/", http.HandlerFunc(a.notFoundResponse))
 	router.Handle("/v1/healthcheck", http.HandlerFunc(a.healthcheckHandler))
-	router.Handle("/v1/auth/register", http.HandlerFunc(a.authRegisterHandler))
+	router.Handle("/v1/user", http.HandlerFunc(a.userHandler))
+	router.Handle("/v1/token", http.HandlerFunc(a.tokenHandler))
 
 	a.Handler = router
 	return a
