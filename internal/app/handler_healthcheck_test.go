@@ -14,32 +14,25 @@ import (
 )
 
 func TestHealthcheckHandler(t *testing.T) {
+	cfg := app.Config{Port: 4000, Env: "development"}
+	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	models := data.Models{User: data.NewStubUserModel([]data.User{})}
+	server := app.New(cfg, logger, models)
 	t.Run("it returns health status", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/v1/healthcheck", nil)
 		response := httptest.NewRecorder()
-
-		env := "testing"
-		cfg := app.Config{Port: 4000, Env: env}
-		logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-		models := data.Models{User: data.NewStubUserModel()}
-		server := app.New(cfg, logger, models)
 		server.ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
 		assertContentType(t, response, app.JsonContentType)
 
 		got := getAppStateFromResponse(t, response.Body)
-		assertEnv(t, got.Env, env)
+		assertEnv(t, got.Env, "development")
 	})
 	t.Run("can't POST", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodPost, "/v1/healthcheck", nil)
 		response := httptest.NewRecorder()
 
-		env := "testing"
-		cfg := app.Config{Port: 4000, Env: env}
-		logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-		models := data.Models{User: data.NewStubUserModel()}
-		server := app.New(cfg, logger, models)
 		server.ServeHTTP(response, request)
 		assertHeader(t, response.Header().Get("Allow"), http.MethodGet)
 		assertStatus(t, response.Code, http.StatusMethodNotAllowed)
