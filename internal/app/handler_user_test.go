@@ -69,10 +69,6 @@ func TestUserPost(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodPost, "/v1/user", requestBody)
 		response := httptest.NewRecorder()
 
-		cfg := app.Config{Port: 4000, Env: "development"}
-		logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-		models := data.Models{User: data.NewStubUserModel()}
-		server := app.New(cfg, logger, models)
 		server.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusBadRequest)
 	})
@@ -81,10 +77,6 @@ func TestUserPost(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/v1/user", nil)
 		response := httptest.NewRecorder()
 
-		cfg := app.Config{Port: 4000, Env: "development"}
-		logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-		models := data.Models{User: data.NewStubUserModel()}
-		server := app.New(cfg, logger, models)
 		server.ServeHTTP(response, request)
 		assertHeader(t, response.Header().Get("Allow"), http.MethodPost)
 		assertStatus(t, response.Code, http.StatusMethodNotAllowed)
