@@ -14,7 +14,11 @@ type UserModel interface {
 }
 
 type PsqlUserModel struct {
-	DB *sql.DB
+	db *sql.DB
+}
+
+func NewPsqlUserModel(db *sql.DB) *PsqlUserModel {
+	return &PsqlUserModel{db: db}
 }
 
 func (m PsqlUserModel) Insert(user *User) error {
@@ -30,7 +34,7 @@ func (m PsqlUserModel) Insert(user *User) error {
 
 	// We check for a violation of the UNIQUE "users_email_key"
 	// specifically, and return custom ErrDuplicateEmail error instead.
-	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.Id, &user.CreatedAt, &user.Version)
+	err := m.db.QueryRowContext(ctx, query, args...).Scan(&user.Id, &user.CreatedAt, &user.Version)
 	if err != nil {
 		switch {
 		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
@@ -54,7 +58,7 @@ func (m PsqlUserModel) GetByEmail(email string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.QueryRowContext(ctx, query, email).Scan(
+	err := m.db.QueryRowContext(ctx, query, email).Scan(
 		&user.Id,
 		&user.CreatedAt,
 		&user.Email,
@@ -97,7 +101,7 @@ func (m PsqlUserModel) Update(user *User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&user.Version)
+	err := m.db.QueryRowContext(ctx, query, args...).Scan(&user.Version)
 	if err != nil {
 		switch {
 		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:

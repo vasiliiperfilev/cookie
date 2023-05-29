@@ -79,7 +79,7 @@ func StartDockerPostgres(t *testing.T) error {
 	return nil
 }
 
-// Clears up the DB and loads fixtures from filepath
+// Clears up the DB and loads fixtures from filepath relative to database package or absolute
 func ApplyFixtures(t *testing.T, db *sql.DB, fixturesPath string) {
 	t.Helper()
 	fixtures, err := testfixtures.New(

@@ -19,6 +19,6 @@ func AssertNoError(t *testing.T, err error) {
 func AssertError(t *testing.T, err error) {
 	t.Helper()
 	if err == nil {
-		t.Fatalf("Expected to have a error %s, but got nil", err)
+		t.Fatalf("Expected to have a error, but got nil")
 	}
 }

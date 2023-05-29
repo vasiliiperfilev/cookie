@@ -17,7 +17,7 @@ type Models struct {
 
 func NewModels(db *sql.DB) Models {
 	return Models{
-		User:  PsqlUserModel{DB: db},
-		Token: PsqlTokenModel{DB: db},
+		User:  NewPsqlUserModel(db),
+		Token: NewPsqlTokenModel(db),
 	}
 }

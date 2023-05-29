@@ -12,7 +12,11 @@ type TokenModel interface {
 }
 
 type PsqlTokenModel struct {
-	DB *sql.DB
+	db *sql.DB
+}
+
+func NewPsqlTokenModel(db *sql.DB) *PsqlTokenModel {
+	return &PsqlTokenModel{db: db}
 }
 
 func (m PsqlTokenModel) New(userID int64, ttl time.Duration, scope string) (*Token, error) {
@@ -35,7 +39,7 @@ func (m PsqlTokenModel) insert(token *Token) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err := m.DB.ExecContext(ctx, query, args...)
+	_, err := m.db.ExecContext(ctx, query, args...)
 	return err
 }
 
@@ -47,6 +51,6 @@ func (m PsqlTokenModel) DeleteAllForUser(scope string, userID int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err := m.DB.ExecContext(ctx, query, scope, userID)
+	_, err := m.db.ExecContext(ctx, query, scope, userID)
 	return err
 }
