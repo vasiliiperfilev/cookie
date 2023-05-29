@@ -6,7 +6,7 @@ services:
     container_name: cookie-postgres
     user: postgres
     ports:
-      - 5432:5432
+      - 54350:5432
     environment:
       POSTGRES_DB: cookie
       POSTGRES_USER: cookie

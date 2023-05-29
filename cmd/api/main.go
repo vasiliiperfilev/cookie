@@ -11,12 +11,12 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/vasiliiperfilev/cookie/internal/app"
 	"github.com/vasiliiperfilev/cookie/internal/data"
-	"github.com/vasiliiperfilev/cookie/internal/db"
+	"github.com/vasiliiperfilev/cookie/internal/database"
 )
 
 func main() {
 	var cfg app.Config
-	var dbCfg db.Config
+	var dbCfg database.Config
 
 	flag.IntVar(&cfg.Port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.Env, "env", "development", "Environment (development|staging|production)")
@@ -29,7 +29,7 @@ func main() {
 
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 
-	db, err := db.OpenDB(dbCfg)
+	db, err := database.OpenDB(dbCfg)
 	if err != nil {
 		logger.Fatal(err)
 	}
