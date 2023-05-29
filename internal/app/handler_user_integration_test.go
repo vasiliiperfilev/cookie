@@ -23,10 +23,10 @@ func TestIntegrationUserPost(t *testing.T) {
 		database.POSTGRES_PORT,
 		database.POSTGRES_DB,
 	)
-	db := database.PrepareTestDb(t, dsn)
-	server := app.PrepareServer(db, 4000)
 
 	t.Run("it allows registration with correct values", func(t *testing.T) {
+		db := database.PrepareTestDb(t, dsn)
+		server := app.PrepareServer(db, 4000)
 		database.ApplyFixtures(t, db, "../fixtures")
 		userInput := data.RegisterUserInput{
 			Email:    "test@nowhere.com",

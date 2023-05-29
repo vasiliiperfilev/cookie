@@ -5,6 +5,10 @@ type StubUserModel struct {
 	idCount int64
 }
 
+func NewStubUserModel(users []User) *StubUserModel {
+	return &StubUserModel{users: users}
+}
+
 func (s *StubUserModel) Insert(user *User) error {
 	if _, err := s.GetByEmail(user.Email); err == nil {
 		return ErrDuplicateEmail
@@ -36,6 +40,6 @@ func (s *StubUserModel) Update(user *User) error {
 	return nil
 }
 
-func NewStubUserModel(users []User) *StubUserModel {
-	return &StubUserModel{users: users}
+func (s *StubUserModel) GetForToken(tokenScope, tokenPlaintext string) (*User, error) {
+	return nil, nil
 }

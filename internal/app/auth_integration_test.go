@@ -1,7 +1,6 @@
 package app_test
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -14,7 +13,7 @@ import (
 	"github.com/vasiliiperfilev/cookie/internal/tester"
 )
 
-func TestIntegrationTokenPost(t *testing.T) {
+func TestAuthenticateRequest(t *testing.T) {
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@localhost:%s/%s?sslmode=disable",
 		database.POSTGRES_USER,
@@ -22,10 +21,10 @@ func TestIntegrationTokenPost(t *testing.T) {
 		database.POSTGRES_PORT,
 		database.POSTGRES_DB,
 	)
+	db := database.PrepareTestDb(t, dsn)
+	server := app.PrepareServer(db, 4000)
 
-	t.Run("it returns a token after creating a user", func(t *testing.T) {
-		db := database.PrepareTestDb(t, dsn)
-		server := app.PrepareServer(db, 4000)
+	t.Run("it returns a user from token", func(t *testing.T) {
 		database.ApplyFixtures(t, db, "../fixtures")
 		email := "test@nowhere.com"
 		password := "test123!A"
@@ -43,20 +42,23 @@ func TestIntegrationTokenPost(t *testing.T) {
 		}
 		response := loginUser(t, server, loginInput)
 
-		assertStatus(t, response.Code, http.StatusCreated)
-		assertContentType(t, response, app.JsonContentType)
-		assertTokenResponse(t, response.Body)
+		var token data.Token
+		json.NewDecoder(response.Body).Decode(&token)
+
+		user := authRequest(t, server, token)
+		tester.AssertValue(t, user.Email, registerInput.Email, "same email")
+		tester.AssertValue(t, user.ImageId, registerInput.ImageId, "same image id")
+		tester.AssertValue(t, user.Type, registerInput.Type, "same type")
 	})
 }
 
-func loginUser(t *testing.T, server http.Handler, input map[string]string) *httptest.ResponseRecorder {
+func authRequest(t *testing.T, server *app.Application, token data.Token) *data.User {
 	t.Helper()
-	requestBody := new(bytes.Buffer)
-	json.NewEncoder(requestBody).Encode(input)
-
-	request, err := http.NewRequest(http.MethodPost, "/v1/token", requestBody)
+	request, err := http.NewRequest(http.MethodPost, "/v1/token", nil)
 	tester.AssertNoError(t, err)
+	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token.Plaintext))
 	response := httptest.NewRecorder()
-	server.ServeHTTP(response, request)
-	return response
+	user, err := server.AuthenticateRequest(response, request)
+	tester.AssertNoError(t, err)
+	return user
 }

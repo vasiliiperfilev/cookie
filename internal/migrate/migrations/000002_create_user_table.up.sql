@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS app_user (
     email citext UNIQUE NOT NULL,
     password_hash bytea NOT NULL,
     user_type_id smallint NOT NULL,
+    image_id varchar(255) NOT NULL,
     version integer NOT NULL DEFAULT 1
 );
 

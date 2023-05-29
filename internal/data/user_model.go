@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"time"
@@ -11,6 +12,7 @@ type UserModel interface {
 	Insert(user *User) error
 	GetByEmail(email string) (*User, error)
 	Update(user *User) error
+	GetForToken(tokenScope, tokenPlaintext string) (*User, error)
 }
 
 type PsqlUserModel struct {
@@ -23,11 +25,11 @@ func NewPsqlUserModel(db *sql.DB) *PsqlUserModel {
 
 func (m PsqlUserModel) Insert(user *User) error {
 	query := `
-        INSERT INTO app_user (email, password_hash, user_type_id) 
-        VALUES ($1, $2, $3)
+        INSERT INTO app_user (email, password_hash, user_type_id, image_id) 
+        VALUES ($1, $2, $3, $4)
         RETURNING app_user_id, created_at, version`
 
-	args := []any{user.Email, user.Password.hash, user.Type}
+	args := []any{user.Email, user.Password.hash, user.Type, user.ImageId}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -114,4 +116,52 @@ func (m PsqlUserModel) Update(user *User) error {
 	}
 
 	return nil
+}
+
+func (m PsqlUserModel) GetForToken(tokenScope, tokenPlaintext string) (*User, error) {
+	// Calculate the SHA-256 hash of the plaintext token provided by the client.
+	// Remember that this returns a byte *array* with length 32, not a slice.
+	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
+
+	query := `
+        SELECT a.app_user_id, a.created_at, a.email, a.password_hash, a.user_type_id, a.image_id, a.version
+        FROM app_user as a
+        INNER JOIN token as t
+        ON a.app_user_id = t.app_user_id
+        WHERE t.hash = $1
+        AND t.scope = $2 
+        AND t.expiry > $3`
+
+	// Create a slice containing the query arguments. Notice how we use the [:] operator
+	// to get a slice containing the token hash, rather than passing in the array (which
+	// is not supported by the pq driver)
+	args := []any{tokenHash[:], tokenScope, time.Now()}
+
+	var user User
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Execute the query, scanning the return values into a User struct. If no matching
+	// record is found we return an ErrRecordNotFound error.
+	err := m.db.QueryRowContext(ctx, query, args...).Scan(
+		&user.Id,
+		&user.CreatedAt,
+		&user.Email,
+		&user.Password.hash,
+		&user.Type,
+		&user.ImageId,
+		&user.Version,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	// Return the matching user.
+	return &user, nil
 }

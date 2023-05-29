@@ -1,10 +1,13 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 )
+
+var ErrUnathorized = errors.New("Unathorized")
 
 func (a *Application) logError(r *http.Request, err error) {
 	a.logger.Print(err)
@@ -54,5 +57,12 @@ func (a *Application) editConflictResponse(w http.ResponseWriter, r *http.Reques
 
 func (a *Application) invalidCredentialsResponse(w http.ResponseWriter, r *http.Request) {
 	message := "invalid authentication credentials"
+	a.errorResponse(w, r, http.StatusUnauthorized, message)
+}
+
+func (a *Application) invalidAuthenticationTokenResponse(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("WWW-Authenticate", "Bearer")
+
+	message := "invalid or missing authentication token"
 	a.errorResponse(w, r, http.StatusUnauthorized, message)
 }
