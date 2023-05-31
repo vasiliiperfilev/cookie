@@ -33,7 +33,7 @@ func New(config Config, logger *log.Logger, models data.Models) *Application {
 	router.Handle("/v1/user", http.HandlerFunc(a.userHandler))
 	router.Handle("/v1/token", http.HandlerFunc(a.tokenHandler))
 
-	a.Handler = router
+	a.Handler = a.setAccessControlHeaders(router)
 	return a
 }
 
