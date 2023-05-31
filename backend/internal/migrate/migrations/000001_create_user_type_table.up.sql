@@ -5,3 +5,8 @@ CREATE TABLE IF NOT EXISTS user_type (
 
 ALTER TABLE user_type ADD CONSTRAINT user_type_type_name_max_len_check CHECK (char_length(type_name) <= 255);
 ALTER TABLE user_type ADD CONSTRAINT user_type_type_name_min_len_check CHECK (char_length(type_name) > 0);
+
+INSERT INTO user_type (user_type_id, type_name)
+VALUES 
+    (1, 'supplier'),
+    (2, 'business');
