@@ -11,10 +11,12 @@ export class UserResponse {
   }
 }
 
-export class FormErrors {
-  error: Record<keyof UserRequest, string>;
+export class FormErrors<T> {
+  message: string;
+  errors: Record<keyof T, string>;
 
-  constructor(error: Record<string, string>) {
-    this.error = error;
+  constructor(message: string, error: Record<keyof T, string>) {
+    this.errors = error;
+    this.message = message;
   }
 }

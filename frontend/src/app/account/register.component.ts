@@ -32,7 +32,7 @@ export const passwordMatchingValidatior: ValidatorFn = (
 export class RegisterComponent {
   loading = false;
   submitted = false;
-  serverError: FormErrors | null = null;
+  serverError: FormErrors<UserRequest> | null = null;
   form = new FormGroup(
     {
       email: new FormControl('', [Validators.required, Validators.email]),
@@ -97,8 +97,9 @@ export class RegisterComponent {
           this.router.navigate(['../login'], { relativeTo: this.route });
         },
         error: (error: HttpErrorResponse) => {
+          this.alertService.error(error.error.message);
           this.loading = false;
-          this.serverError = error.error as FormErrors;
+          this.serverError = error.error as FormErrors<UserRequest>;
         },
       });
   }

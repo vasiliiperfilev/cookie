@@ -1,22 +1,25 @@
-import { Component, OnInit } from "@angular/core";
-import { Router, ActivatedRoute } from "@angular/router";
+import { Component, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import {
   FormBuilder,
   FormControl,
   FormGroup,
-  Validators
-} from "@angular/forms";
-import { first } from "rxjs/operators";
+  Validators,
+} from '@angular/forms';
+import { first } from 'rxjs/operators';
 
-import { AlertService, UserService } from "@app/_services";
+import { AlertService, UserService } from '@app/_services';
+import { FormErrors, TokenRequest } from '@app/_models';
+import { HttpErrorResponse } from '@angular/common/http';
 
-@Component({ templateUrl: "login.component.html" })
+@Component({ templateUrl: 'login.component.html' })
 export class LoginComponent {
   loading = false;
   submitted = false;
+  serverError: FormErrors<TokenRequest> | null = null;
   form = this.formBuilder.group({
-    email: ["", Validators.required],
-    password: ["", Validators.required]
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', Validators.required],
   });
 
   constructor(
@@ -50,13 +53,15 @@ export class LoginComponent {
       .subscribe({
         next: () => {
           // get return url from query parameters or default to home page
-          const returnUrl = this.route.snapshot.queryParams["returnUrl"] || "/";
+          const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
           this.router.navigateByUrl(returnUrl);
-        },
-        error: (error) => {
-          this.alertService.error(error);
           this.loading = false;
-        }
+        },
+        error: (error: HttpErrorResponse) => {
+          this.alertService.error(error.error.message);
+          this.loading = false;
+          this.serverError = error.error as FormErrors<TokenRequest>;
+        },
       });
   }
 }
