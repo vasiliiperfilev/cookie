@@ -25,12 +25,18 @@ services:
       cookie-postgres:
         condition: service_healthy
     volumes:
-      - ./migrations:/migrations
+      - ./internal/migrate/migrations:/migrations
     command:
-      [ "-path", "/migrations", "-database",  "postgres://cookie:cookie@cookie-postgres:5432/cookie?sslmode=disable", "up" ]
+      [
+        "-path",
+        "/migrations",
+        "-database",
+        "postgres://cookie:cookie@cookie-postgres:5432/cookie?sslmode=disable",
+        "up"
+      ]
 
   cookie-app:
-    build: 
+    build:
       context: ./
       dockerfile: ./cmd/api/dockerfile
     container_name: cookie-app
