@@ -13,6 +13,12 @@ func (a *Application) tokenHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
 		handlePostToken(w, r, a)
+	case http.MethodOptions:
+		w.Header().Set("Allow", http.MethodPost)
+		err := writeJSON(w, http.StatusOK, nil, nil)
+		if err != nil {
+			a.serverErrorResponse(w, r, err)
+		}
 	default:
 		a.methodNotAllowedResponse(w, r, http.MethodPost)
 	}
