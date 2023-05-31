@@ -9,6 +9,11 @@ import (
 	"github.com/vasiliiperfilev/cookie/internal/validator"
 )
 
+type HandlerTokenResponse struct {
+	User  *data.User  `json:"user"`
+	Token *data.Token `json:"token"`
+}
+
 func (a *Application) tokenHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
@@ -78,7 +83,7 @@ func handlePostToken(w http.ResponseWriter, r *http.Request, a *Application) {
 		return
 	}
 
-	err = writeJSON(w, http.StatusCreated, token, nil)
+	err = writeJSON(w, http.StatusCreated, HandlerTokenResponse{User: user, Token: token}, nil)
 	if err != nil {
 		a.serverErrorResponse(w, r, err)
 	}

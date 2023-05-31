@@ -48,17 +48,20 @@ func TestPostToken(t *testing.T) {
 
 		assertStatus(t, response.Code, http.StatusCreated)
 		assertContentType(t, response, app.JsonContentType)
-		assertTokenResponse(t, response.Body)
+		assertTokenResponse(t, response.Body, user.Id)
 	})
 }
 
-func assertTokenResponse(t *testing.T, body *bytes.Buffer) {
+func assertTokenResponse(t *testing.T, body *bytes.Buffer, userId int64) {
 	t.Helper()
-	var response data.Token
+	var response app.HandlerTokenResponse
 	v := validator.New()
 	json.NewDecoder(body).Decode(&response)
-	data.ValidateTokenPlaintext(v, response.Plaintext)
+	data.ValidateTokenPlaintext(v, response.Token.Plaintext)
 	if len(v.Errors) != 0 {
 		t.Fatalf("Incorrect token %v", v.Errors)
+	}
+	if response.User.Id != userId {
+		t.Fatalf("Incorrect user returned, expected user id %v, got %v", userId, response.User.Id)
 	}
 }

@@ -35,7 +35,9 @@ func TestIntegrationTokenPost(t *testing.T) {
 			Type:     1,
 			ImageId:  "imageid",
 		}
-		registerUser(t, server, registerInput)
+		userResponse := registerUser(t, server, registerInput)
+		var user data.User
+		json.NewDecoder(userResponse.Body).Decode(&user)
 
 		loginInput := map[string]string{
 			"Email":    email,
@@ -45,7 +47,7 @@ func TestIntegrationTokenPost(t *testing.T) {
 
 		assertStatus(t, response.Code, http.StatusCreated)
 		assertContentType(t, response, app.JsonContentType)
-		assertTokenResponse(t, response.Body)
+		assertTokenResponse(t, response.Body, user.Id)
 	})
 }
 
