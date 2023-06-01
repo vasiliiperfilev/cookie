@@ -148,6 +148,23 @@ func TestUserModelIntegration(t *testing.T) {
 		tester.AssertValue(t, gotUser.Email, insertedUser.Email, "Expect same emails")
 		tester.AssertValue(t, gotUser.Id, insertedUser.Id, "Expect same id")
 	})
+
+	t.Run("it can't insert 2 users with the same email", func(t *testing.T) {
+		model := data.NewPsqlUserModel(db)
+		insertedUser := data.User{
+			Email:   "testito228@test.com",
+			Type:    1,
+			ImageId: "id",
+		}
+		insertedUser.Password.Set("pa5$wOrd123")
+		err := model.Insert(&insertedUser)
+		tester.AssertNoError(t, err)
+		err = model.Insert(&insertedUser)
+		if err != data.ErrDuplicateEmail {
+			t.Fatalf("Expected duplicate error error")
+		}
+	})
+
 }
 
 func assertErrorKeys(t *testing.T, keys []string, errors map[string]string) {
