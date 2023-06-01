@@ -14,11 +14,11 @@ require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
 	github.com/go-faster/errors v0.6.1 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/paulmach/orb v0.9.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
-	go.uber.org/atomic v1.10.0 // indirect
 	gotest.tools/v3 v3.4.0 // indirect
 )
 
@@ -49,11 +49,8 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/go-testfixtures/testfixtures/v3 v3.9.0
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/imdario/mergo v0.3.15 // indirect
 	github.com/klauspost/compress v1.16.5 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
