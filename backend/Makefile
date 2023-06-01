@@ -2,6 +2,7 @@ export SHELL:=/bin/bash
 export SHELLOPTS:=$(if $(SHELLOPTS),$(SHELLOPTS):)pipefail:errexit
 
 .ONESHELL:
+.PHONY: test
 #   Usage:
 #       make test norace=1
 #           Expl: run WITHOUT race conditions
