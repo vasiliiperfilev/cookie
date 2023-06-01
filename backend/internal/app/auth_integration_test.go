@@ -13,7 +13,7 @@ import (
 	"github.com/vasiliiperfilev/cookie/internal/tester"
 )
 
-func TestAuthenticateRequest(t *testing.T) {
+func TestIntegrationAuthenticateRequest(t *testing.T) {
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@localhost:%s/%s?sslmode=disable",
 		database.POSTGRES_USER,
@@ -22,11 +22,10 @@ func TestAuthenticateRequest(t *testing.T) {
 		database.POSTGRES_DB,
 	)
 	db := database.PrepareTestDb(t, dsn)
-	server := app.PrepareServer(db, 4000)
+	server := app.PrepareIntegrationTestServer(db, 4000)
 
 	t.Run("it returns a user from token", func(t *testing.T) {
-		database.ApplyFixtures(t, db, "../fixtures")
-		email := "test@nowhere.com"
+		email := "test8@nowhere.com"
 		password := "test123!A"
 		registerInput := data.RegisterUserInput{
 			Email:    email,
@@ -34,22 +33,23 @@ func TestAuthenticateRequest(t *testing.T) {
 			Type:     1,
 			ImageId:  "imageid",
 		}
-		registerUser(t, server, registerInput)
-
+		registerResponse := registerUser(t, server, registerInput)
+		assertStatus(t, registerResponse.Code, http.StatusOK)
 		loginInput := map[string]string{
 			"Email":    email,
 			"Password": password,
 		}
 		response := loginUser(t, server, loginInput)
 
-		var token data.Token
-		json.NewDecoder(response.Body).Decode(&token)
+		var tokenResponse app.HandlerTokenResponse
+		json.NewDecoder(response.Body).Decode(&tokenResponse)
 
-		user := authRequest(t, server, token)
+		user := authRequest(t, server, *tokenResponse.Token)
 		tester.AssertValue(t, user.Email, registerInput.Email, "same email")
 		tester.AssertValue(t, user.ImageId, registerInput.ImageId, "same image id")
 		tester.AssertValue(t, user.Type, registerInput.Type, "same type")
 	})
+	db.Close()
 }
 
 func authRequest(t *testing.T, server *app.Application, token data.Token) *data.User {

@@ -22,12 +22,18 @@ func TestIntegrationTokenPost(t *testing.T) {
 		database.POSTGRES_PORT,
 		database.POSTGRES_DB,
 	)
+	cfg := database.Config{
+		MaxOpenConns: 25,
+		MaxIdleConns: 25,
+		MaxIdleTime:  "15m",
+		Dsn:          dsn,
+	}
+	db, err := database.OpenDB(cfg)
+	tester.AssertNoError(t, err)
 
 	t.Run("it returns a token after creating a user", func(t *testing.T) {
-		db := database.PrepareTestDb(t, dsn)
-		server := app.PrepareServer(db, 4000)
-		database.ApplyFixtures(t, db, "../fixtures")
-		email := "test@nowhere.com"
+		server := app.PrepareIntegrationTestServer(db, 4000)
+		email := "test5@nowhere.com"
 		password := "test123!A"
 		registerInput := data.RegisterUserInput{
 			Email:    email,
@@ -49,6 +55,7 @@ func TestIntegrationTokenPost(t *testing.T) {
 		assertContentType(t, response, app.JsonContentType)
 		assertTokenResponse(t, response.Body, user.Id)
 	})
+	db.Close()
 }
 
 func loginUser(t *testing.T, server http.Handler, input map[string]string) *httptest.ResponseRecorder {

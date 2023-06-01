@@ -9,15 +9,14 @@ import (
 	"github.com/go-testfixtures/testfixtures/v3"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"github.com/vasiliiperfilev/cookie/internal/migrate"
 	"github.com/vasiliiperfilev/cookie/internal/tester"
 )
 
 const (
-	POSTGRES_DB       = "cookie_test"
+	POSTGRES_DB       = "cookie_testing"
 	POSTGRES_USER     = "cookie"
 	POSTGRES_PASSWORD = "cookie"
-	POSTGRES_PORT     = "54350"
+	POSTGRES_PORT     = "5433"
 )
 
 func PrepareTestDb(t *testing.T, dsn string) *sql.DB {
@@ -28,14 +27,8 @@ func PrepareTestDb(t *testing.T, dsn string) *sql.DB {
 		MaxIdleTime:  "15m",
 		Dsn:          dsn,
 	}
-	// start a container
-	err := StartDockerPostgres(t)
-	tester.AssertNoError(t, err)
 	// open connection
 	db, err := OpenDB(cfg)
-	tester.AssertNoError(t, err)
-	// migrations
-	err = migrate.Up(cfg.Dsn)
 	tester.AssertNoError(t, err)
 
 	return db

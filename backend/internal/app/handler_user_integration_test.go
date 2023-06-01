@@ -23,13 +23,19 @@ func TestIntegrationUserPost(t *testing.T) {
 		database.POSTGRES_PORT,
 		database.POSTGRES_DB,
 	)
+	cfg := database.Config{
+		MaxOpenConns: 25,
+		MaxIdleConns: 25,
+		MaxIdleTime:  "15m",
+		Dsn:          dsn,
+	}
+	db, err := database.OpenDB(cfg)
+	tester.AssertNoError(t, err)
 
 	t.Run("it allows registration with correct values", func(t *testing.T) {
-		db := database.PrepareTestDb(t, dsn)
-		server := app.PrepareServer(db, 4000)
-		database.ApplyFixtures(t, db, "../fixtures")
+		server := app.PrepareIntegrationTestServer(db, 4000)
 		userInput := data.RegisterUserInput{
-			Email:    "test@nowhere.com",
+			Email:    "testReg@nowhere.com",
 			Password: "test123!A",
 			Type:     1,
 			ImageId:  "imageid",
@@ -44,6 +50,7 @@ func TestIntegrationUserPost(t *testing.T) {
 		assertContentType(t, response, app.JsonContentType)
 		assertRegisterResponse(t, response.Body, expectedResponse)
 	})
+	db.Close()
 }
 
 func registerUser(t *testing.T, server http.Handler, input data.RegisterUserInput) *httptest.ResponseRecorder {

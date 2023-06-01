@@ -8,7 +8,7 @@ import (
 	"github.com/vasiliiperfilev/cookie/internal/data"
 )
 
-func PrepareServer(db *sql.DB, port int) *Application {
+func PrepareIntegrationTestServer(db *sql.DB, port int) *Application {
 	cfg := Config{Port: port, Env: "development"}
 
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)

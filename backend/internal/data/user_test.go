@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	_ "github.com/lib/pq"
 	"github.com/vasiliiperfilev/cookie/internal/data"
 	"github.com/vasiliiperfilev/cookie/internal/database"
 	"github.com/vasiliiperfilev/cookie/internal/tester"
@@ -62,7 +63,7 @@ func TestValidateRegisterUserInput(t *testing.T) {
 	}
 }
 
-func TestUserModel(t *testing.T) {
+func TestUserModelIntegration(t *testing.T) {
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@localhost:%s/%s?sslmode=disable",
 		database.POSTGRES_USER,
@@ -70,10 +71,16 @@ func TestUserModel(t *testing.T) {
 		database.POSTGRES_PORT,
 		database.POSTGRES_DB,
 	)
+	cfg := database.Config{
+		MaxOpenConns: 25,
+		MaxIdleConns: 25,
+		MaxIdleTime:  "15m",
+		Dsn:          dsn,
+	}
+	db, err := database.OpenDB(cfg)
+	tester.AssertNoError(t, err)
 	t.Run("it inserts and gets a user", func(t *testing.T) {
-		db := database.PrepareTestDb(t, dsn)
 		model := data.NewPsqlUserModel(db)
-		database.ApplyFixtures(t, db, "../fixtures")
 		insertedUser := data.User{
 			Email:   "test@test.com",
 			Type:    1,
@@ -88,9 +95,7 @@ func TestUserModel(t *testing.T) {
 	})
 
 	t.Run("it inserts 2 users concurently", func(t *testing.T) {
-		db := database.PrepareTestDb(t, dsn)
 		model := data.NewPsqlUserModel(db)
-		database.ApplyFixtures(t, db, "../fixtures")
 
 		users := []data.User{
 			{
@@ -121,11 +126,9 @@ func TestUserModel(t *testing.T) {
 	})
 
 	t.Run("it updates user", func(t *testing.T) {
-		db := database.PrepareTestDb(t, dsn)
 		model := data.NewPsqlUserModel(db)
-		database.ApplyFixtures(t, db, "../fixtures")
 		insertedUser := data.User{
-			Email:   "test@test.com",
+			Email:   "test3@test.com",
 			Type:    1,
 			ImageId: "id",
 		}
