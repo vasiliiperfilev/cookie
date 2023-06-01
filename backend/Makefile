@@ -1,3 +1,7 @@
+export SHELL:=/bin/bash
+export SHELLOPTS:=$(if $(SHELLOPTS),$(SHELLOPTS):)pipefail:errexit
+
+.ONESHELL:
 #   Usage:
 #       make test norace=1
 #           Expl: run WITHOUT race conditions
@@ -11,6 +15,10 @@
 #       make test package=my_awesome_pkg func=TestViews
 #           Explt: run a single test func (needs package as well)
 test:
+	function tearDown {
+		docker compose down
+	}
+	trap tearDown EXIT
 	docker compose -f docker-compose.testing.yml up --build -d
 	$(eval ARGS=)
 # by default, run without race conditions
@@ -37,4 +45,3 @@ ifdef func
 	$(eval ARGS=${ARGS} -run=${func})
 endif
 	go test ${ARGS} -count=1
-	docker compose down
