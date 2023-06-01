@@ -6,7 +6,7 @@ services:
     container_name: cookie-postgres
     user: postgres
     ports:
-      - 54350:5432
+      - 5433:5432
     environment:
       POSTGRES_DB: cookie
       POSTGRES_USER: cookie
@@ -25,7 +25,7 @@ services:
       cookie-postgres:
         condition: service_healthy
     volumes:
-      - ./internal/migrate/migrations:/migrations
+      - ./migrations:/migrations
     command:
       [
         "-path",
