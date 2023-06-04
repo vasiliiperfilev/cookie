@@ -14,7 +14,7 @@ type HandlerTokenResponse struct {
 	Token *data.Token `json:"token"`
 }
 
-func (a *Application) tokenHandler(w http.ResponseWriter, r *http.Request) {
+func (a *Application) tokensHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
 		handlePostToken(w, r, a)

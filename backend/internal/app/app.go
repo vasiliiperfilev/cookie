@@ -30,8 +30,8 @@ func New(config Config, logger *log.Logger, models data.Models) *Application {
 	router := http.NewServeMux()
 	router.Handle("/", http.HandlerFunc(a.notFoundResponse))
 	router.Handle("/v1/healthcheck", http.HandlerFunc(a.healthcheckHandler))
-	router.Handle("/v1/users", http.HandlerFunc(a.userHandler))
-	router.Handle("/v1/tokens", http.HandlerFunc(a.tokenHandler))
+	router.Handle("/v1/users", http.HandlerFunc(a.usersHandler))
+	router.Handle("/v1/tokens", http.HandlerFunc(a.tokensHandler))
 
 	a.Handler = a.setAccessControlHeaders(router)
 	return a

@@ -8,7 +8,7 @@ import (
 	"github.com/vasiliiperfilev/cookie/internal/validator"
 )
 
-func (a *Application) userHandler(w http.ResponseWriter, r *http.Request) {
+func (a *Application) usersHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
 		handlePostUser(w, r, a)
