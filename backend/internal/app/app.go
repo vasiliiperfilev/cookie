@@ -32,6 +32,7 @@ func New(config Config, logger *log.Logger, models data.Models) *Application {
 	router.Handle("/v1/healthcheck", http.HandlerFunc(a.healthcheckHandler))
 	router.Handle("/v1/users", http.HandlerFunc(a.usersHandler))
 	router.Handle("/v1/tokens", http.HandlerFunc(a.tokensHandler))
+	router.Handle("/v1/conversations", http.HandlerFunc(a.conversationsHandler))
 
 	a.Handler = a.setAccessControlHeaders(router)
 	return a
