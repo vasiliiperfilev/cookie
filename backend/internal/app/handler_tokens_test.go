@@ -42,7 +42,7 @@ func TestPostToken(t *testing.T) {
 		}
 		requestBody := new(bytes.Buffer)
 		json.NewEncoder(requestBody).Encode(userInput)
-		request, _ := http.NewRequest(http.MethodPost, "/v1/token", requestBody)
+		request, _ := http.NewRequest(http.MethodPost, "/v1/tokens", requestBody)
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
 

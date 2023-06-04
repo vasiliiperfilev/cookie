@@ -8,14 +8,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	_ "github.com/lib/pq"
 	"github.com/vasiliiperfilev/cookie/internal/app"
 	"github.com/vasiliiperfilev/cookie/internal/data"
 	"github.com/vasiliiperfilev/cookie/internal/database"
 	"github.com/vasiliiperfilev/cookie/internal/tester"
 )
 
-func TestIntegrationUserPost(t *testing.T) {
+func TestIntegrationTokenPost(t *testing.T) {
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@localhost:%s/%s?sslmode=disable",
 		database.POSTGRES_USER,
@@ -32,36 +31,41 @@ func TestIntegrationUserPost(t *testing.T) {
 	db, err := database.OpenDB(cfg)
 	tester.AssertNoError(t, err)
 
-	t.Run("it allows registration with correct values", func(t *testing.T) {
+	t.Run("it returns a token after creating a user", func(t *testing.T) {
 		server := app.PrepareIntegrationTestServer(db, 4000)
-		userInput := data.RegisterUserInput{
-			Email:    "testReg@nowhere.com",
-			Password: "test123!A",
+		email := "test5@nowhere.com"
+		password := "test123!A"
+		registerInput := data.RegisterUserInput{
+			Email:    email,
+			Password: password,
 			Type:     1,
 			ImageId:  "imageid",
 		}
-		expectedResponse := data.User{
-			Email:   userInput.Email,
-			Type:    userInput.Type,
-			ImageId: userInput.ImageId,
+		userResponse := registerUser(t, server, registerInput)
+		var user data.User
+		json.NewDecoder(userResponse.Body).Decode(&user)
+
+		loginInput := map[string]string{
+			"Email":    email,
+			"Password": password,
 		}
-		response := registerUser(t, server, userInput)
-		assertStatus(t, response.Code, http.StatusOK)
+		response := loginUser(t, server, loginInput)
+
+		assertStatus(t, response.Code, http.StatusCreated)
 		assertContentType(t, response, app.JsonContentType)
-		assertRegisterResponse(t, response.Body, expectedResponse)
+		assertTokenResponse(t, response.Body, user.Id)
 	})
 	db.Close()
 }
 
-func registerUser(t *testing.T, server http.Handler, input data.RegisterUserInput) *httptest.ResponseRecorder {
+func loginUser(t *testing.T, server http.Handler, input map[string]string) *httptest.ResponseRecorder {
 	t.Helper()
 	requestBody := new(bytes.Buffer)
 	json.NewEncoder(requestBody).Encode(input)
 
-	request, err := http.NewRequest(http.MethodPost, "/v1/user", requestBody)
+	request, err := http.NewRequest(http.MethodPost, "/v1/tokens", requestBody)
 	tester.AssertNoError(t, err)
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
-
 	return response
 }

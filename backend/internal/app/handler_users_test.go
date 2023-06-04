@@ -67,7 +67,7 @@ func TestUserPost(t *testing.T) {
 	t.Run("can't POST with empty body", func(t *testing.T) {
 		requestBody := new(bytes.Buffer)
 		json.NewEncoder(requestBody).Encode("")
-		request, _ := http.NewRequest(http.MethodPost, "/v1/user", requestBody)
+		request, _ := http.NewRequest(http.MethodPost, "/v1/users", requestBody)
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
@@ -75,7 +75,7 @@ func TestUserPost(t *testing.T) {
 	})
 
 	t.Run("can't GET", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/v1/user", nil)
+		request, _ := http.NewRequest(http.MethodGet, "/v1/users", nil)
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
@@ -104,7 +104,7 @@ func assertRegisterResponse(t *testing.T, body *bytes.Buffer, expectedUser data.
 
 func createRegisterRequest(t *testing.T, requestBody *bytes.Buffer, userInput data.RegisterUserInput) *http.Request {
 	json.NewEncoder(requestBody).Encode(userInput)
-	request, err := http.NewRequest(http.MethodPost, "/v1/user", requestBody)
+	request, err := http.NewRequest(http.MethodPost, "/v1/users", requestBody)
 	tester.AssertNoError(t, err)
 	return request
 }

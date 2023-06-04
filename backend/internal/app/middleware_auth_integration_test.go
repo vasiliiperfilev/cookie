@@ -54,7 +54,7 @@ func TestIntegrationAuthenticateRequest(t *testing.T) {
 
 func authRequest(t *testing.T, server *app.Application, token data.Token) *data.User {
 	t.Helper()
-	request, err := http.NewRequest(http.MethodPost, "/v1/token", nil)
+	request, err := http.NewRequest(http.MethodPost, "/v1/tokens", nil)
 	tester.AssertNoError(t, err)
 	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token.Plaintext))
 	response := httptest.NewRecorder()
