@@ -40,7 +40,7 @@ func (a *Application) notFoundResponse(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *Application) methodNotAllowedResponse(w http.ResponseWriter, r *http.Request, allowedMethods ...string) {
-	w.Header().Set("Allow", strings.Join(allowedMethods, ", "))
+	w.Header().Set("Allow", strings.Join(allowedMethods, "; "))
 	message := fmt.Sprintf("the %s method is not supported for this resource", r.Method)
 	a.errorResponse(w, r, http.StatusMethodNotAllowed, ErrorResponse{Message: message})
 }

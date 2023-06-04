@@ -1,8 +1,7 @@
 package data
 
 type Conversation struct {
-	ConversationId int64
-	SupplierId     int64
-	BusinessId     int64
-	LastMessageId  int64
+	Id            int64   `json:"id"`
+	UserIds       []int64 `json:"userIds"`
+	LastMessageId int64   `json:"lastMessageId"`
 }

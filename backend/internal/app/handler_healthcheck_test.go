@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/vasiliiperfilev/cookie/internal/app"
@@ -44,8 +45,20 @@ func assertStatus(t *testing.T, got int, want int) {
 	tester.AssertValue(t, got, want, "Wrong http response status")
 }
 
-func assertHeader(t *testing.T, got string, want string) {
-	tester.AssertValue(t, got, want, "Wrong http header")
+func assertHeader(t *testing.T, got string, want ...string) {
+	gotArray := strings.Split(got, "; ")
+	for _, wantVal := range want {
+		contains := false
+		for _, gotVal := range gotArray {
+			if gotVal == wantVal {
+				contains = true
+				break
+			}
+		}
+		if !contains {
+			t.Fatalf("Header doesn't contain %v", wantVal)
+		}
+	}
 }
 
 func assertContentType(t *testing.T, response *httptest.ResponseRecorder, want string) {
