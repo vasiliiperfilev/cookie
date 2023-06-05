@@ -16,7 +16,6 @@ import (
 	"github.com/vasiliiperfilev/cookie/internal/tester"
 )
 
-// can't insert conversation with already existing ids
 func TestPostConversation(t *testing.T) {
 	cfg := app.Config{Port: 4000, Env: "development"}
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
@@ -33,19 +32,19 @@ func TestPostConversation(t *testing.T) {
 			UserIds:       []int64{1, 2},
 			LastMessageId: -1,
 		}
-		request := createPostConversationRequest(userInput, t)
+		// post request
+		request := createPostConversationRequest(t, userInput)
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
-
+		// assertion
 		var gotConversation data.Conversation
 		json.NewDecoder(response.Body).Decode(&gotConversation)
-
 		assertStatus(t, response.Code, http.StatusOK)
 		assertContentType(t, response, app.JsonContentType)
 		assertConversation(t, gotConversation, expectedResponse)
 	})
 
-	t.Run("it POST and GET same conversation", func(t *testing.T) {
+	t.Run("it POST and GET same conversation by any of ids", func(t *testing.T) {
 		models := data.Models{Conversation: data.NewStubConversationModel([]*data.Conversation{})}
 		server := app.New(cfg, logger, models)
 		userIds := []int64{3, 4}
@@ -59,13 +58,12 @@ func TestPostConversation(t *testing.T) {
 				LastMessageId: -1,
 			},
 		}
-		requestBody := new(bytes.Buffer)
-		json.NewEncoder(requestBody).Encode(userInput)
-		postRequest, _ := http.NewRequest(http.MethodPost, "/v1/conversations", requestBody)
+		// request
+		postRequest := createPostConversationRequest(t, userInput)
 		server.ServeHTTP(httptest.NewRecorder(), postRequest)
-
+		// assertions
 		for _, id := range userIds {
-			getRequest, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/conversations?userId=%v", id), nil)
+			getRequest := createGetAllConversationRequest(t, id)
 			response := httptest.NewRecorder()
 			server.ServeHTTP(response, getRequest)
 
@@ -85,30 +83,13 @@ func TestPostConversation(t *testing.T) {
 		userInput := data.Conversation{
 			UserIds: userIds,
 		}
-		expectedResponse := []data.Conversation{
-			{
-				Id:            1,
-				UserIds:       userIds,
-				LastMessageId: -1,
-			},
+		var response *httptest.ResponseRecorder
+		for i := 0; i < 2; i++ {
+			response = httptest.NewRecorder()
+			postRequest := createPostConversationRequest(t, userInput)
+			server.ServeHTTP(response, postRequest)
 		}
-		requestBody := new(bytes.Buffer)
-		json.NewEncoder(requestBody).Encode(userInput)
-		postRequest, _ := http.NewRequest(http.MethodPost, "/v1/conversations", requestBody)
-		server.ServeHTTP(httptest.NewRecorder(), postRequest)
-
-		for _, id := range userIds {
-			getRequest, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/conversations?userId=%v", id), nil)
-			response := httptest.NewRecorder()
-			server.ServeHTTP(response, getRequest)
-
-			var gotConversations []data.Conversation
-			json.NewDecoder(response.Body).Decode(&gotConversations)
-
-			assertStatus(t, response.Code, http.StatusOK)
-			assertContentType(t, response, app.JsonContentType)
-			assertConversation(t, gotConversations[0], expectedResponse[0])
-		}
+		assertStatus(t, response.Code, http.StatusUnprocessableEntity)
 	})
 
 	t.Run("can't PUT", func(t *testing.T) {
@@ -122,7 +103,13 @@ func TestPostConversation(t *testing.T) {
 	})
 }
 
-func createPostConversationRequest(userInput data.Conversation, t *testing.T) *http.Request {
+func createGetAllConversationRequest(t *testing.T, userId int64) *http.Request {
+	getRequest, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/conversations?userId=%v", userId), nil)
+	tester.AssertNoError(t, err)
+	return getRequest
+}
+
+func createPostConversationRequest(t *testing.T, userInput data.Conversation) *http.Request {
 	requestBody := new(bytes.Buffer)
 	json.NewEncoder(requestBody).Encode(userInput)
 	request, err := http.NewRequest(http.MethodPost, "/v1/conversations", requestBody)

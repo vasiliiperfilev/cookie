@@ -22,7 +22,7 @@ func (s *StubConversationModel) Insert(conversation *Conversation) error {
 		sort.Slice(conversation.UserIds, func(i, j int) bool {
 			return conversation.UserIds[i] >= conversation.UserIds[j]
 		})
-		if reflect.DeepEqual(existingConversation, conversation) {
+		if reflect.DeepEqual(existingConversation.UserIds, conversation.UserIds) {
 			return ErrDuplicateConversation
 		}
 	}
