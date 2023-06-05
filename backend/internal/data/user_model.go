@@ -25,9 +25,9 @@ func NewPsqlUserModel(db *sql.DB) *PsqlUserModel {
 
 func (m PsqlUserModel) Insert(user *User) error {
 	query := `
-        INSERT INTO app_user (email, password_hash, user_type_id, image_id) 
+        INSERT INTO users (email, password_hash, user_type_id, image_id) 
         VALUES ($1, $2, $3, $4)
-        RETURNING app_user_id, created_at, version`
+        RETURNING user_id, created_at, version`
 
 	args := []any{user.Email, user.Password.hash, user.Type, user.ImageId}
 
@@ -39,7 +39,7 @@ func (m PsqlUserModel) Insert(user *User) error {
 	err := m.db.QueryRowContext(ctx, query, args...).Scan(&user.Id, &user.CreatedAt, &user.Version)
 	if err != nil {
 		switch {
-		case err.Error() == `pq: duplicate key value violates unique constraint "app_user_email_key"`:
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
 			return ErrDuplicateEmail
 		default:
 			return err
@@ -51,8 +51,8 @@ func (m PsqlUserModel) Insert(user *User) error {
 
 func (m PsqlUserModel) GetByEmail(email string) (*User, error) {
 	query := `
-        SELECT app_user_id, created_at, email, password_hash, user_type_id, version
-        FROM app_user
+        SELECT user_id, created_at, email, password_hash, user_type_id, version
+        FROM users
         WHERE email = $1`
 
 	var user User
@@ -88,9 +88,9 @@ func (m PsqlUserModel) GetByEmail(email string) (*User, error) {
 // record originally.
 func (m PsqlUserModel) Update(user *User) error {
 	query := `
-        UPDATE app_user 
+        UPDATE users
         SET email = $1, password_hash = $2, version = version + 1
-        WHERE app_user_id = $3 AND version = $4
+        WHERE user_id = $3 AND version = $4
         RETURNING version`
 
 	args := []any{
@@ -124,10 +124,10 @@ func (m PsqlUserModel) GetForToken(tokenScope, tokenPlaintext string) (*User, er
 	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
 
 	query := `
-        SELECT a.app_user_id, a.created_at, a.email, a.password_hash, a.user_type_id, a.image_id, a.version
-        FROM app_user as a
-        INNER JOIN token as t
-        ON a.app_user_id = t.app_user_id
+        SELECT a.user_id, a.created_at, a.email, a.password_hash, a.user_type_id, a.image_id, a.version
+        FROM users as a
+        INNER JOIN tokens as t
+        ON a.user_id = t.user_id
         WHERE t.hash = $1
         AND t.scope = $2 
         AND t.expiry > $3`

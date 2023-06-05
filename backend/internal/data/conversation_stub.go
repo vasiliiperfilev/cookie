@@ -29,6 +29,7 @@ func (s *StubConversationModel) Insert(conversation *Conversation) error {
 	s.idCount++
 	conversation.Id = s.idCount
 	conversation.LastMessageId = -1
+	conversation.Version = 1
 	s.conversations = append(s.conversations, conversation)
 	return nil
 }

@@ -17,7 +17,7 @@ export SHELLOPTS:=$(if $(SHELLOPTS),$(SHELLOPTS):)pipefail:errexit
 #           Explt: run a single test func (needs package as well)
 test:
 	function tearDown {
-		docker compose down
+		docker compose -f docker-compose.testing.yml down
 	}
 	trap tearDown EXIT
 	docker compose -f docker-compose.testing.yml up --build -d
@@ -45,4 +45,4 @@ endif
 ifdef func
 	$(eval ARGS=${ARGS} -run=${func})
 endif
-	go test ${ARGS} -count=1
+	go test ${ARGS} -count=1 -cover

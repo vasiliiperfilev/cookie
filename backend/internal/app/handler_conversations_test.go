@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"sort"
 	"testing"
 
 	"github.com/vasiliiperfilev/cookie/internal/app"
@@ -31,6 +30,7 @@ func TestPostConversation(t *testing.T) {
 			Id:            1,
 			UserIds:       []int64{1, 2},
 			LastMessageId: -1,
+			Version:       1,
 		}
 		// post request
 		request := createPostConversationRequest(t, userInput)
@@ -41,7 +41,7 @@ func TestPostConversation(t *testing.T) {
 		json.NewDecoder(response.Body).Decode(&gotConversation)
 		assertStatus(t, response.Code, http.StatusOK)
 		assertContentType(t, response, app.JsonContentType)
-		assertConversation(t, gotConversation, expectedResponse)
+		data.AssertConversation(t, gotConversation, expectedResponse)
 	})
 
 	t.Run("it POST and GET same conversation by any of ids", func(t *testing.T) {
@@ -56,6 +56,7 @@ func TestPostConversation(t *testing.T) {
 				Id:            1,
 				UserIds:       userIds,
 				LastMessageId: -1,
+				Version:       1,
 			},
 		}
 		// request
@@ -72,7 +73,7 @@ func TestPostConversation(t *testing.T) {
 
 			assertStatus(t, response.Code, http.StatusOK)
 			assertContentType(t, response, app.JsonContentType)
-			assertConversation(t, gotConversations[0], expectedResponse[0])
+			data.AssertConversation(t, gotConversations[0], expectedResponse[0])
 		}
 	})
 
@@ -115,17 +116,4 @@ func createPostConversationRequest(t *testing.T, userInput data.Conversation) *h
 	request, err := http.NewRequest(http.MethodPost, "/v1/conversations", requestBody)
 	tester.AssertNoError(t, err)
 	return request
-}
-
-func assertConversation(t *testing.T, got data.Conversation, want data.Conversation) {
-	t.Helper()
-	tester.AssertValue(t, want.Id, got.Id, "Expected same conversation id")
-	tester.AssertValue(t, want.Id, got.Id, "Expected same last message id")
-	sort.Slice(got.UserIds, func(i, j int) bool {
-		return got.UserIds[i] >= got.UserIds[j]
-	})
-	sort.Slice(want.UserIds, func(i, j int) bool {
-		return want.UserIds[i] >= want.UserIds[j]
-	})
-	tester.AssertValue(t, want.UserIds, got.UserIds, "Expected same usersId")
 }

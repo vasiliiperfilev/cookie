@@ -31,7 +31,7 @@ func (m PsqlTokenModel) New(userID int64, ttl time.Duration, scope string) (*Tok
 
 func (m PsqlTokenModel) insert(token *Token) error {
 	query := `
-        INSERT INTO token (hash, app_user_id, expiry, scope) 
+        INSERT INTO tokens (hash, user_id, expiry, scope) 
         VALUES ($1, $2, $3, $4)`
 
 	args := []any{token.Hash, token.UserId, token.Expiry, token.Scope}
@@ -45,8 +45,8 @@ func (m PsqlTokenModel) insert(token *Token) error {
 
 func (m PsqlTokenModel) DeleteAllForUser(scope string, userID int64) error {
 	query := `
-        DELETE FROM token 
-        WHERE scope = $1 AND app_user_id = $2`
+        DELETE FROM tokens
+        WHERE scope = $1 AND user_id = $2`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()

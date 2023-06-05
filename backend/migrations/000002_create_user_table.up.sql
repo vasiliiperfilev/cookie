@@ -1,5 +1,5 @@
-CREATE TABLE IF NOT EXISTS app_user (
-    app_user_id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,  
+CREATE TABLE IF NOT EXISTS users (
+    user_id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,  
     created_at timestamp(0) with time zone NOT NULL DEFAULT NOW(),
     email citext UNIQUE NOT NULL,
     password_hash bytea NOT NULL,
@@ -8,4 +8,4 @@ CREATE TABLE IF NOT EXISTS app_user (
     version integer NOT NULL DEFAULT 1
 );
 
-ALTER TABLE app_user ADD CONSTRAINT fk_app_user_user_type FOREIGN KEY (user_type_id) REFERENCES user_type (user_type_id);
+ALTER TABLE users ADD CONSTRAINT fk_users_user_types FOREIGN KEY (user_type_id) REFERENCES user_types (user_type_id);

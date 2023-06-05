@@ -1,2 +1,2 @@
-ALTER TABLE app_user DROP CONSTRAINT IF EXISTS fk_app_user_user_type;
-DROP TABLE IF EXISTS app_user;
+ALTER TABLE users DROP CONSTRAINT IF EXISTS fk_users_user_types;
+DROP TABLE IF EXISTS users;
