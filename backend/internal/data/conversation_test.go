@@ -7,12 +7,9 @@ import (
 	"github.com/vasiliiperfilev/cookie/internal/data"
 	"github.com/vasiliiperfilev/cookie/internal/database"
 	"github.com/vasiliiperfilev/cookie/internal/tester"
+	"golang.org/x/exp/slices"
 )
 
-// doesn't insert with no users
-// inserts conversation
-// don't insert same conversation
-// returns 2 or more conversations for user with correct userIds
 func TestConversationModelIntegration(t *testing.T) {
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@localhost:%s/%s?sslmode=disable",
@@ -46,5 +43,17 @@ func TestConversationModelIntegration(t *testing.T) {
 		}
 		err := model.Insert(&conversation)
 		tester.AssertNoError(t, err)
+	})
+
+	t.Run("it gets conversations list for user id", func(t *testing.T) {
+		model := data.NewPsqlConversationModel(db)
+		userId := int64(1)
+		conversations, err := model.GetAllByUserId(userId)
+		tester.AssertNoError(t, err)
+		for _, conversation := range conversations {
+			if !slices.Contains(conversation.UserIds, userId) {
+				t.Fatalf("Expected to have user id %v in conversation", userId)
+			}
+		}
 	})
 }
