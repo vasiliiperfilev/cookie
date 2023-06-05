@@ -11,8 +11,9 @@ var (
 )
 
 type Models struct {
-	User  UserModel
-	Token TokenModel
+	User         UserModel
+	Token        TokenModel
+	Conversation ConversationModel
 }
 
 func NewModels(db *sql.DB) Models {
