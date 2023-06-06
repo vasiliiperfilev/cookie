@@ -36,7 +36,7 @@ func handlePostToken(w http.ResponseWriter, r *http.Request, a *Application) {
 		Password string `json:"password"`
 	}
 
-	err := readJSON(w, r, &input)
+	err := readJsonFromBody(w, r, &input)
 	if err != nil {
 		a.badRequestResponse(w, r, err)
 		return

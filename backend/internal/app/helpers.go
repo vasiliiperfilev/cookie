@@ -27,10 +27,8 @@ func writeJSON(w http.ResponseWriter, status int, data any, headers http.Header)
 	return nil
 }
 
-func readJSON[T any](w http.ResponseWriter, r *http.Request, dst *T) error {
-	maxBytes := 1_048_576
-	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
-	dec := json.NewDecoder(r.Body)
+func readJson[T any](r io.Reader, dst *T) error {
+	dec := json.NewDecoder(r)
 	dec.DisallowUnknownFields()
 	// Decode the request body into the target destination.
 	err := dec.Decode(dst)
@@ -79,4 +77,10 @@ func readJSON[T any](w http.ResponseWriter, r *http.Request, dst *T) error {
 	}
 
 	return nil
+}
+
+func readJsonFromBody[T any](w http.ResponseWriter, r *http.Request, dst *T) error {
+	maxBytes := 1_048_576
+	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
+	return readJson(r.Body, dst)
 }

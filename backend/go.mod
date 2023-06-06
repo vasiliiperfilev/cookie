@@ -14,6 +14,7 @@ require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
 	github.com/go-faster/errors v0.6.1 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/paulmach/orb v0.9.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect

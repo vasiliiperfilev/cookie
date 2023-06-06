@@ -14,11 +14,13 @@ type Models struct {
 	User         UserModel
 	Token        TokenModel
 	Conversation ConversationModel
+	Message      MessageModel
 }
 
 func NewModels(db *sql.DB) Models {
 	return Models{
-		User:  NewPsqlUserModel(db),
-		Token: NewPsqlTokenModel(db),
+		User:         NewPsqlUserModel(db),
+		Token:        NewPsqlTokenModel(db),
+		Conversation: NewPsqlConversationModel(db),
 	}
 }

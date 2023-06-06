@@ -30,7 +30,7 @@ func (a *Application) conversationsHandler(w http.ResponseWriter, r *http.Reques
 
 func handlePostConversation(w http.ResponseWriter, r *http.Request, a *Application) {
 	conversation := new(data.Conversation)
-	err := readJSON(w, r, conversation)
+	err := readJsonFromBody(w, r, conversation)
 	if err != nil {
 		a.badRequestResponse(w, r, err)
 		return

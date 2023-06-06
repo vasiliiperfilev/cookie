@@ -25,7 +25,7 @@ func (a *Application) usersHandler(w http.ResponseWriter, r *http.Request) {
 
 func handlePostUser(w http.ResponseWriter, r *http.Request, a *Application) {
 	registerUserInput := new(data.RegisterUserInput)
-	err := readJSON(w, r, registerUserInput)
+	err := readJsonFromBody(w, r, registerUserInput)
 	if err != nil {
 		a.badRequestResponse(w, r, err)
 		return
