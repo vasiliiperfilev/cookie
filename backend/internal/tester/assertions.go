@@ -3,6 +3,7 @@ package tester
 import (
 	"reflect"
 	"testing"
+	"time"
 )
 
 func AssertValue[T any](t *testing.T, got T, want T, message string) {
@@ -21,4 +22,14 @@ func AssertError(t *testing.T, err error) {
 	if err == nil {
 		t.Fatalf("Expected to have a error, but got nil")
 	}
+}
+
+func RetryUntil(d time.Duration, f func() bool) bool {
+	deadline := time.Now().Add(d)
+	for time.Now().Before(deadline) {
+		if f() {
+			return true
+		}
+	}
+	return false
 }

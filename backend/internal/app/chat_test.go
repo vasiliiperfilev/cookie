@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http/httptest"
 	"os"
-	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -14,6 +13,7 @@ import (
 	"github.com/vasiliiperfilev/cookie/internal/app"
 	"github.com/vasiliiperfilev/cookie/internal/data"
 	"github.com/vasiliiperfilev/cookie/internal/tester"
+	"golang.org/x/exp/slices"
 )
 
 func TestChat(t *testing.T) {
@@ -23,7 +23,7 @@ func TestChat(t *testing.T) {
 	messageModel := data.NewStubMessageModel([]data.Conversation{{Id: 1, UserIds: []int64{1, 2}}}, []data.Message{})
 	models := data.Models{Message: messageModel}
 	appServer := app.New(cfg, logger, models)
-	t.Run("establishes ws connection", func(t *testing.T) {
+	t.Run("sends a message", func(t *testing.T) {
 		server := httptest.NewServer(appServer)
 		defer server.Close()
 		ws := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat")
@@ -39,13 +39,7 @@ func TestChat(t *testing.T) {
 		js := createWsPayload(t, want)
 
 		writeWSMessage(t, ws, js)
-		time.Sleep(10 * time.Millisecond)
-		messages, err := messageModel.GetAllByUserId(1)
-		tester.AssertNoError(t, err)
-		got := messages[0]
-		if !reflect.DeepEqual(got, want) {
-			t.Fatalf("Expected to have %v, got %v", want, messages[0])
-		}
+		assertMessage(t, messageModel, want)
 	})
 }
 
@@ -70,4 +64,18 @@ func createWsPayload(t *testing.T, payload any) []byte {
 	js, err := json.Marshal(payload)
 	tester.AssertNoError(t, err)
 	return js
+}
+
+func assertMessage(t *testing.T, m data.MessageModel, want data.Message) {
+	t.Helper()
+
+	passed := tester.RetryUntil(500*time.Millisecond, func() bool {
+		messages, err := m.GetAllByUserId(1)
+		tester.AssertNoError(t, err)
+		return slices.Contains(messages, want)
+	})
+
+	if !passed {
+		t.Fatalf("Expected to have %v", want)
+	}
 }
