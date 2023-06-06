@@ -20,7 +20,7 @@ func NewStubMessageModel(conversations []Conversation, messages []Message) *Stub
 			Messages []Message
 		}{
 			UserIds:  conversation.UserIds,
-			Messages: []Message{{Id: 0}},
+			Messages: []Message{},
 		}
 	}
 	for _, message := range messages {

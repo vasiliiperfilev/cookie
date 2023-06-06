@@ -26,13 +26,7 @@ func TestChat(t *testing.T) {
 	t.Run("establishes ws connection", func(t *testing.T) {
 		server := httptest.NewServer(appServer)
 		defer server.Close()
-
-		wsURL := "ws" + strings.TrimPrefix(server.URL, "http") + "/v1/chat"
-
-		ws, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
-		if err != nil {
-			t.Fatalf("could not open a ws connection on %s %v", wsURL, err)
-		}
+		ws := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat")
 		defer ws.Close()
 
 		want := data.Message{
@@ -42,21 +36,38 @@ func TestChat(t *testing.T) {
 			Content:        "test",
 		}
 
-		js, err := json.Marshal(want)
-		tester.AssertNoError(t, err)
+		js := createWsPayload(t, want)
 
-		if err := ws.WriteMessage(websocket.TextMessage, js); err != nil {
-			t.Fatalf("could not send message over ws connection %v", err)
-		}
+		writeWSMessage(t, ws, js)
 		time.Sleep(10 * time.Millisecond)
 		messages, err := messageModel.GetAllByUserId(1)
 		tester.AssertNoError(t, err)
-		if len(messages) == 0 {
-			t.Fatalf("Expected messages len to be > 0")
-		}
-		got := messages[1]
+		got := messages[0]
 		if !reflect.DeepEqual(got, want) {
-			t.Fatalf("Expected to have %v, got %v", want, messages[1])
+			t.Fatalf("Expected to have %v, got %v", want, messages[0])
 		}
 	})
+}
+
+func mustDialWS(t *testing.T, url string) *websocket.Conn {
+	ws, _, err := websocket.DefaultDialer.Dial(url, nil)
+
+	if err != nil {
+		t.Fatalf("could not open a ws connection on %s %v", url, err)
+	}
+
+	return ws
+}
+
+func writeWSMessage(t testing.TB, conn *websocket.Conn, message []byte) {
+	t.Helper()
+	if err := conn.WriteMessage(websocket.TextMessage, message); err != nil {
+		t.Fatalf("could not send message over ws connection %v", err)
+	}
+}
+
+func createWsPayload(t *testing.T, payload any) []byte {
+	js, err := json.Marshal(payload)
+	tester.AssertNoError(t, err)
+	return js
 }
