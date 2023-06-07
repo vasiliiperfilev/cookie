@@ -6,6 +6,6 @@ CREATE TABLE IF NOT EXISTS messages (
     content text NOT NULL
 );
 
-INSERT INTO messages (message_id, sender_id, message)
+INSERT INTO messages (message_id, sender_id, content)
 VALUES 
     (0, 0, 'sentinel node');
