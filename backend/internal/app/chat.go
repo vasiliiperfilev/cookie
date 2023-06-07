@@ -36,17 +36,21 @@ func (a *Application) chatWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 	conn, _ := wsUpgrader.Upgrade(w, r, nil)
 
-	client := Client{Conn: conn}
-	clients[user.Id] = client
+	addClient(conn, user)
 
-	_, msg, _ := conn.ReadMessage()
-	var message data.Message
-	json.NewDecoder(bytes.NewReader(msg)).Decode(&message)
-	message.SenderId = user.Id
-	a.models.Message.Insert(message)
-	// get conversation
-	// send message to everyone within conversation
-	conversation, err := a.models.Conversation.GetById(message.ConversationId)
+	message, err := readNextMessage(conn, user)
+	if err != nil {
+		a.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = a.models.Message.Insert(message)
+	if err != nil {
+		a.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = sendMessage(a, message)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -56,14 +60,31 @@ func (a *Application) chatWebSocket(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+}
+
+func sendMessage(a *Application, message data.Message) error {
+	conversation, err := a.models.Conversation.GetById(message.ConversationId)
 	for _, userId := range conversation.UserIds {
 		js, err := json.Marshal(message)
 		if err != nil {
-			a.notFoundResponse(w, r)
-			return
+			return err
 		}
-		if client, ok := clients[userId]; ok {
+		if client, ok := clients[userId]; ok && userId != message.SenderId {
 			client.Conn.WriteMessage(websocket.TextMessage, js)
 		}
 	}
+	return err
+}
+
+func readNextMessage(conn *websocket.Conn, user *data.User) (data.Message, error) {
+	_, msg, err := conn.ReadMessage()
+	var message data.Message
+	json.NewDecoder(bytes.NewReader(msg)).Decode(&message)
+	message.SenderId = user.Id
+	return message, err
+}
+
+func addClient(conn *websocket.Conn, user *data.User) {
+	client := Client{Conn: conn}
+	clients[user.Id] = client
 }
