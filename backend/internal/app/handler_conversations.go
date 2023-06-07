@@ -19,7 +19,7 @@ func (a *Application) conversationsHandler(w http.ResponseWriter, r *http.Reques
 	case http.MethodOptions:
 		allowed := []string{http.MethodPost, http.MethodGet}
 		w.Header().Set("Allow", strings.Join(allowed, "; "))
-		err := writeJSON(w, http.StatusOK, nil, nil)
+		err := writeJsonResponse(w, http.StatusOK, nil, nil)
 		if err != nil {
 			a.serverErrorResponse(w, r, err)
 		}
@@ -37,7 +37,7 @@ func handlePostConversation(w http.ResponseWriter, r *http.Request, a *Applicati
 	}
 
 	v := validator.New()
-	err = a.models.Conversation.Insert(conversation)
+	err = a.models.Conversation.Insert(*conversation)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrDuplicateConversation):
@@ -49,7 +49,7 @@ func handlePostConversation(w http.ResponseWriter, r *http.Request, a *Applicati
 		return
 	}
 
-	writeJSON(w, http.StatusOK, conversation, nil)
+	writeJsonResponse(w, http.StatusOK, conversation, nil)
 }
 
 func handleGetConversation(w http.ResponseWriter, r *http.Request, a *Application) {
@@ -63,5 +63,5 @@ func handleGetConversation(w http.ResponseWriter, r *http.Request, a *Applicatio
 		a.serverErrorResponse(w, r, err)
 		return
 	}
-	writeJSON(w, http.StatusOK, conversations, nil)
+	writeJsonResponse(w, http.StatusOK, conversations, nil)
 }

@@ -18,16 +18,16 @@ import (
 func TestPostConversation(t *testing.T) {
 	cfg := app.Config{Port: 4000, Env: "development"}
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	models := data.Models{Conversation: data.NewStubConversationModel([]*data.Conversation{})}
+	models := data.Models{Conversation: data.NewStubConversationModel([]data.Conversation{})}
 	server := app.New(cfg, logger, models)
 	t.Run("it POST conversation", func(t *testing.T) {
-		models := data.Models{Conversation: data.NewStubConversationModel([]*data.Conversation{})}
+		models := data.Models{Conversation: data.NewStubConversationModel([]data.Conversation{})}
 		server := app.New(cfg, logger, models)
 		userInput := data.Conversation{
 			UserIds: []int64{1, 2},
 		}
 		expectedResponse := data.Conversation{
-			Id:            1,
+			Id:            0,
 			UserIds:       []int64{1, 2},
 			LastMessageId: -1,
 			Version:       1,
@@ -45,7 +45,7 @@ func TestPostConversation(t *testing.T) {
 	})
 
 	t.Run("it POST and GET same conversation by any of ids", func(t *testing.T) {
-		models := data.Models{Conversation: data.NewStubConversationModel([]*data.Conversation{})}
+		models := data.Models{Conversation: data.NewStubConversationModel([]data.Conversation{})}
 		server := app.New(cfg, logger, models)
 		userIds := []int64{3, 4}
 		userInput := data.Conversation{
@@ -78,7 +78,7 @@ func TestPostConversation(t *testing.T) {
 	})
 
 	t.Run("it don't allow POST same conversation", func(t *testing.T) {
-		models := data.Models{Conversation: data.NewStubConversationModel([]*data.Conversation{})}
+		models := data.Models{Conversation: data.NewStubConversationModel([]data.Conversation{})}
 		server := app.New(cfg, logger, models)
 		userIds := []int64{3, 4}
 		userInput := data.Conversation{

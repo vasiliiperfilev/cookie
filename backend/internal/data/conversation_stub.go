@@ -6,15 +6,15 @@ import (
 )
 
 type StubConversationModel struct {
-	conversations []*Conversation
+	conversations []Conversation
 	idCount       int64
 }
 
-func NewStubConversationModel(conversations []*Conversation) *StubConversationModel {
+func NewStubConversationModel(conversations []Conversation) *StubConversationModel {
 	return &StubConversationModel{conversations: conversations}
 }
 
-func (s *StubConversationModel) Insert(conversation *Conversation) error {
+func (s *StubConversationModel) Insert(conversation Conversation) error {
 	for _, existingConversation := range s.conversations {
 		sort.Slice(existingConversation.UserIds, func(i, j int) bool {
 			return existingConversation.UserIds[i] >= existingConversation.UserIds[j]
@@ -39,9 +39,18 @@ func (s *StubConversationModel) GetAllByUserId(userId int64) ([]*Conversation, e
 	for _, conversation := range s.conversations {
 		for _, id := range conversation.UserIds {
 			if id == userId {
-				result = append(result, conversation)
+				result = append(result, &conversation)
 			}
 		}
 	}
 	return result, nil
+}
+
+func (s *StubConversationModel) GetById(id int64) (*Conversation, error) {
+	for _, conversation := range s.conversations {
+		if conversation.Id == id {
+			return &conversation, nil
+		}
+	}
+	return nil, ErrRecordNotFound
 }

@@ -7,13 +7,13 @@ import (
 func (a *Application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		err := writeJSON(w, http.StatusOK, a.GetState(), nil)
+		err := writeJsonResponse(w, http.StatusOK, a.GetState(), nil)
 		if err != nil {
 			a.serverErrorResponse(w, r, err)
 		}
 	case http.MethodOptions:
 		w.Header().Set("Allow", http.MethodGet)
-		err := writeJSON(w, http.StatusOK, nil, nil)
+		err := writeJsonResponse(w, http.StatusOK, nil, nil)
 		if err != nil {
 			a.serverErrorResponse(w, r, err)
 		}

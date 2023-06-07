@@ -20,7 +20,7 @@ func (a *Application) logError(r *http.Request, err error) {
 
 // generic function used by error responses
 func (a *Application) errorResponse(w http.ResponseWriter, r *http.Request, status int, response ErrorResponse) {
-	err := writeJSON(w, status, response, nil)
+	err := writeJsonResponse(w, status, response, nil)
 	if err != nil {
 		a.logError(r, err)
 		w.WriteHeader(500)

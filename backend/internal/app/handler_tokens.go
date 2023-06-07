@@ -20,7 +20,7 @@ func (a *Application) tokensHandler(w http.ResponseWriter, r *http.Request) {
 		handlePostToken(w, r, a)
 	case http.MethodOptions:
 		w.Header().Set("Allow", http.MethodPost)
-		err := writeJSON(w, http.StatusOK, nil, nil)
+		err := writeJsonResponse(w, http.StatusOK, nil, nil)
 		if err != nil {
 			a.serverErrorResponse(w, r, err)
 		}
@@ -83,7 +83,7 @@ func handlePostToken(w http.ResponseWriter, r *http.Request, a *Application) {
 		return
 	}
 
-	err = writeJSON(w, http.StatusCreated, HandlerTokenResponse{User: user, Token: token}, nil)
+	err = writeJsonResponse(w, http.StatusCreated, HandlerTokenResponse{User: user, Token: token}, nil)
 	if err != nil {
 		a.serverErrorResponse(w, r, err)
 	}
