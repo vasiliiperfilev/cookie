@@ -36,33 +36,37 @@ func (a *Application) chatWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 	conn, _ := wsUpgrader.Upgrade(w, r, nil)
 
-	addClient(conn, user)
-
-	message, err := readNextMessage(conn, user)
-	if err != nil {
-		a.serverErrorResponse(w, r, err)
-		return
+	if _, ok := clients[user.Id]; !ok {
+		addClient(conn, user)
 	}
 
-	err = a.models.Message.Insert(message)
-	if err != nil {
-		a.serverErrorResponse(w, r, err)
-		return
-	}
-
-	err = sendMessage(a, message)
-	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
-			a.notFoundResponse(w, r)
-		default:
+	for {
+		message, err := readSentMessage(conn, user)
+		if err != nil {
 			a.serverErrorResponse(w, r, err)
+			return
 		}
-		return
+
+		err = a.models.Message.Insert(message)
+		if err != nil {
+			a.serverErrorResponse(w, r, err)
+			return
+		}
+
+		err = sendMessageToClients(a, message)
+		if err != nil {
+			switch {
+			case errors.Is(err, data.ErrRecordNotFound):
+				a.notFoundResponse(w, r)
+			default:
+				a.serverErrorResponse(w, r, err)
+			}
+			return
+		}
 	}
 }
 
-func sendMessage(a *Application, message data.Message) error {
+func sendMessageToClients(a *Application, message data.Message) error {
 	conversation, err := a.models.Conversation.GetById(message.ConversationId)
 	for _, userId := range conversation.UserIds {
 		js, err := json.Marshal(message)
@@ -76,7 +80,7 @@ func sendMessage(a *Application, message data.Message) error {
 	return err
 }
 
-func readNextMessage(conn *websocket.Conn, user *data.User) (data.Message, error) {
+func readSentMessage(conn *websocket.Conn, user *data.User) (data.Message, error) {
 	_, msg, err := conn.ReadMessage()
 	var message data.Message
 	json.NewDecoder(bytes.NewReader(msg)).Decode(&message)

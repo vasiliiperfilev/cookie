@@ -37,7 +37,7 @@ func TestChat(t *testing.T) {
 		h2 := http.Header{"Authorization": {"Bearer " + strings.Repeat("2", 26)}}
 		ws2 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h2)
 		defer ws2.Close()
-
+		// send first message
 		want := data.Message{
 			Id:             1,
 			SenderId:       1,
@@ -45,12 +45,23 @@ func TestChat(t *testing.T) {
 			Content:        "test",
 			PrevMessageId:  0,
 		}
-
 		js := createWsPayload(t, want)
-
 		writeWSMessage(t, ws1, js)
 		assertContainsMessage(t, messageModel, want)
-
+		// receive first message
+		within(t, 500*time.Microsecond, func() { assertMessage(t, ws2, want) })
+		// send second message
+		want = data.Message{
+			Id:             2,
+			SenderId:       1,
+			ConversationId: 1,
+			Content:        "test2",
+			PrevMessageId:  1,
+		}
+		js = createWsPayload(t, want)
+		writeWSMessage(t, ws1, js)
+		assertContainsMessage(t, messageModel, want)
+		// receive second message
 		within(t, 500*time.Microsecond, func() { assertMessage(t, ws2, want) })
 	})
 }
