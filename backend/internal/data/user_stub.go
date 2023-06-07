@@ -1,5 +1,7 @@
 package data
 
+import "strconv"
+
 type StubUserModel struct {
 	users   []User
 	idCount int64
@@ -40,6 +42,16 @@ func (s *StubUserModel) Update(user *User) error {
 	return nil
 }
 
+// takes first symbol from plaintext token and use it as Id to find a user
 func (s *StubUserModel) GetForToken(tokenScope, tokenPlaintext string) (*User, error) {
-	return nil, nil
+	id, err := strconv.ParseInt(string(tokenPlaintext[0]), 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	for _, user := range s.users {
+		if user.Id == id {
+			return &user, nil
+		}
+	}
+	return nil, ErrRecordNotFound
 }
