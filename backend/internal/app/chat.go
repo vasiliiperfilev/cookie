@@ -16,12 +16,12 @@ var wsUpgrader = websocket.Upgrader{
 }
 
 type Client struct {
-	Conn *websocket.Conn
+	UserId int64
+	Hub    *Hub
+	Conn   *websocket.Conn
 }
 
-var clients = map[int64]Client{}
-
-func (a *Application) chatWebSocket(w http.ResponseWriter, r *http.Request) {
+func (a *Application) chatWebSocket(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	user, err := a.AuthenticateRequest(w, r)
 	if err != nil {
 		switch {
@@ -36,9 +36,7 @@ func (a *Application) chatWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 	conn, _ := wsUpgrader.Upgrade(w, r, nil)
 
-	if _, ok := clients[user.Id]; !ok {
-		addClient(conn, user)
-	}
+	addClient(conn, user, hub)
 
 	for {
 		message, err := readSentMessage(conn, user)
@@ -53,31 +51,8 @@ func (a *Application) chatWebSocket(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err = sendMessageToClients(a, message)
-		if err != nil {
-			switch {
-			case errors.Is(err, data.ErrRecordNotFound):
-				a.notFoundResponse(w, r)
-			default:
-				a.serverErrorResponse(w, r, err)
-			}
-			return
-		}
+		hub.broadcast <- message
 	}
-}
-
-func sendMessageToClients(a *Application, message data.Message) error {
-	conversation, err := a.models.Conversation.GetById(message.ConversationId)
-	for _, userId := range conversation.UserIds {
-		js, err := json.Marshal(message)
-		if err != nil {
-			return err
-		}
-		if client, ok := clients[userId]; ok && userId != message.SenderId {
-			client.Conn.WriteMessage(websocket.TextMessage, js)
-		}
-	}
-	return err
 }
 
 func readSentMessage(conn *websocket.Conn, user *data.User) (data.Message, error) {
@@ -88,7 +63,40 @@ func readSentMessage(conn *websocket.Conn, user *data.User) (data.Message, error
 	return message, err
 }
 
-func addClient(conn *websocket.Conn, user *data.User) {
-	client := Client{Conn: conn}
-	clients[user.Id] = client
+func addClient(conn *websocket.Conn, user *data.User, hub *Hub) {
+	client := Client{UserId: user.Id, Conn: conn, Hub: hub}
+	client.Hub.register <- &client
+}
+
+type Hub struct {
+	clients   map[int64]Client
+	broadcast chan data.Message
+	register  chan *Client
+}
+
+func newHub() *Hub {
+	return &Hub{
+		broadcast: make(chan data.Message),
+		register:  make(chan *Client),
+		clients:   make(map[int64]Client),
+	}
+}
+
+func (h *Hub) run() {
+	for {
+		select {
+		case client := <-h.register:
+			h.clients[client.UserId] = *client
+		case message := <-h.broadcast:
+			js, err := json.Marshal(message)
+			if err != nil {
+				return
+			}
+			for _, client := range h.clients {
+				if client.UserId != message.SenderId {
+					client.Conn.WriteMessage(websocket.TextMessage, js)
+				}
+			}
+		}
+	}
 }

@@ -1,8 +1,13 @@
 package data
 
-import "golang.org/x/exp/slices"
+import (
+	"sync"
+
+	"golang.org/x/exp/slices"
+)
 
 type StubMessageModel struct {
+	mu            sync.Mutex
 	conversations storage
 	idCount       int64
 }
@@ -34,6 +39,8 @@ func NewStubMessageModel(conversations []Conversation, messages []Message) *Stub
 }
 
 func (s *StubMessageModel) Insert(msg Message) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if entry, ok := s.conversations[msg.ConversationId]; !ok {
 		return ErrRecordNotFound
 	} else {
@@ -46,6 +53,8 @@ func (s *StubMessageModel) Insert(msg Message) error {
 }
 
 func (s *StubMessageModel) GetAllByUserId(id int64) ([]Message, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	result := []Message{}
 	for _, conversation := range s.conversations {
 		if slices.Contains(conversation.UserIds, id) {
