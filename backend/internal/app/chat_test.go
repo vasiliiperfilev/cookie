@@ -3,11 +3,13 @@ package app_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -21,7 +23,7 @@ import (
 
 func TestChat(t *testing.T) {
 	t.Run("2 users: sends-receive, send-receive", func(t *testing.T) {
-		messageModel, appServer := createServer()
+		messageModel, appServer := createServer(2)
 		server := httptest.NewServer(appServer)
 		defer server.Close()
 		h1 := http.Header{"Authorization": {"Bearer " + strings.Repeat("1", 26)}}
@@ -58,7 +60,7 @@ func TestChat(t *testing.T) {
 		within(t, 500*time.Millisecond, func() { assertMessage(t, ws2, want) })
 	})
 	t.Run("2 users: sends-receive, receive-send", func(t *testing.T) {
-		messageModel, appServer := createServer()
+		messageModel, appServer := createServer(2)
 		server := httptest.NewServer(appServer)
 		defer server.Close()
 		h1 := http.Header{"Authorization": {"Bearer " + strings.Repeat("1", 26)}}
@@ -96,15 +98,65 @@ func TestChat(t *testing.T) {
 	})
 }
 
-func createServer() (*data.StubMessageModel, *app.Application) {
+func TestChatConcurrently(t *testing.T) {
+	t.Run("9 users send messages to 1 user: concurrent sends", func(t *testing.T) {
+		messageModel, appServer := createServer(10)
+		server := httptest.NewServer(appServer)
+		defer server.Close()
+		h1 := http.Header{"Authorization": {"Bearer " + strings.Repeat("1", 26)}}
+		ws1 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h1)
+		defer ws1.Close()
+		// send messages from 1 to 2
+		for i := 2; i <= 9; i++ {
+			h1 := http.Header{"Authorization": {"Bearer " + strings.Repeat(strconv.Itoa(i), 26)}}
+			ws2 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h1)
+			defer ws2.Close()
+			for j := 1; j <= 100; j++ {
+				want := data.Message{
+					Id:             int64(j),
+					SenderId:       int64(i),
+					ConversationId: int64(i - 1),
+					Content:        fmt.Sprintf("test%v", i),
+					PrevMessageId:  0,
+				}
+				js := createWsPayload(t, want)
+				writeWSMessage(t, ws2, js)
+				assertContainsMessage(t, messageModel, 1, want)
+				within(t, 500*time.Millisecond, func() { assertMessage(t, ws1, want) })
+			}
+		}
+	})
+}
+
+func createServer(numUsers int) (*data.StubMessageModel, *app.Application) {
 	cfg := app.Config{Port: 4000, Env: "development"}
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	conversationModel := data.NewStubConversationModel([]data.Conversation{{Id: 1, UserIds: []int64{1, 2}}})
-	messageModel := data.NewStubMessageModel([]data.Conversation{{Id: 1, UserIds: []int64{1, 2}}}, []data.Message{})
-	userModel := data.NewStubUserModel([]data.User{{Id: 1}, {Id: 2}})
+	conversationModel := data.NewStubConversationModel(generateConversation(numUsers))
+	messageModel := data.NewStubMessageModel(generateConversation(numUsers), []data.Message{})
+	userModel := data.NewStubUserModel(generateUsers(numUsers))
 	models := data.Models{Message: messageModel, User: userModel, Conversation: conversationModel}
 	appServer := app.New(cfg, logger, models)
 	return messageModel, appServer
+}
+
+func generateConversation(numUsers int) []data.Conversation {
+	c := []data.Conversation{}
+	id := 1
+	for i := 1; i <= numUsers; i++ {
+		for j := i + 1; j <= numUsers; j++ {
+			c = append(c, data.Conversation{Id: int64(id), UserIds: []int64{int64(i), int64(j)}})
+			id++
+		}
+	}
+	return c
+}
+
+func generateUsers(numUsers int) []data.User {
+	u := []data.User{}
+	for i := 1; i <= numUsers; i++ {
+		u = append(u, data.User{Id: int64(i)})
+	}
+	return u
 }
 
 func mustDialWS(t *testing.T, url string, headers http.Header) *websocket.Conn {

@@ -9,12 +9,12 @@ import (
 type StubMessageModel struct {
 	mu            sync.Mutex
 	conversations storage
-	idCount       int64
 }
 
 type storage map[int64]struct {
 	UserIds  []int64
 	Messages []Message
+	IdCount  int64
 }
 
 func NewStubMessageModel(conversations []Conversation, messages []Message) *StubMessageModel {
@@ -23,9 +23,11 @@ func NewStubMessageModel(conversations []Conversation, messages []Message) *Stub
 		msgStorage[conversation.Id] = struct {
 			UserIds  []int64
 			Messages []Message
+			IdCount  int64
 		}{
 			UserIds:  conversation.UserIds,
 			Messages: []Message{},
+			IdCount:  int64(0),
 		}
 	}
 	for _, message := range messages {
@@ -44,8 +46,8 @@ func (s *StubMessageModel) Insert(msg Message) error {
 	if entry, ok := s.conversations[msg.ConversationId]; !ok {
 		return ErrRecordNotFound
 	} else {
-		s.idCount++
-		msg.Id = s.idCount
+		entry.IdCount++
+		msg.Id = entry.IdCount
 		entry.Messages = append(entry.Messages, msg)
 		s.conversations[msg.ConversationId] = entry
 		return nil
