@@ -59,6 +59,7 @@ func TestChat(t *testing.T) {
 		// receive second message
 		within(t, 500*time.Millisecond, func() { assertMessage(t, ws2, want) })
 	})
+
 	t.Run("2 users: sends-receive, receive-send", func(t *testing.T) {
 		messageModel, appServer := createServer(2)
 		server := httptest.NewServer(appServer)
@@ -96,9 +97,7 @@ func TestChat(t *testing.T) {
 		// user 1: receive message
 		within(t, 500*time.Millisecond, func() { assertMessage(t, ws1, want2) })
 	})
-}
 
-func TestChatConcurrently(t *testing.T) {
 	t.Run("9 users send messages to 1 user: concurrent sends", func(t *testing.T) {
 		messageModel, appServer := createServer(10)
 		server := httptest.NewServer(appServer)

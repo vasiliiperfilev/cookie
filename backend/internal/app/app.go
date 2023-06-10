@@ -27,7 +27,7 @@ func New(config Config, logger *log.Logger, models data.Models) *Application {
 	a.logger = logger
 	a.models = models
 
-	hub := newHub()
+	hub := newHub(a)
 	go hub.run()
 
 	router := http.NewServeMux()
