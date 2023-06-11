@@ -28,7 +28,7 @@ func (a *Application) chatWebSocket(hub *Hub, w http.ResponseWriter, r *http.Req
 	}
 	conn, _ := wsUpgrader.Upgrade(w, r, nil)
 
-	client := &Client{User: *user, conn: conn, hub: hub, messages: make(chan data.Message, 256)}
+	client := &Client{User: *user, conn: conn, hub: hub, messages: make(chan []byte, 256)}
 	client.hub.register <- client
 
 	go client.readPump()

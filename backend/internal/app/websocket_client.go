@@ -2,8 +2,7 @@ package app
 
 import (
 	"bytes"
-	"encoding/json"
-	"log"
+	"fmt"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -28,7 +27,7 @@ type Client struct {
 	User     data.User
 	hub      *Hub
 	conn     *websocket.Conn
-	messages chan data.Message
+	messages chan []byte
 }
 
 func (c *Client) readPump() {
@@ -38,24 +37,23 @@ func (c *Client) readPump() {
 		c.hub.unregister <- c
 		c.conn.Close()
 	}()
+	c.conn.SetReadLimit(maxMessageSize)
+	c.conn.SetReadDeadline(time.Now().Add(pongWait))
+	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	// Loop Forever
 	for {
-		// ReadMessage is used to read the next message in queue
+		// readSentEvent is used to read the next event in queue
 		// in the connection
-		message, err := readSentMessage(c)
-		c.conn.SetReadLimit(maxMessageSize)
-		c.conn.SetReadDeadline(time.Now().Add(pongWait))
-		c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+		_, evt, err := c.conn.ReadMessage()
 		if err != nil {
 			// If Connection is closed, we will Recieve an error here
 			// We only want to log Strange errors, but not simple Disconnection
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				// TODO: send error to hub to log and send message to client itself
-				log.Printf("error reading message: %v", err)
+				c.hub.errors <- c.hub.createErrorMessage(c, fmt.Sprintf("error reading message: %v", err))
 			}
 			break // Break the loop to close conn & Cleanup
 		}
-		c.hub.broadcast <- *message
+		c.hub.broadcast <- WsMessage{Sender: c, Payload: evt}
 	}
 }
 
@@ -65,14 +63,14 @@ func (c *Client) writePump() {
 		ticker.Stop()
 		c.conn.Close()
 	}()
-	// if message comes before the end of ping period work on it
+	// if event comes before the end of ping period work on it
 	// if ping period came earlier - send ping to check if client alive
 	for {
 		select {
-		case message, ok := <-c.messages:
+		case msg, ok := <-c.messages:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
-				// The hub closed the channel.
+				// The hub closed the channel after readPump was stopped see defer in readPump
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
@@ -82,17 +80,7 @@ func (c *Client) writePump() {
 				return
 			}
 
-			// initialize in handler and run tests
-			// then go back to handling db write error
-			// add tests for client disconnects
-			// client stays connected but silent
-			// clients sends incorrect message format
-			// client disconnects with error
-			js, err := json.Marshal(message)
-			if err != nil {
-				return
-			}
-			w.Write(js)
+			w.Write(msg)
 
 			if err := w.Close(); err != nil {
 				return
@@ -106,16 +94,15 @@ func (c *Client) writePump() {
 	}
 }
 
-func readSentMessage(client *Client) (*data.Message, error) {
+func readSentEvent(client *Client) (*WsEvent, error) {
 	_, msg, err := client.conn.ReadMessage()
 	if err != nil {
 		return nil, err
 	}
-	var message data.Message
-	err = readJson(bytes.NewReader(msg), &message)
-	message.SenderId = client.User.Id
+	var event WsEvent
+	err = readJson(bytes.NewReader(msg), &event)
 	if err != nil {
 		return nil, err
 	}
-	return &message, err
+	return &event, err
 }
