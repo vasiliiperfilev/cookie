@@ -26,10 +26,6 @@ type MessageEvent struct {
 	Payload data.Message
 }
 
-// add tests for client disconnects
-// client stays connected but silent
-// clients sends incorrect message format
-// client disconnects with error
 func TestChat(t *testing.T) {
 	t.Run("2 users: sends-receive, send-receive", func(t *testing.T) {
 		messageModel, appServer := createServer(2)
@@ -151,6 +147,98 @@ func TestChat(t *testing.T) {
 	})
 }
 
+func TestChatErrors(t *testing.T) {
+	t.Run("it handles client disconnection", func(t *testing.T) {
+		_, appServer := createServer(2)
+		server := httptest.NewServer(appServer)
+		defer server.Close()
+		h1 := http.Header{"Authorization": {"Bearer " + strings.Repeat("1", 26)}}
+		ws1 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h1)
+		err := ws1.Close()
+		tester.AssertNoError(t, err)
+		// can establish ws connection again
+		ws1 = mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h1)
+		defer ws1.Close()
+	})
+
+	t.Run("it handles client disconnection during processing", func(t *testing.T) {
+		_, appServer := createServer(2)
+		server := httptest.NewServer(appServer)
+		defer server.Close()
+		h1 := http.Header{"Authorization": {"Bearer " + strings.Repeat("1", 26)}}
+		ws1 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h1)
+		h2 := http.Header{"Authorization": {"Bearer " + strings.Repeat("2", 26)}}
+		ws2 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h2)
+		// send first message
+		want := MessageEvent{
+			Type: app.EventMessage,
+			Payload: data.Message{
+				Id:             1,
+				SenderId:       1,
+				ConversationId: 1,
+				Content:        "test1",
+				PrevMessageId:  0,
+			},
+		}
+		js := createWsPayload(t, want)
+		writeWSMessage(t, ws1, js)
+		err := ws2.Close()
+		tester.AssertNoError(t, err)
+		err = ws1.Close()
+		tester.AssertNoError(t, err)
+		// can establish ws connection gain
+		ws1 = mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h1)
+		defer ws1.Close()
+		ws2 = mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h2)
+		defer ws2.Close()
+	})
+
+	t.Run("it responds with error event if payload is incorrect", func(t *testing.T) {
+		// client1 connects
+		// client2 connects
+		// client1 sends incorrect message to client 2
+		// client1 receives incorrect event
+		// client 2 receives nothing
+		_, appServer := createServer(2)
+		server := httptest.NewServer(appServer)
+		defer server.Close()
+		h1 := http.Header{"Authorization": {"Bearer " + strings.Repeat("1", 26)}}
+		ws1 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h1)
+		defer ws1.Close()
+		h2 := http.Header{"Authorization": {"Bearer " + strings.Repeat("2", 26)}}
+		ws2 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h2)
+		defer ws2.Close()
+		// send first message
+		want := struct {
+			Type    string
+			Payload string
+		}{
+			Type:    app.EventMessage,
+			Payload: "wrong payload",
+		}
+		js := createWsPayload(t, want)
+		writeWSMessage(t, ws1, js)
+		// receive error back message
+		wantError := app.ErrorResponse{Message: app.PayloadErrorMessage, Errors: map[string]string{}}
+		within(t, 500*time.Millisecond, func() { assertErrorEvent(t, ws1, wantError) })
+		// client 2 receives nothing
+		assertNoMessage(t, ws2)
+	})
+
+	// TODO: uncomment and finish up after WS is extracted as separate package
+	// t.Run("it closes connection if no pong response", func(t *testing.T) {
+	// 	_, appServer := createServer(2)
+	// 	server := httptest.NewServer(appServer)
+	// 	defer server.Close()
+	// 	h1 := http.Header{"Authorization": {"Bearer " + strings.Repeat("1", 26)}}
+	// 	ws1 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h1)
+	// 	ws1.SetPingHandler(func(appData string) error { return nil })
+	// 	time.Sleep(10)
+	// 	_, _, err := ws1.ReadMessage()
+	// 	tester.AssertError(t, err)
+	// })
+}
+
 func createServer(numUsers int) (*data.StubMessageModel, *app.Application) {
 	cfg := app.Config{Port: 4000, Env: "development"}
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
@@ -229,6 +317,42 @@ func assertMessage(t *testing.T, ws *websocket.Conn, want data.Message) {
 
 	passed := tester.RetryUntil(1000*time.Millisecond, func() bool {
 		return reflect.DeepEqual(got.Payload, want)
+	})
+
+	if !passed {
+		t.Fatalf("Expected to have %v", want)
+	}
+}
+
+func assertNoMessage(t *testing.T, ws *websocket.Conn) {
+	t.Helper()
+
+	done := make(chan []byte, 1)
+
+	go func() {
+		_, msg, _ := ws.ReadMessage()
+		done <- msg
+	}()
+
+	select {
+	case msg := <-done:
+		t.Errorf("Get message %s, expected nothing", string(msg))
+	case <-time.After(500 * time.Millisecond):
+	}
+}
+
+func assertErrorEvent(t *testing.T, ws *websocket.Conn, want app.ErrorResponse) {
+	t.Helper()
+
+	_, msg, err := ws.ReadMessage()
+	tester.AssertNoError(t, err)
+	var gotEvent app.WsEvent
+	json.NewDecoder(bytes.NewReader(msg)).Decode(&gotEvent)
+	var gotPayload app.ErrorResponse
+	json.NewDecoder(bytes.NewReader(gotEvent.Payload)).Decode(&gotPayload)
+
+	passed := tester.RetryUntil(1000*time.Millisecond, func() bool {
+		return reflect.DeepEqual(gotEvent.Type, app.EventError) && reflect.DeepEqual(gotPayload, want)
 	})
 
 	if !passed {

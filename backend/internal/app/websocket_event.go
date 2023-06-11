@@ -3,8 +3,10 @@ package app
 import "encoding/json"
 
 const (
-	EventMessage = "message"
-	EventError   = "error"
+	EventMessage        = "message"
+	EventError          = "error"
+	PayloadErrorMessage = "Invalid payload"
+	ServerErrorMessage  = "Server error"
 )
 
 // WsEvent is the Messages sent over the websocket

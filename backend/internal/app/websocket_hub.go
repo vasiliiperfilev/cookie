@@ -35,14 +35,14 @@ func (h *Hub) run() {
 		case wsMessage := <-h.broadcast:
 			event, err := h.readEvent(wsMessage)
 			if err != nil {
-				h.errors <- h.createErrorMessage(wsMessage.Sender, "Invalid payload")
+				h.errors <- h.createErrorMessage(wsMessage.Sender, PayloadErrorMessage)
 				continue
 			}
 			switch event.Type {
 			case EventMessage:
 				h.handleMessageEvent(event, wsMessage)
 			default:
-				h.app.logger.Printf("Unsupported websocket event %v", event)
+				h.app.logger.Printf("Unsupported websocket event %v, payload %v", event.Type, string(event.Payload))
 			}
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
@@ -50,7 +50,7 @@ func (h *Hub) run() {
 				delete(h.clients, client)
 			}
 		case wsMessage := <-h.errors:
-			h.app.logger.Printf("Websocker error event %s", wsMessage.Payload)
+			h.app.logger.Printf("Websocker error event %s", string(wsMessage.Payload))
 			wsMessage.Sender.messages <- wsMessage.Payload
 		}
 	}
@@ -60,12 +60,12 @@ func (h *Hub) handleMessageEvent(event *WsEvent, wsMessage WsMessage) {
 	var message data.Message
 	err := readJson(bytes.NewReader(event.Payload), &message)
 	if err != nil {
-		h.errors <- h.createErrorMessage(wsMessage.Sender, "Invalid payload")
+		h.errors <- h.createErrorMessage(wsMessage.Sender, PayloadErrorMessage)
 		return
 	}
 	err = h.app.models.Message.Insert(message)
 	if err != nil {
-		h.errors <- h.createErrorMessage(wsMessage.Sender, "Server error")
+		h.errors <- h.createErrorMessage(wsMessage.Sender, ServerErrorMessage)
 		return
 	}
 	for client := range h.clients {
