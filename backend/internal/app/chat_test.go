@@ -108,7 +108,7 @@ func TestChat(t *testing.T) {
 		}
 		js = createWsPayload(t, want2)
 		writeWSMessage(t, ws2, js)
-		assertContainsMessage(t, messageModel, 2, want2.Payload)
+		assertContainsMessage(t, messageModel, 1, want2.Payload)
 		// user 2: receive message
 		within(t, 500*time.Millisecond, func() { assertMessage(t, ws2, want1.Payload) })
 		// user 1: receive message
@@ -140,7 +140,7 @@ func TestChat(t *testing.T) {
 				}
 				js := createWsPayload(t, want)
 				writeWSMessage(t, ws2, js)
-				assertContainsMessage(t, messageModel, 1, want.Payload)
+				assertContainsMessage(t, messageModel, i-1, want.Payload)
 				within(t, 500*time.Millisecond, func() { assertMessage(t, ws1, want.Payload) })
 			}
 		}
@@ -293,11 +293,11 @@ func createWsPayload(t *testing.T, payload any) []byte {
 	return js
 }
 
-func assertContainsMessage(t *testing.T, m data.MessageModel, userId int, want data.Message) {
+func assertContainsMessage(t *testing.T, m data.MessageModel, conversationId int, want data.Message) {
 	t.Helper()
 
 	passed := tester.RetryUntil(500*time.Millisecond, func() bool {
-		messages, err := m.GetAllByUserId(int64(userId))
+		messages, err := m.GetAllById(int64(conversationId))
 		tester.AssertNoError(t, err)
 		return slices.Contains(messages, want)
 	})

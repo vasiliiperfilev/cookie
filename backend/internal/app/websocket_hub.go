@@ -63,7 +63,7 @@ func (h *Hub) handleMessageEvent(event *WsEvent, wsMessage WsMessage) {
 		h.errors <- h.createErrorMessage(wsMessage.Sender, PayloadErrorMessage)
 		return
 	}
-	err = h.app.models.Message.Insert(message)
+	err = h.app.models.Message.Insert(&message)
 	if err != nil {
 		h.errors <- h.createErrorMessage(wsMessage.Sender, ServerErrorMessage)
 		return

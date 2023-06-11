@@ -2,8 +2,6 @@ package data
 
 import (
 	"sync"
-
-	"golang.org/x/exp/slices"
 )
 
 type StubMessageModel struct {
@@ -40,7 +38,7 @@ func NewStubMessageModel(conversations []Conversation, messages []Message) *Stub
 	return &StubMessageModel{conversations: msgStorage}
 }
 
-func (s *StubMessageModel) Insert(msg Message) error {
+func (s *StubMessageModel) Insert(msg *Message) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if entry, ok := s.conversations[msg.ConversationId]; !ok {
@@ -48,18 +46,18 @@ func (s *StubMessageModel) Insert(msg Message) error {
 	} else {
 		entry.IdCount++
 		msg.Id = entry.IdCount
-		entry.Messages = append(entry.Messages, msg)
+		entry.Messages = append(entry.Messages, *msg)
 		s.conversations[msg.ConversationId] = entry
 		return nil
 	}
 }
 
-func (s *StubMessageModel) GetAllByUserId(id int64) ([]Message, error) {
+func (s *StubMessageModel) GetAllById(id int64) ([]Message, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	result := []Message{}
-	for _, conversation := range s.conversations {
-		if slices.Contains(conversation.UserIds, id) {
+	for conversationId, conversation := range s.conversations {
+		if conversationId == id {
 			result = append(result, conversation.Messages...)
 		}
 	}

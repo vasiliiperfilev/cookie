@@ -22,5 +22,6 @@ func NewModels(db *sql.DB) Models {
 		User:         NewPsqlUserModel(db),
 		Token:        NewPsqlTokenModel(db),
 		Conversation: NewPsqlConversationModel(db),
+		Message:      NewPsqlMessageModel(db),
 	}
 }
