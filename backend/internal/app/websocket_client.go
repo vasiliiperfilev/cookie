@@ -1,7 +1,6 @@
 package app
 
 import (
-	"bytes"
 	"fmt"
 	"time"
 
@@ -92,17 +91,4 @@ func (c *Client) writePump() {
 			}
 		}
 	}
-}
-
-func readSentEvent(client *Client) (*WsEvent, error) {
-	_, msg, err := client.conn.ReadMessage()
-	if err != nil {
-		return nil, err
-	}
-	var event WsEvent
-	err = readJson(bytes.NewReader(msg), &event)
-	if err != nil {
-		return nil, err
-	}
-	return &event, err
 }
