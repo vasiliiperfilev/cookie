@@ -29,7 +29,7 @@ func TestConversationModelIntegration(t *testing.T) {
 	t.Run("it doesn't insert a conversation if no users", func(t *testing.T) {
 		model := data.NewPsqlConversationModel(db)
 		conversation := data.Conversation{
-			UserIds: []int64{3, 4},
+			UserIds: []int64{99, 100},
 		}
 		err := model.Insert(conversation)
 		tester.AssertError(t, err)

@@ -11,7 +11,7 @@ import (
 
 type ConversationModel interface {
 	Insert(conversation Conversation) error
-	GetAllByUserId(userId int64) ([]*Conversation, error)
+	GetAllByUserId(userId int64) ([]Conversation, error)
 	GetById(id int64) (*Conversation, error)
 }
 
@@ -47,7 +47,7 @@ func (m PsqlConversationModel) Insert(conversation Conversation) error {
 	return nil
 }
 
-func (m PsqlConversationModel) GetAllByUserId(userId int64) ([]*Conversation, error) {
+func (m PsqlConversationModel) GetAllByUserId(userId int64) ([]Conversation, error) {
 	query := `
         SELECT c.conversation_id, c.last_message_id, c.version, array_agg(c_u_ids.user_id) as user_ids
         FROM conversations_users as c_u
@@ -58,7 +58,7 @@ func (m PsqlConversationModel) GetAllByUserId(userId int64) ([]*Conversation, er
         WHERE c_u.user_id = $1
 		GROUP BY c.conversation_id`
 
-	conversations := make([]*Conversation, 0)
+	conversations := make([]Conversation, 0)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -70,7 +70,7 @@ func (m PsqlConversationModel) GetAllByUserId(userId int64) ([]*Conversation, er
 	defer rows.Close()
 
 	for rows.Next() {
-		conversation := new(Conversation)
+		conversation := Conversation{}
 		if err := rows.Scan(&conversation.Id, &conversation.LastMessageId, &conversation.Version, (*pq.Int64Array)(&conversation.UserIds)); err != nil {
 			return nil, err
 		}

@@ -34,12 +34,12 @@ func (s *StubConversationModel) Insert(conversation Conversation) error {
 	return nil
 }
 
-func (s *StubConversationModel) GetAllByUserId(userId int64) ([]*Conversation, error) {
-	result := []*Conversation{}
+func (s *StubConversationModel) GetAllByUserId(userId int64) ([]Conversation, error) {
+	result := []Conversation{}
 	for _, conversation := range s.conversations {
 		for _, id := range conversation.UserIds {
 			if id == userId {
-				result = append(result, &conversation)
+				result = append(result, conversation)
 			}
 		}
 	}
