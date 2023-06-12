@@ -22,7 +22,7 @@ type Conversation struct {
 func AssertConversation(t *testing.T, got Conversation, want Conversation) {
 	t.Helper()
 	tester.AssertValue(t, got.Id, want.Id, "Expected same conversation id")
-	tester.AssertValue(t, got.Id, want.Id, "Expected same last message id")
+	tester.AssertValue(t, got.LastMessageId, want.LastMessageId, "Expected same last message id")
 	sort.Slice(got.UserIds, func(i, j int) bool {
 		return got.UserIds[i] >= got.UserIds[j]
 	})

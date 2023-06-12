@@ -37,7 +37,7 @@ func handlePostConversation(w http.ResponseWriter, r *http.Request, a *Applicati
 	}
 
 	v := validator.New()
-	err = a.models.Conversation.Insert(*conversation)
+	err = a.models.Conversation.Insert(conversation)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrDuplicateConversation):
@@ -49,7 +49,7 @@ func handlePostConversation(w http.ResponseWriter, r *http.Request, a *Applicati
 		return
 	}
 
-	writeJsonResponse(w, http.StatusOK, conversation, nil)
+	writeJsonResponse(w, http.StatusCreated, conversation, nil)
 }
 
 func handleGetConversation(w http.ResponseWriter, r *http.Request, a *Application) {

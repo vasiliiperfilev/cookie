@@ -10,7 +10,7 @@ import (
 )
 
 type ConversationModel interface {
-	Insert(conversation Conversation) error
+	Insert(conversation *Conversation) error
 	GetAllByUserId(userId int64) ([]Conversation, error)
 	GetById(id int64) (*Conversation, error)
 }
@@ -23,7 +23,7 @@ func NewPsqlConversationModel(db *sql.DB) *PsqlConversationModel {
 	return &PsqlConversationModel{db: db}
 }
 
-func (m PsqlConversationModel) Insert(conversation Conversation) error {
+func (m PsqlConversationModel) Insert(conversation *Conversation) error {
 	query := `
         INSERT INTO conversations(last_message_id)
         VALUES ($1)
@@ -49,16 +49,16 @@ func (m PsqlConversationModel) Insert(conversation Conversation) error {
 
 func (m PsqlConversationModel) GetAllByUserId(userId int64) ([]Conversation, error) {
 	query := `
-        SELECT c.conversation_id, c.last_message_id, c.version, array_agg(c_u_ids.user_id) as user_ids
-        FROM conversations_users as c_u
+    SELECT c.conversation_id, c.last_message_id, c.version, array_agg(c_u_ids.user_id) as user_ids
+    FROM conversations_users as c_u
 			INNER JOIN conversations as c
 				ON c.conversation_id = c_u.conversation_id
 			INNER JOIN conversations_users as c_u_ids
 				ON c.conversation_id = c_u_ids.conversation_id
-        WHERE c_u.user_id = $1
+    WHERE c_u.user_id = $1
 		GROUP BY c.conversation_id`
 
-	conversations := make([]Conversation, 0)
+	conversations := []Conversation{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -116,7 +116,7 @@ func (m PsqlConversationModel) GetById(id int64) (*Conversation, error) {
 	return &conversation, nil
 }
 
-func (m PsqlConversationModel) insertConversationUsers(conversation Conversation) error {
+func (m PsqlConversationModel) insertConversationUsers(conversation *Conversation) error {
 	for _, userId := range conversation.UserIds {
 		query := `
 		INSERT INTO conversations_users(conversation_id, user_id)

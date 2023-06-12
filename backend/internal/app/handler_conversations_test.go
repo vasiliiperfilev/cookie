@@ -27,9 +27,9 @@ func TestPostConversation(t *testing.T) {
 			UserIds: []int64{1, 2},
 		}
 		expectedResponse := data.Conversation{
-			Id:            0,
+			Id:            1,
 			UserIds:       []int64{1, 2},
-			LastMessageId: -1,
+			LastMessageId: 0,
 			Version:       1,
 		}
 		// post request
@@ -39,7 +39,7 @@ func TestPostConversation(t *testing.T) {
 		// assertion
 		var gotConversation data.Conversation
 		json.NewDecoder(response.Body).Decode(&gotConversation)
-		assertStatus(t, response.Code, http.StatusOK)
+		assertStatus(t, response.Code, http.StatusCreated)
 		assertContentType(t, response, app.JsonContentType)
 		data.AssertConversation(t, gotConversation, expectedResponse)
 	})
@@ -55,7 +55,7 @@ func TestPostConversation(t *testing.T) {
 			{
 				Id:            1,
 				UserIds:       userIds,
-				LastMessageId: -1,
+				LastMessageId: 0,
 				Version:       1,
 			},
 		}

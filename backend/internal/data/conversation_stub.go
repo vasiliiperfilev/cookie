@@ -14,7 +14,7 @@ func NewStubConversationModel(conversations []Conversation) *StubConversationMod
 	return &StubConversationModel{conversations: conversations}
 }
 
-func (s *StubConversationModel) Insert(conversation Conversation) error {
+func (s *StubConversationModel) Insert(conversation *Conversation) error {
 	for _, existingConversation := range s.conversations {
 		sort.Slice(existingConversation.UserIds, func(i, j int) bool {
 			return existingConversation.UserIds[i] >= existingConversation.UserIds[j]
@@ -28,9 +28,9 @@ func (s *StubConversationModel) Insert(conversation Conversation) error {
 	}
 	s.idCount++
 	conversation.Id = s.idCount
-	conversation.LastMessageId = -1
+	conversation.LastMessageId = 0
 	conversation.Version = 1
-	s.conversations = append(s.conversations, conversation)
+	s.conversations = append(s.conversations, *conversation)
 	return nil
 }
 

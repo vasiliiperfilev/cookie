@@ -31,7 +31,7 @@ func TestConversationModelIntegration(t *testing.T) {
 		conversation := data.Conversation{
 			UserIds: []int64{99, 100},
 		}
-		err := model.Insert(conversation)
+		err := model.Insert(&conversation)
 		tester.AssertError(t, err)
 		tester.AssertValue(t, err.Error(), `pq: insert or update on table "conversations_users" violates foreign key constraint "conversations_users_user_id_fkey"`, "expected no users error")
 	})
@@ -41,7 +41,7 @@ func TestConversationModelIntegration(t *testing.T) {
 		conversation := data.Conversation{
 			UserIds: []int64{1, 2},
 		}
-		err := model.Insert(conversation)
+		err := model.Insert(&conversation)
 		tester.AssertNoError(t, err)
 	})
 
