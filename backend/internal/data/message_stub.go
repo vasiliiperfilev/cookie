@@ -63,3 +63,16 @@ func (s *StubMessageModel) GetAllByConversationId(id int64) ([]Message, error) {
 	}
 	return result, nil
 }
+
+func (s *StubMessageModel) GetById(id int64) (*Message, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, conversation := range s.conversations {
+		for _, msg := range conversation.Messages {
+			if msg.Id == id {
+				return &msg, nil
+			}
+		}
+	}
+	return nil, ErrRecordNotFound
+}

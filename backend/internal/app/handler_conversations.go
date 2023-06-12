@@ -60,7 +60,12 @@ func handleGetConversation(w http.ResponseWriter, r *http.Request, a *Applicatio
 	}
 	conversations, err := a.models.Conversation.GetAllByUserId(userId)
 	if err != nil {
-		a.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 	writeJsonResponse(w, http.StatusOK, conversations, nil)

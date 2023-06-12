@@ -65,7 +65,12 @@ func (m PsqlConversationModel) GetAllByUserId(userId int64) ([]Conversation, err
 
 	rows, err := m.db.QueryContext(ctx, query, userId)
 	if err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
 	}
 	defer rows.Close()
 

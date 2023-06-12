@@ -3,12 +3,14 @@ package data
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 )
 
 type MessageModel interface {
 	Insert(msg *Message) error
 	GetAllByConversationId(id int64) ([]Message, error)
+	GetById(id int64) (*Message, error)
 }
 
 type PsqlMessageModel struct {
@@ -51,7 +53,12 @@ func (m PsqlMessageModel) GetAllByConversationId(id int64) ([]Message, error) {
 
 	rows, err := m.db.QueryContext(ctx, query, id)
 	if err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
 	}
 	defer rows.Close()
 
@@ -67,4 +74,28 @@ func (m PsqlMessageModel) GetAllByConversationId(id int64) ([]Message, error) {
 	}
 
 	return messages, nil
+}
+
+func (m PsqlMessageModel) GetById(id int64) (*Message, error) {
+	query := `
+	    SELECT message_id, sender_id, conversation_id, prev_message_id, created_at, content
+	    FROM messages
+	    WHERE message_id = $1`
+
+	msg := Message{}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.db.QueryRowContext(ctx, query, id).Scan(&msg.Id, &msg.SenderId, &msg.ConversationId, &msg.PrevMessageId, &msg.CreatedAt, &msg.Content)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &msg, nil
 }
