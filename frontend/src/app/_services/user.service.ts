@@ -34,7 +34,10 @@ export class UserService {
 
   login(email: string, password: string) {
     return this.http
-      .post<UserResponse>(`${environment.apiUrl}/v1/token`, { email, password })
+      .post<UserResponse>(`${environment.apiUrl}/v1/tokens`, {
+        email,
+        password,
+      })
       .pipe(
         map((userResponse) => {
           // store jwt token in local storage to keep user logged in between page refreshes
@@ -55,16 +58,16 @@ export class UserService {
   }
 
   register(user: UserRequest) {
-    return this.http.post(`${environment.apiUrl}/v1/user`, user);
+    return this.http.post(`${environment.apiUrl}/v1/users`, user);
   }
 
   getById(id: string) {
-    return this.http.get<User>(`${environment.apiUrl}/v1/user/${id}`);
+    return this.http.get<User>(`${environment.apiUrl}/v1/users/${id}`);
   }
 
   update(user: User) {
     return this.http
-      .put<User>(`${environment.apiUrl}/v1/user/${user.id}`, user)
+      .put<User>(`${environment.apiUrl}/v1/users/${user.id}`, user)
       .pipe(
         map((user) => {
           // publish updated user to subscribers
@@ -75,7 +78,7 @@ export class UserService {
   }
 
   delete(id: string) {
-    return this.http.delete(`${environment.apiUrl}/v1/user/${id}`).pipe(
+    return this.http.delete(`${environment.apiUrl}/v1/users/${id}`).pipe(
       map((x) => {
         // auto logout if the logged in user deleted their own record
         if (id == this.userValue?.id) {
