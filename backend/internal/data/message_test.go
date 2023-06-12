@@ -77,4 +77,21 @@ func TestMessageModelIntegration(t *testing.T) {
 			t.Errorf("Expected to have %v message, but not found", want)
 		}
 	})
+
+	t.Run("it gets a message by id", func(t *testing.T) {
+		want := data.Message{
+			Id:             0,
+			ConversationId: 0,
+			SenderId:       0,
+			Content:        "sentinel node",
+			PrevMessageId:  0,
+		}
+		got, err := messageModel.GetById(int64(0))
+		tester.AssertNoError(t, err)
+		tester.AssertValue(t, got.Id, want.Id, "Id must be the same")
+		tester.AssertValue(t, got.ConversationId, want.ConversationId, "Id must be the same")
+		tester.AssertValue(t, got.SenderId, want.SenderId, "Id must be the same")
+		tester.AssertValue(t, got.Content, want.Content, "Id must be the same")
+		tester.AssertValue(t, got.PrevMessageId, want.PrevMessageId, "Id must be the same")
+	})
 }
