@@ -52,7 +52,7 @@ func (s *StubMessageModel) Insert(msg *Message) error {
 	}
 }
 
-func (s *StubMessageModel) GetAllById(id int64) ([]Message, error) {
+func (s *StubMessageModel) GetAllByConversationId(id int64) ([]Message, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	result := []Message{}

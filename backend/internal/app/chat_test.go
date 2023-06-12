@@ -297,7 +297,7 @@ func assertContainsMessage(t *testing.T, m data.MessageModel, conversationId int
 	t.Helper()
 
 	passed := tester.RetryUntil(500*time.Millisecond, func() bool {
-		messages, err := m.GetAllById(int64(conversationId))
+		messages, err := m.GetAllByConversationId(int64(conversationId))
 		tester.AssertNoError(t, err)
 		return slices.Contains(messages, want)
 	})

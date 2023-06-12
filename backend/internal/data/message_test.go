@@ -64,7 +64,7 @@ func TestMessageModelIntegration(t *testing.T) {
 		}
 		err := messageModel.Insert(&want)
 		tester.AssertNoError(t, err)
-		messages, err := messageModel.GetAllById(int64(0))
+		messages, err := messageModel.GetAllByConversationId(int64(0))
 		tester.AssertNoError(t, err)
 		found := false
 		for _, message := range messages {

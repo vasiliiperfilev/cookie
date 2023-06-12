@@ -8,7 +8,7 @@ import (
 
 type MessageModel interface {
 	Insert(msg *Message) error
-	GetAllById(id int64) ([]Message, error)
+	GetAllByConversationId(id int64) ([]Message, error)
 }
 
 type PsqlMessageModel struct {
@@ -38,7 +38,7 @@ func (m PsqlMessageModel) Insert(msg *Message) error {
 	return nil
 }
 
-func (m PsqlMessageModel) GetAllById(id int64) ([]Message, error) {
+func (m PsqlMessageModel) GetAllByConversationId(id int64) ([]Message, error) {
 	query := `
 	    SELECT message_id, sender_id, conversation_id, prev_message_id, created_at, content
 	    FROM messages
