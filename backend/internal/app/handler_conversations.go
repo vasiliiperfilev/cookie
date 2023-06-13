@@ -10,6 +10,11 @@ import (
 	"github.com/vasiliiperfilev/cookie/internal/validator"
 )
 
+type ExpandedConversation struct {
+	data.Conversation
+	LastMessage data.Message
+}
+
 func (a *Application) conversationsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
@@ -58,6 +63,8 @@ func handleGetConversation(w http.ResponseWriter, r *http.Request, a *Applicatio
 		a.notFoundResponse(w, r)
 		return
 	}
+	expanded := r.URL.Query().Get("expanded")
+
 	conversations, err := a.models.Conversation.GetAllByUserId(userId)
 	if err != nil {
 		switch {
@@ -68,5 +75,19 @@ func handleGetConversation(w http.ResponseWriter, r *http.Request, a *Applicatio
 		}
 		return
 	}
-	writeJsonResponse(w, http.StatusOK, conversations, nil)
+
+	if expanded == "" {
+		writeJsonResponse(w, http.StatusOK, conversations, nil)
+	} else {
+		expandedConvs := []ExpandedConversation{}
+		for _, c := range conversations {
+			msg, err := a.models.Message.GetById(c.LastMessageId)
+			if err != nil {
+				a.serverErrorResponse(w, r, err)
+				return
+			}
+			expandedConvs = append(expandedConvs, ExpandedConversation{LastMessage: *msg, Conversation: c})
+		}
+		writeJsonResponse(w, http.StatusOK, expandedConvs, nil)
+	}
 }
