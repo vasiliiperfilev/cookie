@@ -9,12 +9,13 @@ import (
 )
 
 var wsUpgrader = websocket.Upgrader{
+	CheckOrigin:     func(r *http.Request) bool { return true },
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
 
-func (a *Application) chatWebSocket(hub *Hub, w http.ResponseWriter, r *http.Request) {
-	user, err := a.AuthenticateRequest(w, r)
+func (a *Application) wsChatHandler(hub *Hub, w http.ResponseWriter, r *http.Request) {
+	user, err := a.AuthenticateWsUpgradeRequest(w, r)
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrUnathorized):
@@ -26,7 +27,11 @@ func (a *Application) chatWebSocket(hub *Hub, w http.ResponseWriter, r *http.Req
 		}
 		return
 	}
-	conn, _ := wsUpgrader.Upgrade(w, r, nil)
+	conn, err := wsUpgrader.Upgrade(w, r, nil)
+	if err != nil {
+		a.logger.Print(err)
+		return
+	}
 
 	client := &Client{User: *user, conn: conn, hub: hub, messages: make(chan []byte, 256)}
 	client.hub.register <- client

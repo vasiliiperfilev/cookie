@@ -36,8 +36,9 @@ func New(config Config, logger *log.Logger, models data.Models) *Application {
 	router.Handle("/v1/users", http.HandlerFunc(a.usersHandler))
 	router.Handle("/v1/tokens", http.HandlerFunc(a.tokensHandler))
 	router.Handle("/v1/conversations", http.HandlerFunc(a.conversationsHandler))
+	router.Handle("/v1/conversations/", http.HandlerFunc(a.messagesHandler))
 	router.Handle("/v1/chat", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		a.chatWebSocket(hub, w, r)
+		a.wsChatHandler(hub, w, r)
 	}))
 
 	a.Handler = a.setAccessControlHeaders(router)

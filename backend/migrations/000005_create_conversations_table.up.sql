@@ -8,4 +8,4 @@ INSERT INTO conversations (conversation_id)
 VALUES 
     (0);
 
-ALTER TABLE messages ADD CONSTRAINT fk_conversation_id FOREIGN KEY (conversation_id) REFERENCES conversations(conversation_id) ON DELETE CASCADE;
+ALTER TABLE messages ADD CONSTRAINT fk_conversation_id FOREIGN KEY conversation_id REFERENCES conversations(conversation_id) ON DELETE CASCADE;

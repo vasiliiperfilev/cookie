@@ -58,7 +58,7 @@ func authRequest(t *testing.T, server *app.Application, token data.Token) *data.
 	tester.AssertNoError(t, err)
 	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token.Plaintext))
 	response := httptest.NewRecorder()
-	user, err := server.AuthenticateRequest(response, request)
+	user, err := server.AuthenticateHttpRequest(response, request)
 	tester.AssertNoError(t, err)
 	return user
 }
