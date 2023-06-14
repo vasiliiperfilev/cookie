@@ -42,6 +42,7 @@ export class UserService {
         map((userResponse) => {
           // store jwt token in local storage to keep user logged in between page refreshes
           localStorage.setItem('token', JSON.stringify(userResponse.token));
+          localStorage.setItem('user', JSON.stringify(userResponse.user));
           this.tokenSubject.next(userResponse.token);
           this.userSubject.next(userResponse.user);
           return userResponse;

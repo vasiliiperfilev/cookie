@@ -1,0 +1,10 @@
+<button (click)="addConversation()">Add conversation</button>
+<mat-list *ngFor="let conversation of conversations">
+  <mat-list-item>
+    <div matListItemIcon>
+      <div class="avatar">{{getInitials(conversation.lastMessage?.sender?.email || "EM")}}</div>
+    </div>
+    <div matListItemLine>{{conversation.lastMessage?.sender?.email}}</div>
+    <div matListItemLine>{{conversation.lastMessage?.content}}</div>
+  </mat-list-item>
+ </mat-list>
