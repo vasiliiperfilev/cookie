@@ -3,5 +3,6 @@
     <h1>Hi {{ user?.email }}!</h1>
     <p>You're logged in with Angular 14!!</p>
   </div>
-  <app-conversations />
+  <app-conversations (selectConversationEvent)="selectConversation($event)"/>
+  <app-chat *ngIf="currentConversationId" [conversationId]="currentConversationId"/>
 </div>

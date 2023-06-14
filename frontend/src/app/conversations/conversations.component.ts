@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { Conversation } from '@app/_models/conversation';
 import { ConversationsService, UserService } from '@app/_services';
 
@@ -8,6 +8,7 @@ import { ConversationsService, UserService } from '@app/_services';
   styleUrls: ['./conversations.component.sass'],
 })
 export class ConversationsComponent implements OnInit {
+  @Output() selectConversationEvent = new EventEmitter<number>();
   loading = false;
   conversations: Conversation[] = [];
   constructor(private conversationService: ConversationsService) {}
@@ -34,5 +35,9 @@ export class ConversationsComponent implements OnInit {
     this.conversationService
       .postConversation(c)
       .subscribe((conversation) => console.log(conversation));
+  }
+
+  selectConversation(id: number) {
+    this.selectConversationEvent.emit(id);
   }
 }

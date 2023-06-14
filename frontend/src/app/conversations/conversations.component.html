@@ -1,6 +1,6 @@
 <button (click)="addConversation()">Add conversation</button>
 <mat-list *ngFor="let conversation of conversations">
-  <mat-list-item>
+  <mat-list-item (click)="selectConversation(conversation.id)">
     <div matListItemIcon>
       <div class="avatar">{{getInitials(conversation.lastMessage?.sender?.email || "EM")}}</div>
     </div>

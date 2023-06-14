@@ -8,8 +8,13 @@ import { UserService } from '@app/_services';
 })
 export class HomeComponent {
   user: User | null;
+  currentConversationId: number | undefined;
 
   constructor(private userService: UserService) {
     this.user = this.userService.userValue;
+  }
+
+  selectConversation(id: number) {
+    this.currentConversationId = id;
   }
 }

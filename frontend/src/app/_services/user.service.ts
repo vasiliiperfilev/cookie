@@ -62,7 +62,7 @@ export class UserService {
     return this.http.post(`${environment.apiUrl}/v1/users`, user);
   }
 
-  getById(id: string) {
+  getById(id: number) {
     return this.http.get<User>(`${environment.apiUrl}/v1/users/${id}`);
   }
 
@@ -78,7 +78,7 @@ export class UserService {
       );
   }
 
-  delete(id: string) {
+  delete(id: number) {
     return this.http.delete(`${environment.apiUrl}/v1/users/${id}`).pipe(
       map((x) => {
         // auto logout if the logged in user deleted their own record

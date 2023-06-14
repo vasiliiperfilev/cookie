@@ -10,6 +10,8 @@ import { AlertComponent } from './_components';
 import { HomeComponent } from './home';
 import { ConversationsModule } from './conversations/conversations.module';
 import { TokenInterceptor } from './_helpers/token.interceptor';
+import { ChatModule } from './chat/chat.module';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
   imports: [
@@ -18,6 +20,8 @@ import { TokenInterceptor } from './_helpers/token.interceptor';
     HttpClientModule,
     AppRoutingModule,
     ConversationsModule,
+    ChatModule,
+    BrowserAnimationsModule,
   ],
   declarations: [AppComponent, AlertComponent, HomeComponent],
   providers: [

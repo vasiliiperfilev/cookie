@@ -1,0 +1,21 @@
+<div id="history">
+  <div *ngFor="let message of messages" class="mb">
+    <mat-card>
+      <mat-card-subtitle>
+        <span>{{message.senderId}} (Sent: {{message.createdAt | date:'long'}})</span>
+      </mat-card-subtitle>
+      <mat-card-content>
+        <p>{{message.content}}</p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+<form id="message" [formGroup]="form" (ngSubmit)="sendMessage()">
+    <mat-form-field appearance="outline" class="fw">
+      <mat-label>Enter Chat</mat-label>
+      <input matInput formControlName="message" >
+        <button type="submit" matSuffix mat-icon-button aria-label="Submit">
+          <mat-icon>send</mat-icon>
+        </button>
+    </mat-form-field>
+</form>
