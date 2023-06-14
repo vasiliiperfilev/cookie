@@ -46,3 +46,16 @@ ifdef func
 	$(eval ARGS=${ARGS} -run=${func})
 endif
 	go test ${ARGS} -count=1 -cover
+
+.PHONY: migrate-up
+migrate-up:
+	migrate -path=./migrations -database=postgres://cookie:cookie@localhost:5432/cookie?sslmode=disable up
+
+.PHONY: migrate-down
+migrate-down:
+	migrate -path=./migrations -database=postgres://cookie:cookie@localhost:5432/cookie?sslmode=disable down
+
+.PHONY: start-dev
+start-dev:
+	go build -o svr cmd/api/*.go
+	./svr -db-dsn=postgres://cookie:cookie@localhost:5432/cookie?sslmode=disable

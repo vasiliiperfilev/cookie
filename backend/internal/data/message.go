@@ -3,10 +3,10 @@ package data
 import "time"
 
 type Message struct {
-	Id             int64
-	ConversationId int64
-	Content        string
-	SenderId       int64
-	PrevMessageId  int64
-	CreatedAt      time.Time
+	Id             int64     `json:"id"`
+	ConversationId int64     `json:"conversationId"`
+	Content        string    `json:"content"`
+	SenderId       int64     `json:"senderId"`
+	PrevMessageId  int64     `json:"prevMessageId"`
+	CreatedAt      time.Time `json:"createdAt"`
 }

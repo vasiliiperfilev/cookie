@@ -30,6 +30,15 @@ func (s *StubUserModel) GetByEmail(email string) (*User, error) {
 	return nil, ErrRecordNotFound
 }
 
+func (s *StubUserModel) GetById(id int64) (*User, error) {
+	for _, user := range s.users {
+		if user.Id == id {
+			return &user, nil
+		}
+	}
+	return nil, ErrRecordNotFound
+}
+
 func (s *StubUserModel) Update(user *User) error {
 	if _, err := s.GetByEmail(user.Email); err == nil {
 		return ErrDuplicateEmail

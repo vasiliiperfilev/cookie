@@ -11,6 +11,7 @@ import (
 type UserModel interface {
 	Insert(user *User) error
 	GetByEmail(email string) (*User, error)
+	GetById(id int64) (*User, error)
 	Update(user *User) error
 	GetForToken(tokenScope, tokenPlaintext string) (*User, error)
 }
@@ -61,6 +62,38 @@ func (m PsqlUserModel) GetByEmail(email string) (*User, error) {
 	defer cancel()
 
 	err := m.db.QueryRowContext(ctx, query, email).Scan(
+		&user.Id,
+		&user.CreatedAt,
+		&user.Email,
+		&user.Password.hash,
+		&user.Type,
+		&user.Version,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &user, nil
+}
+
+func (m PsqlUserModel) GetById(id int64) (*User, error) {
+	query := `
+        SELECT user_id, created_at, email, password_hash, user_type_id, version
+        FROM users
+        WHERE user_id = $1`
+
+	var user User
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.db.QueryRowContext(ctx, query, id).Scan(
 		&user.Id,
 		&user.CreatedAt,
 		&user.Email,
