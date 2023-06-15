@@ -20,7 +20,6 @@ export class TokenInterceptor implements HttpInterceptor {
   ): Observable<HttpEvent<any>> {
     // add auth header with jwt if user is logged in and request is to the api url
     const token = this.userService.tokenValue;
-    console.log(token);
     const isApiUrl = request.url.startsWith(environment.apiUrl);
     if (token && isApiUrl) {
       request = request.clone({

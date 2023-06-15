@@ -1,4 +1,4 @@
 export interface Token {
   token: string;
-  expiryTs: Date;
+  expiry: string;
 }

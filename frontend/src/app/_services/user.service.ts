@@ -29,6 +29,7 @@ export class UserService {
   }
 
   public get tokenValue() {
+    this.removeExpiredToken();
     return this.tokenSubject.value;
   }
 
@@ -88,5 +89,16 @@ export class UserService {
         return x;
       })
     );
+  }
+
+  private removeExpiredToken() {
+    if (
+      this.tokenSubject.value &&
+      Date.parse(this.tokenSubject.value?.expiry) < new Date().getTime()
+    ) {
+      this.tokenSubject.next(null);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
   }
 }
