@@ -12,7 +12,7 @@ import (
 func (a *Application) messagesHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		handleGetMessages(w, r, a)
+		a.handleGetMessages(w, r)
 	case http.MethodOptions:
 		w.Header().Set("Allow", http.MethodGet)
 		err := writeJsonResponse(w, http.StatusOK, nil, nil)
@@ -24,12 +24,9 @@ func (a *Application) messagesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleGetMessages(w http.ResponseWriter, r *http.Request, a *Application) {
-	conversationId, err := extractConversationId(r.URL.Path)
-	if err != nil || conversationId < 1 {
-		a.notFoundResponse(w, r)
-		return
-	}
+// handles /v1/conversations/([0-9]+)/messages route
+func (a *Application) handleGetMessages(w http.ResponseWriter, r *http.Request) {
+	conversationId, _ := strconv.ParseInt(getField(r, 0), 10, 64)
 
 	messages, err := a.models.Message.GetAllByConversationId(conversationId)
 	if err != nil {

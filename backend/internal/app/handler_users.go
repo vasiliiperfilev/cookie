@@ -11,7 +11,7 @@ import (
 func (a *Application) usersHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-		handlePostUser(w, r, a)
+		a.handlePostUser(w, r)
 	case http.MethodOptions:
 		w.Header().Set("Allow", http.MethodPost)
 		err := writeJsonResponse(w, http.StatusOK, nil, nil)
@@ -23,7 +23,7 @@ func (a *Application) usersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handlePostUser(w http.ResponseWriter, r *http.Request, a *Application) {
+func (a *Application) handlePostUser(w http.ResponseWriter, r *http.Request) {
 	registerUserInput := new(data.RegisterUserInput)
 	err := readJsonFromBody(w, r, registerUserInput)
 	if err != nil {

@@ -23,9 +23,9 @@ type ExpandedConversation struct {
 func (a *Application) conversationsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-		handlePostConversation(w, r, a)
+		a.handlePostConversation(w, r)
 	case http.MethodGet:
-		handleGetConversation(w, r, a)
+		a.handleGetConversation(w, r)
 	case http.MethodOptions:
 		allowed := []string{http.MethodPost, http.MethodGet}
 		w.Header().Set("Allow", strings.Join(allowed, "; "))
@@ -38,7 +38,7 @@ func (a *Application) conversationsHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func handlePostConversation(w http.ResponseWriter, r *http.Request, a *Application) {
+func (a *Application) handlePostConversation(w http.ResponseWriter, r *http.Request) {
 	conversation := new(data.Conversation)
 	err := readJsonFromBody(w, r, conversation)
 	if err != nil {
@@ -62,7 +62,7 @@ func handlePostConversation(w http.ResponseWriter, r *http.Request, a *Applicati
 	writeJsonResponse(w, http.StatusCreated, conversation, nil)
 }
 
-func handleGetConversation(w http.ResponseWriter, r *http.Request, a *Application) {
+func (a *Application) handleGetConversation(w http.ResponseWriter, r *http.Request) {
 	userId, err := strconv.ParseInt(r.URL.Query().Get("userId"), 10, 64)
 	if err != nil || userId < 1 {
 		a.notFoundResponse(w, r)

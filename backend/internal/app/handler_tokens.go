@@ -17,7 +17,7 @@ type HandlerTokenResponse struct {
 func (a *Application) tokensHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-		handlePostToken(w, r, a)
+		a.handlePostToken(w, r)
 	case http.MethodOptions:
 		w.Header().Set("Allow", http.MethodPost)
 		err := writeJsonResponse(w, http.StatusOK, nil, nil)
@@ -29,7 +29,7 @@ func (a *Application) tokensHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handlePostToken(w http.ResponseWriter, r *http.Request, a *Application) {
+func (a *Application) handlePostToken(w http.ResponseWriter, r *http.Request) {
 	// Parse the email and password from the request body.
 	var input struct {
 		Email    string `json:"email"`

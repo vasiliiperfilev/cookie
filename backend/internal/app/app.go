@@ -18,6 +18,7 @@ type Application struct {
 	config Config
 	logger *log.Logger
 	models data.Models
+	hub    *Hub
 	http.Handler
 }
 
@@ -26,21 +27,11 @@ func New(config Config, logger *log.Logger, models data.Models) *Application {
 	a.config = config
 	a.logger = logger
 	a.models = models
-
-	hub := newHub(a)
-	go hub.run()
-
-	router := http.NewServeMux()
-	router.Handle("/", http.HandlerFunc(a.notFoundResponse))
-	router.Handle("/v1/healthcheck", http.HandlerFunc(a.healthcheckHandler))
-	router.Handle("/v1/users", http.HandlerFunc(a.usersHandler))
-	router.Handle("/v1/tokens", http.HandlerFunc(a.tokensHandler))
-	router.Handle("/v1/conversations", http.HandlerFunc(a.conversationsHandler))
-	router.Handle("/v1/conversations/", http.HandlerFunc(a.messagesHandler))
-	router.Handle("/v1/chat", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		a.wsChatHandler(hub, w, r)
-	}))
-
+	// start websocket hub
+	a.hub = newHub(a)
+	go a.hub.run()
+	// create router
+	router := a.routes()
 	a.Handler = a.setAccessControlHeaders(router)
 
 	return a

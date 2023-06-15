@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"net/http/httptest"
 	"os"
 	"reflect"
@@ -31,11 +30,9 @@ func TestChat(t *testing.T) {
 		messageModel, appServer := createServer(2)
 		server := httptest.NewServer(appServer)
 		defer server.Close()
-		h1 := http.Header{"Authorization": {"Bearer " + strings.Repeat("1", 26)}}
-		ws1 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h1)
+		ws1 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat("1", 26))
 		defer ws1.Close()
-		h2 := http.Header{"Authorization": {"Bearer " + strings.Repeat("2", 26)}}
-		ws2 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h2)
+		ws2 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat("2", 26))
 		defer ws2.Close()
 		// send first message
 		want := MessageEvent{
@@ -75,11 +72,9 @@ func TestChat(t *testing.T) {
 		messageModel, appServer := createServer(2)
 		server := httptest.NewServer(appServer)
 		defer server.Close()
-		h1 := http.Header{"Authorization": {"Bearer " + strings.Repeat("1", 26)}}
-		ws1 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h1)
+		ws1 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat("1", 26))
 		defer ws1.Close()
-		h2 := http.Header{"Authorization": {"Bearer " + strings.Repeat("2", 26)}}
-		ws2 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h2)
+		ws2 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat("2", 26))
 		defer ws2.Close()
 		// send message from 1 to 2
 		want1 := MessageEvent{
@@ -119,13 +114,11 @@ func TestChat(t *testing.T) {
 		messageModel, appServer := createServer(10)
 		server := httptest.NewServer(appServer)
 		defer server.Close()
-		h1 := http.Header{"Authorization": {"Bearer " + strings.Repeat("1", 26)}}
-		ws1 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h1)
+		ws1 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat("1", 26))
 		defer ws1.Close()
 		// send messages from 1 to 2
 		for i := 2; i <= 9; i++ {
-			h1 := http.Header{"Authorization": {"Bearer " + strings.Repeat(strconv.Itoa(i), 26)}}
-			ws2 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h1)
+			ws2 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat(strconv.Itoa(i), 26))
 			defer ws2.Close()
 			for j := 1; j <= 100; j++ {
 				want := MessageEvent{
@@ -152,12 +145,11 @@ func TestChatErrors(t *testing.T) {
 		_, appServer := createServer(2)
 		server := httptest.NewServer(appServer)
 		defer server.Close()
-		h1 := http.Header{"Authorization": {"Bearer " + strings.Repeat("1", 26)}}
-		ws1 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h1)
+		ws1 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat("1", 26))
 		err := ws1.Close()
 		tester.AssertNoError(t, err)
 		// can establish ws connection again
-		ws1 = mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h1)
+		ws1 = mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat("1", 26))
 		defer ws1.Close()
 	})
 
@@ -165,10 +157,8 @@ func TestChatErrors(t *testing.T) {
 		_, appServer := createServer(2)
 		server := httptest.NewServer(appServer)
 		defer server.Close()
-		h1 := http.Header{"Authorization": {"Bearer " + strings.Repeat("1", 26)}}
-		ws1 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h1)
-		h2 := http.Header{"Authorization": {"Bearer " + strings.Repeat("2", 26)}}
-		ws2 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h2)
+		ws1 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat("1", 26))
+		ws2 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat("2", 26))
 		// send first message
 		want := MessageEvent{
 			Type: app.EventMessage,
@@ -187,9 +177,9 @@ func TestChatErrors(t *testing.T) {
 		err = ws1.Close()
 		tester.AssertNoError(t, err)
 		// can establish ws connection gain
-		ws1 = mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h1)
+		ws1 = mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat("1", 26))
 		defer ws1.Close()
-		ws2 = mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h2)
+		ws2 = mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat("2", 26))
 		defer ws2.Close()
 	})
 
@@ -202,11 +192,9 @@ func TestChatErrors(t *testing.T) {
 		_, appServer := createServer(2)
 		server := httptest.NewServer(appServer)
 		defer server.Close()
-		h1 := http.Header{"Authorization": {"Bearer " + strings.Repeat("1", 26)}}
-		ws1 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h1)
+		ws1 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat("1", 26))
 		defer ws1.Close()
-		h2 := http.Header{"Authorization": {"Bearer " + strings.Repeat("2", 26)}}
-		ws2 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat", h2)
+		ws2 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat("2", 26))
 		defer ws2.Close()
 		// send first message
 		want := struct {
@@ -270,8 +258,8 @@ func generateUsers(numUsers int) []data.User {
 	return u
 }
 
-func mustDialWS(t *testing.T, url string, headers http.Header) *websocket.Conn {
-	ws, _, err := websocket.DefaultDialer.Dial(url, headers)
+func mustDialWS(t *testing.T, url string) *websocket.Conn {
+	ws, _, err := websocket.DefaultDialer.Dial(url, nil)
 
 	if err != nil {
 		t.Fatalf("could not open a ws connection on %s %v", url, err)

@@ -46,7 +46,7 @@ func assertStatus(t *testing.T, got int, want int) {
 }
 
 func assertHeader(t *testing.T, got string, want ...string) {
-	gotArray := strings.Split(got, "; ")
+	gotArray := strings.Split(got, ", ")
 	for _, wantVal := range want {
 		contains := false
 		for _, gotVal := range gotArray {
