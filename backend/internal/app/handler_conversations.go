@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/vasiliiperfilev/cookie/internal/data"
 	"github.com/vasiliiperfilev/cookie/internal/validator"
@@ -18,24 +17,6 @@ type ExpandedMessage struct {
 type ExpandedConversation struct {
 	data.Conversation
 	LastMessage ExpandedMessage `json:"lastMessage"`
-}
-
-func (a *Application) conversationsHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		a.handlePostConversation(w, r)
-	case http.MethodGet:
-		a.handleGetConversation(w, r)
-	case http.MethodOptions:
-		allowed := []string{http.MethodPost, http.MethodGet}
-		w.Header().Set("Allow", strings.Join(allowed, "; "))
-		err := writeJsonResponse(w, http.StatusOK, nil, nil)
-		if err != nil {
-			a.serverErrorResponse(w, r, err)
-		}
-	default:
-		a.methodNotAllowedResponse(w, r, http.MethodPost, http.MethodGet)
-	}
 }
 
 func (a *Application) handlePostConversation(w http.ResponseWriter, r *http.Request) {

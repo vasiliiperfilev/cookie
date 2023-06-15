@@ -8,21 +8,6 @@ import (
 	"github.com/vasiliiperfilev/cookie/internal/validator"
 )
 
-func (a *Application) usersHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		a.handlePostUser(w, r)
-	case http.MethodOptions:
-		w.Header().Set("Allow", http.MethodPost)
-		err := writeJsonResponse(w, http.StatusOK, nil, nil)
-		if err != nil {
-			a.serverErrorResponse(w, r, err)
-		}
-	default:
-		a.methodNotAllowedResponse(w, r, http.MethodPost)
-	}
-}
-
 func (a *Application) handlePostUser(w http.ResponseWriter, r *http.Request) {
 	registerUserInput := new(data.RegisterUserInput)
 	err := readJsonFromBody(w, r, registerUserInput)
