@@ -1,7 +1,6 @@
 package app_test
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -33,18 +32,13 @@ func TestIntegrationAuthenticateRequest(t *testing.T) {
 			Type:     1,
 			ImageId:  "imageid",
 		}
-		registerResponse := registerUser(t, server, registerInput)
-		assertStatus(t, registerResponse.Code, http.StatusOK)
+		mustRegisterUser(t, server, registerInput)
 		loginInput := map[string]string{
 			"Email":    email,
 			"Password": password,
 		}
-		response := loginUser(t, server, loginInput)
-
-		var tokenResponse app.HandlerTokenResponse
-		json.NewDecoder(response.Body).Decode(&tokenResponse)
-
-		user := authRequest(t, server, *tokenResponse.Token)
+		userToken := mustLoginUser(t, server, loginInput)
+		user := authRequest(t, server, *userToken.Token)
 		tester.AssertValue(t, user.Email, registerInput.Email, "same email")
 		tester.AssertValue(t, user.ImageId, registerInput.ImageId, "same image id")
 		tester.AssertValue(t, user.Type, registerInput.Type, "same type")

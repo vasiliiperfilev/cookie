@@ -42,32 +42,27 @@ func TestIntegrationConversations(t *testing.T) {
 			ImageId:  "imageid",
 		}
 		// register first user
-		registerUser(t, server, registerInput)
+		mustRegisterUser(t, server, registerInput)
 		// register second user
 		registerInput.Email = "test15@nowhere.com"
-		registerUser(t, server, registerInput)
+		mustRegisterUser(t, server, registerInput)
 		// login as first user
 		loginInput := map[string]string{
 			"Email":    email,
 			"Password": password,
 		}
-		tokenResponse := loginUser(t, server, loginInput)
-		var token app.HandlerTokenResponse
-		json.NewDecoder(tokenResponse.Body).Decode(&token)
+		userToken := mustLoginUser(t, server, loginInput)
 		// post conversation
 		want := data.Conversation{
 			UserIds:       []int64{5, 6},
 			LastMessageId: 0,
 			Version:       1,
 		}
-		response := postConversation(t, server, token.Token.Plaintext, want)
-		assertStatus(t, response.Code, http.StatusCreated)
-		var got data.Conversation
-		json.NewDecoder(response.Body).Decode(&got)
+		got := postConversation(t, server, userToken.Token.Plaintext, want)
 		want.Id = got.Id
 		data.AssertConversation(t, got, want)
 		// get conversations
-		conversations := getConversations(t, server, token)
+		conversations := getConversations(t, server, userToken)
 		for _, got := range conversations {
 			if got.Id == want.Id {
 				data.AssertConversation(t, got, want)
@@ -76,7 +71,7 @@ func TestIntegrationConversations(t *testing.T) {
 	})
 }
 
-func postConversation(t *testing.T, server http.Handler, token string, conversation data.Conversation) *httptest.ResponseRecorder {
+func postConversation(t *testing.T, server http.Handler, token string, conversation data.Conversation) data.Conversation {
 	t.Helper()
 	requestBody := new(bytes.Buffer)
 	json.NewEncoder(requestBody).Encode(conversation)
@@ -86,10 +81,13 @@ func postConversation(t *testing.T, server http.Handler, token string, conversat
 	tester.AssertNoError(t, err)
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
-	return response
+	assertStatus(t, response.Code, http.StatusCreated)
+	var cvs data.Conversation
+	json.NewDecoder(response.Body).Decode(&cvs)
+	return cvs
 }
 
-func getConversations(t *testing.T, server *app.Application, token app.HandlerTokenResponse) []data.Conversation {
+func getConversations(t *testing.T, server *app.Application, token app.UserToken) []data.Conversation {
 	t.Helper()
 
 	request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/conversations?userId=%v", token.User.Id), nil)
@@ -97,7 +95,7 @@ func getConversations(t *testing.T, server *app.Application, token app.HandlerTo
 	tester.AssertNoError(t, err)
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
-
+	assertStatus(t, response.Code, http.StatusOK)
 	var conversations []data.Conversation
 	json.NewDecoder(response.Body).Decode(&conversations)
 

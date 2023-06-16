@@ -9,7 +9,7 @@ import (
 	"github.com/vasiliiperfilev/cookie/internal/validator"
 )
 
-type HandlerTokenResponse struct {
+type UserToken struct {
 	User  *data.User  `json:"user"`
 	Token *data.Token `json:"token"`
 }
@@ -68,7 +68,7 @@ func (a *Application) handlePostToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = writeJsonResponse(w, http.StatusCreated, HandlerTokenResponse{User: user, Token: token}, nil)
+	err = writeJsonResponse(w, http.StatusCreated, UserToken{User: user, Token: token}, nil)
 	if err != nil {
 		a.serverErrorResponse(w, r, err)
 	}

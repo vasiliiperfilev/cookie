@@ -84,21 +84,25 @@ func TestUserPost(t *testing.T) {
 	})
 }
 
-func assertRegisterResponse(t *testing.T, body *bytes.Buffer, expectedUser data.User) {
+func assertRegisterResponse(t *testing.T, body *bytes.Buffer, want data.User) {
 	t.Helper()
-	var response data.User
-	json.NewDecoder(body).Decode(&response)
+	var got data.User
+	json.NewDecoder(body).Decode(&got)
+	assertUser(t, got, want)
+}
 
-	if response.Email != expectedUser.Email {
-		t.Fatalf("Expected email to be %v, got %v", expectedUser.Email, response.Email)
+func assertUser(t *testing.T, got data.User, want data.User) {
+	t.Helper()
+	if got.Email != want.Email {
+		t.Fatalf("Expected email to be %v, got %v", want.Email, got.Email)
 	}
 
-	if response.Type != expectedUser.Type {
-		t.Fatalf("Expected type to be %v, got %v", expectedUser.Type, response.Type)
+	if got.Type != want.Type {
+		t.Fatalf("Expected type to be %v, got %v", want.Type, got.Type)
 	}
 
-	if response.ImageId != expectedUser.ImageId {
-		t.Fatalf("Expected email to be %v, got %v", expectedUser.ImageId, response.ImageId)
+	if got.ImageId != want.ImageId {
+		t.Fatalf("Expected email to be %v, got %v", want.ImageId, got.ImageId)
 	}
 }
 

@@ -40,20 +40,18 @@ func TestIntegrationUserPost(t *testing.T) {
 			Type:     1,
 			ImageId:  "imageid",
 		}
-		expectedResponse := data.User{
+		want := data.User{
 			Email:   userInput.Email,
 			Type:    userInput.Type,
 			ImageId: userInput.ImageId,
 		}
-		response := registerUser(t, server, userInput)
-		assertStatus(t, response.Code, http.StatusOK)
-		assertContentType(t, response, app.JsonContentType)
-		assertRegisterResponse(t, response.Body, expectedResponse)
+		got := mustRegisterUser(t, server, userInput)
+		assertUser(t, got, want)
 	})
 	db.Close()
 }
 
-func registerUser(t *testing.T, server http.Handler, input data.RegisterUserInput) *httptest.ResponseRecorder {
+func mustRegisterUser(t *testing.T, server http.Handler, input data.RegisterUserInput) data.User {
 	t.Helper()
 	requestBody := new(bytes.Buffer)
 	json.NewEncoder(requestBody).Encode(input)
@@ -62,6 +60,9 @@ func registerUser(t *testing.T, server http.Handler, input data.RegisterUserInpu
 	tester.AssertNoError(t, err)
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
+	assertStatus(t, response.Code, http.StatusOK)
+	var user data.User
+	json.NewDecoder(response.Body).Decode(&user)
 
-	return response
+	return user
 }

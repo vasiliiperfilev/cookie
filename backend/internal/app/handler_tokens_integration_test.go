@@ -41,31 +41,28 @@ func TestIntegrationTokenPost(t *testing.T) {
 			Type:     1,
 			ImageId:  "imageid",
 		}
-		userResponse := registerUser(t, server, registerInput)
-		var user data.User
-		json.NewDecoder(userResponse.Body).Decode(&user)
+		user := mustRegisterUser(t, server, registerInput)
 
 		loginInput := map[string]string{
 			"Email":    email,
 			"Password": password,
 		}
-		response := loginUser(t, server, loginInput)
-
-		assertStatus(t, response.Code, http.StatusCreated)
-		assertContentType(t, response, app.JsonContentType)
-		assertTokenResponse(t, response.Body, user.Id)
+		got := mustLoginUser(t, server, loginInput)
+		assertUserToken(t, got, user.Id)
 	})
 	db.Close()
 }
 
-func loginUser(t *testing.T, server http.Handler, input map[string]string) *httptest.ResponseRecorder {
+func mustLoginUser(t *testing.T, server http.Handler, input map[string]string) app.UserToken {
 	t.Helper()
 	requestBody := new(bytes.Buffer)
 	json.NewEncoder(requestBody).Encode(input)
-
 	request, err := http.NewRequest(http.MethodPost, "/v1/tokens", requestBody)
 	tester.AssertNoError(t, err)
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
-	return response
+	assertStatus(t, response.Code, http.StatusCreated)
+	var userToken app.UserToken
+	json.NewDecoder(response.Body).Decode(&userToken)
+	return userToken
 }
