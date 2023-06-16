@@ -13,40 +13,40 @@ import (
 
 func TestValidateRegisterUserInput(t *testing.T) {
 	inputs := []struct {
-		Input data.RegisterUserInput
+		Input data.PostUserDto
 		Keys  []string
 	}{
-		{Input: data.RegisterUserInput{
+		{Input: data.PostUserDto{
 			Email:    "test@test.com",
 			Password: "pa5$wOrd123",
 			Type:     1,
 			ImageId:  "testid",
 		}, Keys: make([]string, 0)},
-		{Input: data.RegisterUserInput{
+		{Input: data.PostUserDto{
 			Email:    "test@test.com",
 			Password: "",
 			Type:     3,
 			ImageId:  "",
 		}, Keys: []string{"password", "type", "imageId"}},
-		{Input: data.RegisterUserInput{
+		{Input: data.PostUserDto{
 			Email:    "test-test.com",
 			Password: "pa5swOrd123",
 			Type:     1,
 			ImageId:  "testId",
 		}, Keys: []string{"email", "password"}},
-		{Input: data.RegisterUserInput{
+		{Input: data.PostUserDto{
 			Email:    "test@test.com",
 			Password: "pa5$word123",
 			Type:     1,
 			ImageId:  "testId",
 		}, Keys: []string{"password"}},
-		{Input: data.RegisterUserInput{
+		{Input: data.PostUserDto{
 			Email:    "test@test.com",
 			Password: "pas$wOrdabc",
 			Type:     1,
 			ImageId:  "testId",
 		}, Keys: []string{"password"}},
-		{Input: data.RegisterUserInput{
+		{Input: data.PostUserDto{
 			Email:    "test@test.com",
 			Password: "PAS$WORD123",
 			Type:     1,

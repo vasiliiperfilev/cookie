@@ -35,7 +35,7 @@ func TestIntegrationTokenPost(t *testing.T) {
 		server := app.PrepareIntegrationTestServer(db, 4000)
 		email := "test5@nowhere.com"
 		password := "test123!A"
-		registerInput := data.RegisterUserInput{
+		registerInput := data.PostUserDto{
 			Email:    email,
 			Password: password,
 			Type:     1,

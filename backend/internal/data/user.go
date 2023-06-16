@@ -24,7 +24,7 @@ type User struct {
 	Version   int       `json:"-"`
 }
 
-type RegisterUserInput struct {
+type PostUserDto struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 	Type     int    `json:"type"`
@@ -65,7 +65,7 @@ func (p *password) Matches(plaintextPassword string) (bool, error) {
 	return true, nil
 }
 
-func ValidateRegisterUserInput(v *validator.Validator, input *RegisterUserInput) {
+func ValidateRegisterUserInput(v *validator.Validator, input *PostUserDto) {
 	ValidateEmail(v, input.Email)
 
 	ValidatePasswordPlaintext(v, input.Password)

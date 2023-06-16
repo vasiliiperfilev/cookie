@@ -9,7 +9,7 @@ import (
 )
 
 func (a *Application) handlePostUser(w http.ResponseWriter, r *http.Request) {
-	registerUserInput := new(data.RegisterUserInput)
+	registerUserInput := new(data.PostUserDto)
 	err := readJsonFromBody(w, r, registerUserInput)
 	if err != nil {
 		a.badRequestResponse(w, r, err)

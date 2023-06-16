@@ -34,7 +34,7 @@ func TestIntegrationUserPost(t *testing.T) {
 
 	t.Run("it allows registration with correct values", func(t *testing.T) {
 		server := app.PrepareIntegrationTestServer(db, 4000)
-		userInput := data.RegisterUserInput{
+		userInput := data.PostUserDto{
 			Email:    "testReg@nowhere.com",
 			Password: "test123!A",
 			Type:     1,
@@ -51,7 +51,7 @@ func TestIntegrationUserPost(t *testing.T) {
 	db.Close()
 }
 
-func mustRegisterUser(t *testing.T, server http.Handler, input data.RegisterUserInput) data.User {
+func mustRegisterUser(t *testing.T, server http.Handler, input data.PostUserDto) data.User {
 	t.Helper()
 	requestBody := new(bytes.Buffer)
 	json.NewEncoder(requestBody).Encode(input)

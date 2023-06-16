@@ -26,7 +26,7 @@ func TestIntegrationAuthenticateRequest(t *testing.T) {
 	t.Run("it returns a user from token", func(t *testing.T) {
 		email := "test8@nowhere.com"
 		password := "test123!A"
-		registerInput := data.RegisterUserInput{
+		registerInput := data.PostUserDto{
 			Email:    email,
 			Password: password,
 			Type:     1,

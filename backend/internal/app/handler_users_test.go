@@ -23,7 +23,7 @@ func TestUserPost(t *testing.T) {
 	server := app.New(cfg, logger, models)
 
 	t.Run("it allows registration with correct values", func(t *testing.T) {
-		userInput := data.RegisterUserInput{
+		userInput := data.PostUserDto{
 			Email:    "test@nowhere.com",
 			Password: "test123!A",
 			Type:     1,
@@ -45,7 +45,7 @@ func TestUserPost(t *testing.T) {
 	})
 
 	t.Run("it fails registration with duplicate email", func(t *testing.T) {
-		userInput := data.RegisterUserInput{
+		userInput := data.PostUserDto{
 			Email:    "test@nowhere.com",
 			Password: "test123!A",
 			Type:     1,
@@ -106,7 +106,7 @@ func assertUser(t *testing.T, got data.User, want data.User) {
 	}
 }
 
-func createRegisterRequest(t *testing.T, requestBody *bytes.Buffer, userInput data.RegisterUserInput) *http.Request {
+func createRegisterRequest(t *testing.T, requestBody *bytes.Buffer, userInput data.PostUserDto) *http.Request {
 	json.NewEncoder(requestBody).Encode(userInput)
 	request, err := http.NewRequest(http.MethodPost, "/v1/users", requestBody)
 	tester.AssertNoError(t, err)
