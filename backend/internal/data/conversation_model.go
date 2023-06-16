@@ -10,9 +10,13 @@ import (
 )
 
 type ConversationModel interface {
-	Insert(conversation *Conversation) error
+	Insert(conversation PostConversationDto) (Conversation, error)
 	GetAllByUserId(userId int64) ([]Conversation, error)
-	GetById(id int64) (*Conversation, error)
+	GetById(id int64) (Conversation, error)
+}
+
+type PostConversationDto struct {
+	UserIds []int64 `json:"userIds"`
 }
 
 type PsqlConversationModel struct {
@@ -23,28 +27,30 @@ func NewPsqlConversationModel(db *sql.DB) *PsqlConversationModel {
 	return &PsqlConversationModel{db: db}
 }
 
-func (m PsqlConversationModel) Insert(conversation *Conversation) error {
+func (m PsqlConversationModel) Insert(dto PostConversationDto) (Conversation, error) {
 	query := `
         INSERT INTO conversations(last_message_id)
-        VALUES ($1)
+        VALUES (0)
         RETURNING conversation_id, version`
 
-	args := []any{conversation.LastMessageId}
-
+	cvs := Conversation{
+		UserIds: dto.UserIds,
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.db.QueryRowContext(ctx, query, args...).Scan(&conversation.Id, &conversation.Version)
+	err := m.db.QueryRowContext(ctx, query).Scan(&cvs.Id, &cvs.Version)
 	if err != nil {
-		return err
+		return Conversation{}, err
 	}
 
-	err = m.insertConversationUsers(conversation)
+	err = m.insertConversationUsers(&cvs)
 	if err != nil {
-		return err
+		// remove empty conversation
+		return Conversation{}, err
 	}
 
-	return nil
+	return cvs, nil
 }
 
 func (m PsqlConversationModel) GetAllByUserId(userId int64) ([]Conversation, error) {
@@ -88,7 +94,7 @@ func (m PsqlConversationModel) GetAllByUserId(userId int64) ([]Conversation, err
 	return conversations, nil
 }
 
-func (m PsqlConversationModel) GetById(id int64) (*Conversation, error) {
+func (m PsqlConversationModel) GetById(id int64) (Conversation, error) {
 	query := `
 		SELECT c.conversation_id, c.last_message_id, c.version, array_agg(c_u.user_id) as user_ids
 		FROM conversations_users as c_u
@@ -112,13 +118,13 @@ func (m PsqlConversationModel) GetById(id int64) (*Conversation, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, ErrRecordNotFound
+			return Conversation{}, ErrRecordNotFound
 		default:
-			return nil, err
+			return Conversation{}, err
 		}
 	}
 
-	return &conversation, nil
+	return conversation, nil
 }
 
 func (m PsqlConversationModel) insertConversationUsers(conversation *Conversation) error {

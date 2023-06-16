@@ -24,7 +24,7 @@ func TestPostConversation(t *testing.T) {
 	models := data.Models{User: userModel, Conversation: conversationModel}
 	t.Run("it POST conversation", func(t *testing.T) {
 		server := app.New(cfg, logger, models)
-		userInput := data.Conversation{
+		dto := data.PostConversationDto{
 			UserIds: []int64{1, 2},
 		}
 		expectedResponse := data.Conversation{
@@ -34,7 +34,7 @@ func TestPostConversation(t *testing.T) {
 			Version:       1,
 		}
 		// post request
-		request := createPostConversationRequest(t, userInput)
+		request := createPostConversationRequest(t, dto)
 		request.Header.Set("Authorization", "Bearer "+strings.Repeat("1", 26))
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
@@ -49,7 +49,7 @@ func TestPostConversation(t *testing.T) {
 	t.Run("it POST and GET same conversation by any of ids", func(t *testing.T) {
 		server := app.New(cfg, logger, models)
 		userIds := []int64{3, 4}
-		userInput := data.Conversation{
+		userInput := data.PostConversationDto{
 			UserIds: userIds,
 		}
 		expectedResponse := []data.Conversation{
@@ -83,7 +83,7 @@ func TestPostConversation(t *testing.T) {
 	t.Run("it don't allow POST same conversation", func(t *testing.T) {
 		server := app.New(cfg, logger, models)
 		userIds := []int64{3, 4}
-		userInput := data.Conversation{
+		userInput := data.PostConversationDto{
 			UserIds: userIds,
 		}
 		var response *httptest.ResponseRecorder
@@ -114,9 +114,9 @@ func createGetAllConversationRequest(t *testing.T, userId int64) *http.Request {
 	return getRequest
 }
 
-func createPostConversationRequest(t *testing.T, userInput data.Conversation) *http.Request {
+func createPostConversationRequest(t *testing.T, dto data.PostConversationDto) *http.Request {
 	requestBody := new(bytes.Buffer)
-	json.NewEncoder(requestBody).Encode(userInput)
+	json.NewEncoder(requestBody).Encode(dto)
 	request, err := http.NewRequest(http.MethodPost, "/v1/conversations", requestBody)
 	tester.AssertNoError(t, err)
 	return request

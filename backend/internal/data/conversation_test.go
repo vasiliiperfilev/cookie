@@ -28,20 +28,20 @@ func TestConversationModelIntegration(t *testing.T) {
 	tester.AssertNoError(t, err)
 	t.Run("it doesn't insert a conversation if no users", func(t *testing.T) {
 		model := data.NewPsqlConversationModel(db)
-		conversation := data.Conversation{
+		dto := data.PostConversationDto{
 			UserIds: []int64{99, 100},
 		}
-		err := model.Insert(&conversation)
+		_, err := model.Insert(dto)
 		tester.AssertError(t, err)
 		tester.AssertValue(t, err.Error(), `pq: insert or update on table "conversations_users" violates foreign key constraint "conversations_users_user_id_fkey"`, "expected no users error")
 	})
 
 	t.Run("it inserts a conversation if users exist", func(t *testing.T) {
 		model := data.NewPsqlConversationModel(db)
-		conversation := data.Conversation{
+		dto := data.PostConversationDto{
 			UserIds: []int64{1, 2},
 		}
-		err := model.Insert(&conversation)
+		_, err := model.Insert(dto)
 		tester.AssertNoError(t, err)
 	})
 

@@ -33,18 +33,18 @@ func (a *Application) handlePostConversation(w http.ResponseWriter, r *http.Requ
 		}
 		return
 	}
-	conversation := new(data.Conversation)
-	err = readJsonFromBody(w, r, conversation)
+	dto := data.PostConversationDto{}
+	err = readJsonFromBody(w, r, &dto)
 	if err != nil {
 		a.badRequestResponse(w, r, err)
 		return
 	}
-	if !slices.Contains(conversation.UserIds, user.Id) {
+	if !slices.Contains(dto.UserIds, user.Id) {
 		a.badRequestResponse(w, r, err)
 		return
 	}
 	v := validator.New()
-	err = a.models.Conversation.Insert(conversation)
+	cvs, err := a.models.Conversation.Insert(dto)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrDuplicateConversation):
@@ -56,7 +56,7 @@ func (a *Application) handlePostConversation(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	writeJsonResponse(w, http.StatusCreated, conversation, nil)
+	writeJsonResponse(w, http.StatusCreated, cvs, nil)
 }
 
 func (a *Application) handleGetConversation(w http.ResponseWriter, r *http.Request) {

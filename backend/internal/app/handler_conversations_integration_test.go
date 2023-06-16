@@ -42,10 +42,10 @@ func TestIntegrationConversations(t *testing.T) {
 			ImageId:  "imageid",
 		}
 		// register first user
-		mustRegisterUser(t, server, registerInput)
+		user1 := mustRegisterUser(t, server, registerInput)
 		// register second user
 		registerInput.Email = "test15@nowhere.com"
-		mustRegisterUser(t, server, registerInput)
+		user2 := mustRegisterUser(t, server, registerInput)
 		// login as first user
 		loginInput := map[string]string{
 			"Email":    email,
@@ -53,12 +53,15 @@ func TestIntegrationConversations(t *testing.T) {
 		}
 		userToken := mustLoginUser(t, server, loginInput)
 		// post conversation
+		dto := data.PostConversationDto{
+			UserIds: []int64{user1.Id, user2.Id},
+		}
 		want := data.Conversation{
-			UserIds:       []int64{5, 6},
+			UserIds:       []int64{user1.Id, user2.Id},
 			LastMessageId: 0,
 			Version:       1,
 		}
-		got := postConversation(t, server, userToken.Token.Plaintext, want)
+		got := postConversation(t, server, userToken.Token.Plaintext, dto)
 		want.Id = got.Id
 		data.AssertConversation(t, got, want)
 		// get conversations
@@ -71,10 +74,10 @@ func TestIntegrationConversations(t *testing.T) {
 	})
 }
 
-func postConversation(t *testing.T, server http.Handler, token string, conversation data.Conversation) data.Conversation {
+func postConversation(t *testing.T, server http.Handler, token string, dto data.PostConversationDto) data.Conversation {
 	t.Helper()
 	requestBody := new(bytes.Buffer)
-	json.NewEncoder(requestBody).Encode(conversation)
+	json.NewEncoder(requestBody).Encode(dto)
 
 	request, err := http.NewRequest(http.MethodPost, "/v1/conversations", requestBody)
 	request.Header.Add("Authorization", fmt.Sprintf("Bearer %v", token))
