@@ -7,6 +7,7 @@ import (
 
 	"github.com/vasiliiperfilev/cookie/internal/data"
 	"github.com/vasiliiperfilev/cookie/internal/validator"
+	"golang.org/x/exp/slices"
 )
 
 type ExpandedMessage struct {
@@ -20,13 +21,28 @@ type ExpandedConversation struct {
 }
 
 func (a *Application) handlePostConversation(w http.ResponseWriter, r *http.Request) {
+	user, err := a.AuthenticateHttpRequest(w, r)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrUnathorized):
+			a.invalidAuthenticationTokenResponse(w, r)
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
 	conversation := new(data.Conversation)
-	err := readJsonFromBody(w, r, conversation)
+	err = readJsonFromBody(w, r, conversation)
 	if err != nil {
 		a.badRequestResponse(w, r, err)
 		return
 	}
-
+	if !slices.Contains(conversation.UserIds, user.Id) {
+		a.badRequestResponse(w, r, err)
+		return
+	}
 	v := validator.New()
 	err = a.models.Conversation.Insert(conversation)
 	if err != nil {
@@ -44,8 +60,20 @@ func (a *Application) handlePostConversation(w http.ResponseWriter, r *http.Requ
 }
 
 func (a *Application) handleGetConversation(w http.ResponseWriter, r *http.Request) {
+	user, err := a.AuthenticateHttpRequest(w, r)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrUnathorized):
+			a.invalidAuthenticationTokenResponse(w, r)
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
 	userId, err := strconv.ParseInt(r.URL.Query().Get("userId"), 10, 64)
-	if err != nil || userId < 1 {
+	if err != nil || userId < 1 || userId != user.Id {
 		a.notFoundResponse(w, r)
 		return
 	}
