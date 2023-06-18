@@ -1,6 +1,8 @@
 package app
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -26,7 +28,7 @@ type Client struct {
 	User     data.User
 	hub      *Hub
 	conn     *websocket.Conn
-	messages chan []byte
+	messages chan WsEvent
 }
 
 func (c *Client) readPump() {
@@ -43,7 +45,7 @@ func (c *Client) readPump() {
 	for {
 		// readSentEvent is used to read the next event in queue
 		// in the connection
-		_, evt, err := c.conn.ReadMessage()
+		_, msg, err := c.conn.ReadMessage()
 		if err != nil {
 			// If Connection is closed, we will Recieve an error here
 			// We only want to log Strange errors, but not simple Disconnection
@@ -52,7 +54,12 @@ func (c *Client) readPump() {
 			}
 			break // Break the loop to close conn & Cleanup
 		}
-		c.hub.broadcast <- WsMessage{Sender: c, Payload: evt}
+		event, err := c.readEvent(msg)
+		if err != nil {
+			c.hub.errors <- c.hub.createErrorMessage(c, PayloadErrorMessage)
+			continue
+		}
+		c.hub.broadcast <- event
 	}
 }
 
@@ -78,8 +85,8 @@ func (c *Client) writePump() {
 			if err != nil {
 				return
 			}
-
-			w.Write(msg)
+			js, _ := json.Marshal(msg)
+			w.Write(js)
 
 			if err := w.Close(); err != nil {
 				return
@@ -91,4 +98,14 @@ func (c *Client) writePump() {
 			}
 		}
 	}
+}
+
+func (c *Client) readEvent(msg []byte) (WsEvent, error) {
+	var event WsEvent
+	err := readJson(bytes.NewReader(msg), &event)
+	if err != nil {
+		return WsEvent{}, err
+	}
+	event.Sender = c
+	return event, nil
 }

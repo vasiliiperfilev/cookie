@@ -20,6 +20,11 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+type PostMessageEvent struct {
+	Type    string
+	Payload data.PostMessageDto
+}
+
 type MessageEvent struct {
 	Type    string
 	Payload data.Message
@@ -35,37 +40,47 @@ func TestChat(t *testing.T) {
 		ws2 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat("2", 26))
 		defer ws2.Close()
 		// send first message
-		want := MessageEvent{
+		dto := PostMessageEvent{
 			Type: app.EventMessage,
-			Payload: data.Message{
-				Id:             1,
-				SenderId:       1,
+			Payload: data.PostMessageDto{
 				ConversationId: 1,
 				Content:        "test1",
 				PrevMessageId:  0,
 			},
 		}
-		js := createWsPayload(t, want)
+		want := data.Message{
+			Id:             1,
+			SenderId:       1,
+			ConversationId: 1,
+			Content:        "test1",
+			PrevMessageId:  0,
+		}
+		js := createWsPayload(t, dto)
 		writeWSMessage(t, ws1, js)
-		assertContainsMessage(t, messageModel, 1, want.Payload)
+		assertContainsMessage(t, messageModel, 1, want)
 		// receive first message
-		within(t, 500*time.Millisecond, func() { assertMessage(t, ws2, want.Payload) })
+		within(t, 500*time.Millisecond, func() { assertMessage(t, ws2, want) })
 		// // send second message
-		want = MessageEvent{
+		dto = PostMessageEvent{
 			Type: app.EventMessage,
-			Payload: data.Message{
-				Id:             2,
-				SenderId:       1,
+			Payload: data.PostMessageDto{
 				ConversationId: 1,
 				Content:        "test2",
 				PrevMessageId:  1,
 			},
 		}
-		js = createWsPayload(t, want)
+		want = data.Message{
+			Id:             2,
+			SenderId:       1,
+			ConversationId: 1,
+			Content:        "test2",
+			PrevMessageId:  1,
+		}
+		js = createWsPayload(t, dto)
 		writeWSMessage(t, ws1, js)
-		assertContainsMessage(t, messageModel, 1, want.Payload)
+		assertContainsMessage(t, messageModel, 1, want)
 		// receive second message
-		within(t, 500*time.Millisecond, func() { assertMessage(t, ws2, want.Payload) })
+		within(t, 500*time.Millisecond, func() { assertMessage(t, ws2, want) })
 	})
 
 	t.Run("2 users: sends-receive, receive-send", func(t *testing.T) {
@@ -77,37 +92,47 @@ func TestChat(t *testing.T) {
 		ws2 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat("2", 26))
 		defer ws2.Close()
 		// send message from 1 to 2
-		want1 := MessageEvent{
+		dto1 := PostMessageEvent{
 			Type: app.EventMessage,
-			Payload: data.Message{
-				Id:             1,
-				SenderId:       1,
+			Payload: data.PostMessageDto{
 				ConversationId: 1,
 				Content:        "test3",
 				PrevMessageId:  0,
 			},
 		}
-		js := createWsPayload(t, want1)
+		want1 := data.Message{
+			Id:             1,
+			SenderId:       1,
+			ConversationId: 1,
+			Content:        "test3",
+			PrevMessageId:  0,
+		}
+		js := createWsPayload(t, dto1)
 		writeWSMessage(t, ws1, js)
-		assertContainsMessage(t, messageModel, 1, want1.Payload)
+		assertContainsMessage(t, messageModel, 1, want1)
 		// send message from 2 to 1
-		want2 := MessageEvent{
+		dto2 := PostMessageEvent{
 			Type: app.EventMessage,
-			Payload: data.Message{
-				Id:             2,
-				SenderId:       2,
+			Payload: data.PostMessageDto{
 				ConversationId: 1,
 				Content:        "test4",
 				PrevMessageId:  1,
 			},
 		}
-		js = createWsPayload(t, want2)
+		want2 := data.Message{
+			Id:             2,
+			SenderId:       2,
+			ConversationId: 1,
+			Content:        "test4",
+			PrevMessageId:  1,
+		}
+		js = createWsPayload(t, dto2)
 		writeWSMessage(t, ws2, js)
-		assertContainsMessage(t, messageModel, 1, want2.Payload)
+		assertContainsMessage(t, messageModel, 1, want2)
 		// user 2: receive message
-		within(t, 500*time.Millisecond, func() { assertMessage(t, ws2, want1.Payload) })
+		within(t, 500*time.Millisecond, func() { assertMessage(t, ws2, want1) })
 		// user 1: receive message
-		within(t, 500*time.Millisecond, func() { assertMessage(t, ws1, want2.Payload) })
+		within(t, 500*time.Millisecond, func() { assertMessage(t, ws1, want2) })
 	})
 
 	t.Run("9 users send messages to 1 user: concurrent sends", func(t *testing.T) {
@@ -121,20 +146,25 @@ func TestChat(t *testing.T) {
 			ws2 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat(strconv.Itoa(i), 26))
 			defer ws2.Close()
 			for j := 1; j <= 100; j++ {
-				want := MessageEvent{
+				dto := PostMessageEvent{
 					Type: app.EventMessage,
-					Payload: data.Message{
-						Id:             int64(j),
-						SenderId:       int64(i),
+					Payload: data.PostMessageDto{
 						ConversationId: int64(i - 1),
 						Content:        fmt.Sprintf("test%v", i),
 						PrevMessageId:  0,
 					},
 				}
-				js := createWsPayload(t, want)
+				want := data.Message{
+					Id:             int64(j),
+					SenderId:       int64(i),
+					ConversationId: int64(i - 1),
+					Content:        fmt.Sprintf("test%v", i),
+					PrevMessageId:  0,
+				}
+				js := createWsPayload(t, dto)
 				writeWSMessage(t, ws2, js)
-				assertContainsMessage(t, messageModel, i-1, want.Payload)
-				within(t, 500*time.Millisecond, func() { assertMessage(t, ws1, want.Payload) })
+				assertContainsMessage(t, messageModel, i-1, want)
+				within(t, 500*time.Millisecond, func() { assertMessage(t, ws1, want) })
 			}
 		}
 	})
@@ -160,11 +190,9 @@ func TestChatErrors(t *testing.T) {
 		ws1 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat("1", 26))
 		ws2 := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat("2", 26))
 		// send first message
-		want := MessageEvent{
+		want := PostMessageEvent{
 			Type: app.EventMessage,
-			Payload: data.Message{
-				Id:             1,
-				SenderId:       1,
+			Payload: data.PostMessageDto{
 				ConversationId: 1,
 				Content:        "test1",
 				PrevMessageId:  0,

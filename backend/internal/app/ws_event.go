@@ -13,6 +13,7 @@ const (
 // Used to differ between different actions
 type WsEvent struct {
 	Type    string          `json:"type"`
+	Sender  *Client         `json:"-"`
 	Payload json.RawMessage `json:"payload"`
 }
 

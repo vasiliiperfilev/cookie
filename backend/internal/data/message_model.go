@@ -10,7 +10,7 @@ import (
 type MessageModel interface {
 	Insert(msg *Message) error
 	GetAllByConversationId(id int64) ([]Message, error)
-	GetById(id int64) (*Message, error)
+	GetById(id int64) (Message, error)
 }
 
 type PsqlMessageModel struct {
@@ -76,7 +76,7 @@ func (m PsqlMessageModel) GetAllByConversationId(id int64) ([]Message, error) {
 	return messages, nil
 }
 
-func (m PsqlMessageModel) GetById(id int64) (*Message, error) {
+func (m PsqlMessageModel) GetById(id int64) (Message, error) {
 	query := `
 	    SELECT message_id, sender_id, conversation_id, prev_message_id, created_at, content
 	    FROM messages
@@ -91,11 +91,11 @@ func (m PsqlMessageModel) GetById(id int64) (*Message, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, ErrRecordNotFound
+			return Message{}, ErrRecordNotFound
 		default:
-			return nil, err
+			return Message{}, err
 		}
 	}
 
-	return &msg, nil
+	return msg, nil
 }

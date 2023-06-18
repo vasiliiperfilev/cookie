@@ -105,7 +105,7 @@ func (a *Application) handleGetConversation(w http.ResponseWriter, r *http.Reque
 				a.serverErrorResponse(w, r, err)
 				return
 			}
-			expandedConvs = append(expandedConvs, ExpandedConversation{LastMessage: ExpandedMessage{Message: *msg, Sender: *usr}, Conversation: c})
+			expandedConvs = append(expandedConvs, ExpandedConversation{LastMessage: ExpandedMessage{Message: msg, Sender: *usr}, Conversation: c})
 		}
 		writeJsonResponse(w, http.StatusOK, expandedConvs, nil)
 	}

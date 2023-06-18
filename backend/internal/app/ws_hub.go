@@ -9,8 +9,8 @@ import (
 
 type Hub struct {
 	clients    map[*Client]bool
-	broadcast  chan WsMessage
-	errors     chan WsMessage
+	broadcast  chan WsEvent
+	errors     chan WsEvent
 	register   chan *Client
 	unregister chan *Client
 	app        *Application
@@ -18,8 +18,8 @@ type Hub struct {
 
 func newHub(app *Application) *Hub {
 	return &Hub{
-		broadcast:  make(chan WsMessage, 256),
-		errors:     make(chan WsMessage, 256),
+		broadcast:  make(chan WsEvent, 256),
+		errors:     make(chan WsEvent, 256),
 		register:   make(chan *Client, 256),
 		clients:    make(map[*Client]bool),
 		unregister: make(chan *Client, 256),
@@ -32,15 +32,10 @@ func (h *Hub) run() {
 		select {
 		case client := <-h.register:
 			h.clients[client] = true
-		case wsMessage := <-h.broadcast:
-			event, err := h.readEvent(wsMessage)
-			if err != nil {
-				h.errors <- h.createErrorMessage(wsMessage.Sender, PayloadErrorMessage)
-				continue
-			}
+		case event := <-h.broadcast:
 			switch event.Type {
 			case EventMessage:
-				h.handleMessageEvent(event, wsMessage)
+				h.handleMessageEvent(event)
 			default:
 				h.app.logger.Printf("Unsupported websocket event %v, payload %v", event.Type, string(event.Payload))
 			}
@@ -49,46 +44,46 @@ func (h *Hub) run() {
 				close(client.messages)
 				delete(h.clients, client)
 			}
-		case wsMessage := <-h.errors:
-			h.app.logger.Printf("Websocker error event %s", string(wsMessage.Payload))
-			wsMessage.Sender.messages <- wsMessage.Payload
+		case event := <-h.errors:
+			h.app.logger.Printf("Websocker error event %s", string(event.Payload))
+			event.Sender.messages <- event
 		}
 	}
 }
 
-func (h *Hub) handleMessageEvent(event *WsEvent, wsMessage WsMessage) {
-	var message data.Message
-	err := readJson(bytes.NewReader(event.Payload), &message)
+func (h *Hub) handleMessageEvent(event WsEvent) {
+	var dto data.PostMessageDto
+	err := readJson(bytes.NewReader(event.Payload), &dto)
 	if err != nil {
-		h.errors <- h.createErrorMessage(wsMessage.Sender, PayloadErrorMessage)
+		h.errors <- h.createErrorMessage(event.Sender, PayloadErrorMessage)
 		return
 	}
-	err = h.app.models.Message.Insert(&message)
+	msg := data.Message{
+		Content:        dto.Content,
+		ConversationId: dto.ConversationId,
+		PrevMessageId:  dto.PrevMessageId,
+		SenderId:       event.Sender.User.Id,
+	}
+	err = h.app.models.Message.Insert(&msg)
 	if err != nil {
-		h.errors <- h.createErrorMessage(wsMessage.Sender, ServerErrorMessage)
+		h.errors <- h.createErrorMessage(event.Sender, ServerErrorMessage)
 		return
+	}
+	payload, _ := json.Marshal(msg)
+	msgEvt := WsEvent{
+		Type:    EventMessage,
+		Payload: payload,
 	}
 	for client := range h.clients {
-		if client != wsMessage.Sender {
-			client.messages <- wsMessage.Payload
+		if client != event.Sender {
+			client.messages <- msgEvt
 		}
 	}
 }
 
-func (h *Hub) readEvent(wsMessage WsMessage) (*WsEvent, error) {
-	var event WsEvent
-	err := readJson(bytes.NewReader(wsMessage.Payload), &event)
-	if err != nil {
-		return nil, err
-	}
-	return &event, nil
-}
-
-func (h *Hub) createErrorMessage(client *Client, message string) WsMessage {
+func (h *Hub) createErrorMessage(client *Client, message string) WsEvent {
 	data := ErrorResponse{Message: message, Errors: map[string]string{}}
 	payload, _ := json.Marshal(data)
-	errEvt := WsEvent{Type: EventError, Payload: payload}
-	js, _ := json.Marshal(errEvt)
-	wsMessage := WsMessage{Sender: client, Payload: js}
-	return wsMessage
+	errEvt := WsEvent{Type: EventError, Payload: payload, Sender: client}
+	return errEvt
 }
