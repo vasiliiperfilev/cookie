@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Conversation } from '@app/_models/conversation';
+import { Conversation, ConversationDto } from '@app/_models/conversation';
 import { environment } from '@environments/environment';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { UserService } from './user.service';
@@ -33,11 +33,11 @@ export class ConversationsService {
       );
   }
 
-  postConversation(conversation: Conversation) {
+  postConversation(cvs: ConversationDto) {
     return this.http
       .post<Conversation>(
         `${environment.apiUrl}/v1/conversations?userId=${this.userService.userValue?.id}`,
-        conversation
+        cvs
       )
       .pipe(
         map((conversation) => {

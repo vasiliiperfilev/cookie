@@ -1,4 +1,4 @@
-import { Message } from './message';
+import { Message, MessageDto } from './message';
 
 export enum WsEventType {
   MESSAGE = 'message',
@@ -6,5 +6,5 @@ export enum WsEventType {
 
 export interface WsMessageEvent {
   type: string;
-  payload: Message;
+  payload: Message | MessageDto;
 }

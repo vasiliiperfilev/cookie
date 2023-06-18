@@ -5,3 +5,7 @@ export interface Conversation {
   userIds: number[];
   lastMessage?: Message;
 }
+
+export interface ConversationDto {
+  userIds: number[];
+}

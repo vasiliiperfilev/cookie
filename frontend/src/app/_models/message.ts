@@ -9,3 +9,9 @@ export interface Message {
   createdAt: Date;
   content: string;
 }
+
+export interface MessageDto {
+  conversationId: number;
+  prevMessageId: number;
+  content: string;
+}

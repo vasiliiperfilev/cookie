@@ -13,7 +13,7 @@ export class ChatComponent implements OnInit {
   @Input({ required: true }) conversationId!: number;
   messages: Message[] = [];
   form = new FormGroup({
-    message: new FormControl('', [Validators.required]),
+    message: new FormControl(''),
   });
 
   constructor(
@@ -37,6 +37,6 @@ export class ChatComponent implements OnInit {
       return;
     }
     this.chatService.sendMessage(this.form.value.message, this.conversationId);
-    this.form.value.message = '';
+    this.form.reset();
   }
 }

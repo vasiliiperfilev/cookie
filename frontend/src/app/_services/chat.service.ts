@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { WsEventType, WsMessageEvent } from '@app/_models';
+import { Message, WsEventType, WsMessageEvent } from '@app/_models';
 import { Subject } from 'rxjs';
 import { environment } from '@environments/environment';
 import { webSocket } from 'rxjs/webSocket';
@@ -14,7 +14,7 @@ export class ChatService {
 
   constructor(
     private historyService: HistoryService,
-    private userService: UserService
+    userService: UserService
   ) {
     this.wsConn = webSocket<WsMessageEvent>(
       `${environment.webSocketUrl}/v1/chat?token=${userService.tokenValue?.token}`
@@ -37,21 +37,21 @@ export class ChatService {
     const wsMsgEvt: WsMessageEvent = {
       type: WsEventType.MESSAGE,
       payload: {
-        id: 1,
         conversationId: conversationId,
-        senderId: this.userService.userValue?.id || 0,
         prevMessageId: prevMessageId,
         content: content,
-        createdAt: new Date(),
       },
     };
     this.wsConn.next(wsMsgEvt);
-    this.historyService.pushToLocalHistory(wsMsgEvt.payload);
+    this.historyService.pushToLocalHistory({
+      ...wsMsgEvt.payload,
+      createdAt: new Date(),
+    } as Message);
   }
 
   private receiveEvent(evt: WsMessageEvent) {
     if (evt.type === WsEventType.MESSAGE) {
-      this.historyService.pushToLocalHistory(evt.payload);
+      this.historyService.pushToLocalHistory(evt.payload as Message);
     }
   }
 }

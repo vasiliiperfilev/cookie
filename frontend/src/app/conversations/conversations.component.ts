@@ -18,6 +18,7 @@ export class ConversationsComponent implements OnInit {
     this.conversationService.getConversations().subscribe((conversations) => {
       this.conversations = conversations;
       this.loading = false;
+      console.log(conversations);
     });
   }
 
