@@ -55,7 +55,15 @@ migrate-up:
 migrate-down:
 	migrate -path=./migrations -database=postgres://cookie:cookie@localhost:5432/cookie?sslmode=disable down
 
-.PHONY: start-dev
-start-dev:
+.PHONY: start-local-dev
+start-local-dev:
 	go build -o svr cmd/api/*.go
 	./svr -db-dsn=postgres://cookie:cookie@localhost:5432/cookie?sslmode=disable
+
+.PHONY: start-docker-dev
+start-docker-dev:
+	function tearDown {
+		docker compose -f docker-compose.testing.yml down
+	}
+	trap tearDown EXIT
+	docker compose -f docker-compose.testing.yml up --build -d

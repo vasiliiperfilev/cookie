@@ -112,7 +112,7 @@ func (m PsqlConversationModel) GetById(id int64) (Conversation, error) {
 		&conversation.Id,
 		&conversation.LastMessageId,
 		&conversation.Version,
-		&conversation.UserIds,
+		(*pq.Int64Array)(&conversation.UserIds),
 	)
 
 	if err != nil {
