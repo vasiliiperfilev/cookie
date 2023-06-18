@@ -7,7 +7,7 @@ import (
 )
 
 type TokenModel interface {
-	New(userID int64, ttl time.Duration, scope string) (*Token, error)
+	New(userID int64, ttl time.Duration, scope string) (Token, error)
 	DeleteAllForUser(scope string, userID int64) error
 }
 
@@ -19,17 +19,17 @@ func NewPsqlTokenModel(db *sql.DB) *PsqlTokenModel {
 	return &PsqlTokenModel{db: db}
 }
 
-func (m PsqlTokenModel) New(userID int64, ttl time.Duration, scope string) (*Token, error) {
+func (m PsqlTokenModel) New(userID int64, ttl time.Duration, scope string) (Token, error) {
 	token, err := generateToken(userID, ttl, scope)
 	if err != nil {
-		return nil, err
+		return Token{}, err
 	}
 
 	err = m.insert(token)
 	return token, err
 }
 
-func (m PsqlTokenModel) insert(token *Token) error {
+func (m PsqlTokenModel) insert(token Token) error {
 	query := `
         INSERT INTO tokens (hash, user_id, expiry, scope) 
         VALUES ($1, $2, $3, $4)`

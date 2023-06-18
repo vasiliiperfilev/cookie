@@ -91,7 +91,7 @@ func TestUserModelIntegration(t *testing.T) {
 		tester.AssertNoError(t, err)
 		gotUser, err := model.GetByEmail(insertedUser.Email)
 		tester.AssertNoError(t, err)
-		assertUser(t, *gotUser, insertedUser)
+		assertUser(t, gotUser, insertedUser)
 	})
 
 	t.Run("it inserts 2 users concurently", func(t *testing.T) {
@@ -139,7 +139,7 @@ func TestUserModelIntegration(t *testing.T) {
 		// change user type
 		newEmail := "newtest2@test.com"
 		insertedUser.Email = newEmail
-		err = model.Update(&insertedUser)
+		err = model.Update(insertedUser)
 		tester.AssertNoError(t, err)
 		// get updateduser from db
 		gotUser, err := model.GetByEmail(insertedUser.Email)

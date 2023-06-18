@@ -10,8 +10,8 @@ import (
 )
 
 type UserToken struct {
-	User  *data.User  `json:"user"`
-	Token *data.Token `json:"token"`
+	User  data.User  `json:"user"`
+	Token data.Token `json:"token"`
 }
 
 func (a *Application) handlePostToken(w http.ResponseWriter, r *http.Request) {

@@ -12,13 +12,13 @@ func NewStubTokenModel(tokens []Token) *StubTokenModel {
 	return &StubTokenModel{tokens: tokens}
 }
 
-func (s *StubTokenModel) New(userID int64, ttl time.Duration, scope string) (*Token, error) {
+func (s *StubTokenModel) New(userID int64, ttl time.Duration, scope string) (Token, error) {
 	token, err := generateToken(userID, ttl, scope)
 	if err != nil {
-		return nil, err
+		return Token{}, err
 	}
 
-	s.tokens = append(s.tokens, *token)
+	s.tokens = append(s.tokens, token)
 	return token, err
 }
 

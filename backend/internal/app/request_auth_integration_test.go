@@ -38,7 +38,7 @@ func TestIntegrationAuthenticateRequest(t *testing.T) {
 			"Password": password,
 		}
 		userToken := mustLoginUser(t, server, loginInput)
-		user := authRequest(t, server, *userToken.Token)
+		user := authRequest(t, server, userToken.Token)
 		tester.AssertValue(t, user.Email, registerInput.Email, "same email")
 		tester.AssertValue(t, user.ImageId, registerInput.ImageId, "same image id")
 		tester.AssertValue(t, user.Type, registerInput.Type, "same type")
@@ -46,7 +46,7 @@ func TestIntegrationAuthenticateRequest(t *testing.T) {
 	db.Close()
 }
 
-func authRequest(t *testing.T, server *app.Application, token data.Token) *data.User {
+func authRequest(t *testing.T, server *app.Application, token data.Token) data.User {
 	t.Helper()
 	request, err := http.NewRequest(http.MethodPost, "/v1/tokens", nil)
 	tester.AssertNoError(t, err)

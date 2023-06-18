@@ -10,10 +10,10 @@ import (
 
 type UserModel interface {
 	Insert(user *User) error
-	GetByEmail(email string) (*User, error)
-	GetById(id int64) (*User, error)
-	Update(user *User) error
-	GetForToken(tokenScope, tokenPlaintext string) (*User, error)
+	GetByEmail(email string) (User, error)
+	GetById(id int64) (User, error)
+	Update(user User) error
+	GetForToken(tokenScope, tokenPlaintext string) (User, error)
 }
 
 type PsqlUserModel struct {
@@ -50,7 +50,7 @@ func (m PsqlUserModel) Insert(user *User) error {
 	return nil
 }
 
-func (m PsqlUserModel) GetByEmail(email string) (*User, error) {
+func (m PsqlUserModel) GetByEmail(email string) (User, error) {
 	query := `
         SELECT user_id, created_at, email, password_hash, user_type_id, version
         FROM users
@@ -73,16 +73,16 @@ func (m PsqlUserModel) GetByEmail(email string) (*User, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, ErrRecordNotFound
+			return User{}, ErrRecordNotFound
 		default:
-			return nil, err
+			return User{}, err
 		}
 	}
 
-	return &user, nil
+	return user, nil
 }
 
-func (m PsqlUserModel) GetById(id int64) (*User, error) {
+func (m PsqlUserModel) GetById(id int64) (User, error) {
 	query := `
         SELECT user_id, created_at, email, password_hash, user_type_id, version
         FROM users
@@ -105,13 +105,13 @@ func (m PsqlUserModel) GetById(id int64) (*User, error) {
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, ErrRecordNotFound
+			return User{}, ErrRecordNotFound
 		default:
-			return nil, err
+			return User{}, err
 		}
 	}
 
-	return &user, nil
+	return user, nil
 }
 
 // Update the details for a specific user. Notice that we check against the version
@@ -119,7 +119,7 @@ func (m PsqlUserModel) GetById(id int64) (*User, error) {
 // when updating a movie. And we also check for a violation of the "users_email_key"
 // constraint when performing the update, just like we did when inserting the user
 // record originally.
-func (m PsqlUserModel) Update(user *User) error {
+func (m PsqlUserModel) Update(user User) error {
 	query := `
         UPDATE users
         SET email = $1, password_hash = $2, version = version + 1
@@ -151,7 +151,7 @@ func (m PsqlUserModel) Update(user *User) error {
 	return nil
 }
 
-func (m PsqlUserModel) GetForToken(tokenScope, tokenPlaintext string) (*User, error) {
+func (m PsqlUserModel) GetForToken(tokenScope, tokenPlaintext string) (User, error) {
 	// Calculate the SHA-256 hash of the plaintext token provided by the client.
 	// Remember that this returns a byte *array* with length 32, not a slice.
 	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
@@ -189,12 +189,12 @@ func (m PsqlUserModel) GetForToken(tokenScope, tokenPlaintext string) (*User, er
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, ErrRecordNotFound
+			return User{}, ErrRecordNotFound
 		default:
-			return nil, err
+			return User{}, err
 		}
 	}
 
 	// Return the matching user.
-	return &user, nil
+	return user, nil
 }

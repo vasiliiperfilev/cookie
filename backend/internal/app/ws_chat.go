@@ -33,7 +33,7 @@ func (a *Application) wsChatHandler(hub *Hub, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	client := &Client{User: *user, conn: conn, hub: hub, messages: make(chan WsEvent, 256)}
+	client := &Client{User: user, conn: conn, hub: hub, messages: make(chan WsEvent, 256)}
 	client.hub.register <- client
 
 	go client.readPump()
