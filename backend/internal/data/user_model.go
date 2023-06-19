@@ -52,7 +52,7 @@ func (m PsqlUserModel) Insert(user *User) error {
 
 func (m PsqlUserModel) GetByEmail(email string) (User, error) {
 	query := `
-        SELECT user_id, created_at, email, password_hash, user_type_id, version
+        SELECT user_id, created_at, email, name, password_hash, user_type_id, version
         FROM users
         WHERE email = $1`
 
@@ -65,6 +65,7 @@ func (m PsqlUserModel) GetByEmail(email string) (User, error) {
 		&user.Id,
 		&user.CreatedAt,
 		&user.Email,
+		&user.Name,
 		&user.Password.hash,
 		&user.Type,
 		&user.Version,
@@ -84,7 +85,7 @@ func (m PsqlUserModel) GetByEmail(email string) (User, error) {
 
 func (m PsqlUserModel) GetById(id int64) (User, error) {
 	query := `
-        SELECT user_id, created_at, email, password_hash, user_type_id, version
+        SELECT user_id, created_at, email, name, password_hash, user_type_id, version
         FROM users
         WHERE user_id = $1`
 
@@ -97,6 +98,7 @@ func (m PsqlUserModel) GetById(id int64) (User, error) {
 		&user.Id,
 		&user.CreatedAt,
 		&user.Email,
+		&user.Name,
 		&user.Password.hash,
 		&user.Type,
 		&user.Version,
@@ -122,13 +124,14 @@ func (m PsqlUserModel) GetById(id int64) (User, error) {
 func (m PsqlUserModel) Update(user User) error {
 	query := `
         UPDATE users
-        SET email = $1, password_hash = $2, version = version + 1
-        WHERE user_id = $3 AND version = $4
+        SET email = $1, password_hash = $2, name = $3, version = version + 1
+        WHERE user_id = $4 AND version = $5
         RETURNING version`
 
 	args := []any{
 		user.Email,
 		user.Password.hash,
+		user.Name,
 		user.Id,
 		user.Version,
 	}
@@ -157,7 +160,7 @@ func (m PsqlUserModel) GetForToken(tokenScope, tokenPlaintext string) (User, err
 	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
 
 	query := `
-        SELECT a.user_id, a.created_at, a.email, a.password_hash, a.user_type_id, a.image_id, a.version
+        SELECT a.user_id, a.created_at, a.email, a.name, a.password_hash, a.user_type_id, a.image_id, a.version
         FROM users as a
         INNER JOIN tokens as t
         ON a.user_id = t.user_id
@@ -181,6 +184,7 @@ func (m PsqlUserModel) GetForToken(tokenScope, tokenPlaintext string) (User, err
 		&user.Id,
 		&user.CreatedAt,
 		&user.Email,
+		&user.Name,
 		&user.Password.hash,
 		&user.Type,
 		&user.ImageId,

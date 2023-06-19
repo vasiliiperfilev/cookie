@@ -191,5 +191,6 @@ func assertUser(t *testing.T, got data.User, want data.User) {
 	tester.AssertValue(t, got.Email, want.Email, "Expect same emails")
 	tester.AssertValue(t, got.Id, want.Id, "Expect same id")
 	tester.AssertValue(t, got.Type, want.Type, "Expect same type")
+	tester.AssertValue(t, got.Name, want.Name, "Expect same name")
 	tester.AssertValue(t, got.CreatedAt, want.CreatedAt, "Expect same createdAt")
 }

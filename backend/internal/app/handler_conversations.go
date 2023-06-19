@@ -36,7 +36,7 @@ func (a *Application) handlePostConversation(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	if !slices.Contains(dto.UserIds, user.Id) {
-		a.badRequestResponse(w, r, err)
+		a.badRequestResponse(w, r, ErrUnathorized)
 		return
 	}
 	v := validator.New()
