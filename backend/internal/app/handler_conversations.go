@@ -10,14 +10,10 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type ExpandedMessage struct {
-	data.Message
-	Sender data.User `json:"sender"`
-}
-
 type ExpandedConversation struct {
 	data.Conversation
-	LastMessage ExpandedMessage `json:"lastMessage"`
+	LastMessage data.Message `json:"lastMessage"`
+	Users       []data.User  `json:"users"`
 }
 
 func (a *Application) handlePostConversation(w http.ResponseWriter, r *http.Request) {
@@ -100,12 +96,16 @@ func (a *Application) handleGetConversation(w http.ResponseWriter, r *http.Reque
 				a.serverErrorResponse(w, r, err)
 				return
 			}
-			usr, err := a.models.User.GetById(msg.SenderId)
-			if err != nil {
-				a.serverErrorResponse(w, r, err)
-				return
+			u := []data.User{}
+			for _, usrId := range c.UserIds {
+				usr, err := a.models.User.GetById(usrId)
+				if err != nil {
+					a.serverErrorResponse(w, r, err)
+					return
+				}
+				u = append(u, usr)
 			}
-			expandedConvs = append(expandedConvs, ExpandedConversation{LastMessage: ExpandedMessage{Message: msg, Sender: usr}, Conversation: c})
+			expandedConvs = append(expandedConvs, ExpandedConversation{LastMessage: msg, Conversation: c, Users: u})
 		}
 		writeJsonResponse(w, http.StatusOK, expandedConvs, nil)
 	}
