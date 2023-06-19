@@ -37,12 +37,14 @@ func TestIntegrationUserPost(t *testing.T) {
 		userInput := data.PostUserDto{
 			Email:    "testReg@nowhere.com",
 			Password: "test123!A",
+			Name:     "test",
 			Type:     1,
 			ImageId:  "imageid",
 		}
 		want := data.User{
 			Email:   userInput.Email,
 			Type:    userInput.Type,
+			Name:    userInput.Name,
 			ImageId: userInput.ImageId,
 		}
 		got := mustRegisterUser(t, server, userInput)

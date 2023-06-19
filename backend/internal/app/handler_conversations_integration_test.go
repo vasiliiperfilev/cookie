@@ -38,6 +38,7 @@ func TestIntegrationConversations(t *testing.T) {
 		registerInput := data.PostUserDto{
 			Email:    email,
 			Password: password,
+			Name:     "test",
 			Type:     1,
 			ImageId:  "imageid",
 		}

@@ -26,11 +26,11 @@ func NewPsqlUserModel(db *sql.DB) *PsqlUserModel {
 
 func (m PsqlUserModel) Insert(user *User) error {
 	query := `
-        INSERT INTO users (email, password_hash, user_type_id, image_id) 
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO users (email, name, password_hash, user_type_id, image_id) 
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING user_id, created_at, version`
 
-	args := []any{user.Email, user.Password.hash, user.Type, user.ImageId}
+	args := []any{user.Email, user.Name, user.Password.hash, user.Type, user.ImageId}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()

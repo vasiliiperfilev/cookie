@@ -25,12 +25,14 @@ func TestUserPost(t *testing.T) {
 	t.Run("it allows registration with correct values", func(t *testing.T) {
 		userInput := data.PostUserDto{
 			Email:    "test@nowhere.com",
+			Name:     "test",
 			Password: "test123!A",
 			Type:     1,
 			ImageId:  "imageid",
 		}
 		expectedResponse := data.User{
 			Email:   userInput.Email,
+			Name:    userInput.Name,
 			Type:    userInput.Type,
 			ImageId: userInput.ImageId,
 		}

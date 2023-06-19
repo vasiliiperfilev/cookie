@@ -18,6 +18,7 @@ type User struct {
 	Id        int64     `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 	Email     string    `json:"email"`
+	Name      string    `json:"name"`
 	Password  password  `json:"-"`
 	Type      int       `json:"type"`
 	ImageId   string    `json:"imageId"`
@@ -26,6 +27,7 @@ type User struct {
 
 type PostUserDto struct {
 	Email    string `json:"email"`
+	Name     string `json:"name"`
 	Password string `json:"password"`
 	Type     int    `json:"type"`
 	ImageId  string `json:"imageId"`
@@ -71,6 +73,8 @@ func ValidateRegisterUserInput(v *validator.Validator, input *PostUserDto) {
 	ValidatePasswordPlaintext(v, input.Password)
 
 	v.Check(verifyUserType(input.Type), "type", "must be a valid user type")
+
+	v.Check(input.Name != "", "name", "must be provided")
 
 	v.Check(input.ImageId != "", "imageId", "must be provided")
 }

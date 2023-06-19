@@ -67,3 +67,11 @@ start-docker-dev:
 	}
 	trap tearDown EXIT
 	docker compose -f docker-compose.development.yml up --build
+
+.PHONY: start-docker-testing
+start-docker-testing:
+	function tearDown {
+		docker compose -f docker-compose.testing.yml down
+	}
+	trap tearDown EXIT
+	docker compose -f docker-compose.testing.yml up --build

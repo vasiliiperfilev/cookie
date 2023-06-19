@@ -18,6 +18,7 @@ func TestValidateRegisterUserInput(t *testing.T) {
 	}{
 		{Input: data.PostUserDto{
 			Email:    "test@test.com",
+			Name:     "test name",
 			Password: "pa5$wOrd123",
 			Type:     1,
 			ImageId:  "testid",
@@ -25,29 +26,34 @@ func TestValidateRegisterUserInput(t *testing.T) {
 		{Input: data.PostUserDto{
 			Email:    "test@test.com",
 			Password: "",
+			Name:     "",
 			Type:     3,
 			ImageId:  "",
-		}, Keys: []string{"password", "type", "imageId"}},
+		}, Keys: []string{"password", "type", "imageId", "name"}},
 		{Input: data.PostUserDto{
 			Email:    "test-test.com",
 			Password: "pa5swOrd123",
+			Name:     "test name",
 			Type:     1,
 			ImageId:  "testId",
 		}, Keys: []string{"email", "password"}},
 		{Input: data.PostUserDto{
 			Email:    "test@test.com",
+			Name:     "test name",
 			Password: "pa5$word123",
 			Type:     1,
 			ImageId:  "testId",
 		}, Keys: []string{"password"}},
 		{Input: data.PostUserDto{
 			Email:    "test@test.com",
+			Name:     "test name",
 			Password: "pas$wOrdabc",
 			Type:     1,
 			ImageId:  "testId",
 		}, Keys: []string{"password"}},
 		{Input: data.PostUserDto{
 			Email:    "test@test.com",
+			Name:     "test name",
 			Password: "PAS$WORD123",
 			Type:     1,
 			ImageId:  "testId",
@@ -83,6 +89,7 @@ func TestUserModelIntegration(t *testing.T) {
 		model := data.NewPsqlUserModel(db)
 		insertedUser := data.User{
 			Email:   "test@test.com",
+			Name:    "test",
 			Type:    1,
 			ImageId: "id",
 		}
@@ -100,11 +107,13 @@ func TestUserModelIntegration(t *testing.T) {
 		users := []data.User{
 			{
 				Email:   "test1@test.com",
+				Name:    "name 1",
 				Type:    1,
 				ImageId: "id",
 			},
 			{
 				Email:   "test2@test.com",
+				Name:    "name 2",
 				Type:    1,
 				ImageId: "id",
 			},
@@ -129,6 +138,7 @@ func TestUserModelIntegration(t *testing.T) {
 		model := data.NewPsqlUserModel(db)
 		insertedUser := data.User{
 			Email:   "test3@test.com",
+			Name:    "test",
 			Type:    1,
 			ImageId: "id",
 		}
@@ -153,6 +163,7 @@ func TestUserModelIntegration(t *testing.T) {
 		model := data.NewPsqlUserModel(db)
 		insertedUser := data.User{
 			Email:   "testito228@test.com",
+			Name:    "test",
 			Type:    1,
 			ImageId: "id",
 		}
