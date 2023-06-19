@@ -1,0 +1,58 @@
+version: '3'
+services:
+
+  cookie-postgres:
+    image: postgres:14.8-alpine
+    container_name: cookie-postgres
+    user: postgres
+    ports:
+      - 5433:5432
+    environment:
+      POSTGRES_DB: cookie
+      POSTGRES_USER: cookie
+      POSTGRES_PASSWORD: cookie
+    volumes:
+      - ./scripts/db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: pg_isready -U cookie -d cookie
+      interval: 1s
+      timeout: 1s
+      retries: 5
+
+  migrate:
+    image: migrate/migrate
+    depends_on:
+      cookie-postgres:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/migrations
+    command:
+      [
+        "-path",
+        "/migrations",
+        "-database",
+        "postgres://cookie:cookie@cookie-postgres:5432/cookie?sslmode=disable",
+        "up"
+      ]
+
+  fixtures:
+    image: postgres:14.8-alpine
+    user: postgres
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      - ./fixtures:/fixtures
+    environment:
+      - PGPASSWORD=cookie
+    command: "psql -h cookie-postgres -U cookie -d cookie -a -f /fixtures/fixtures.sql"
+  
+  cookie-app:
+    build:
+      context: ./
+      dockerfile: ./cmd/api/dockerfile
+    container_name: cookie-app
+    ports:
+      - 4000:4000
+    depends_on:
+      - fixtures

@@ -63,7 +63,7 @@ start-local-dev:
 .PHONY: start-docker-dev
 start-docker-dev:
 	function tearDown {
-		docker compose -f docker-compose.testing.yml down
+		docker compose -f docker-compose.development.yml down
 	}
 	trap tearDown EXIT
-	docker compose -f docker-compose.testing.yml up --build -d
+	docker compose -f docker-compose.development.yml up --build
