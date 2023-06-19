@@ -12,6 +12,7 @@ import { ConversationsModule } from './conversations/conversations.module';
 import { TokenInterceptor } from './_helpers/token.interceptor';
 import { ChatModule } from './chat/chat.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatGridListModule } from '@angular/material/grid-list';
 
 @NgModule({
   imports: [
@@ -22,6 +23,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     ConversationsModule,
     ChatModule,
     BrowserAnimationsModule,
+    MatGridListModule,
   ],
   declarations: [AppComponent, AlertComponent, HomeComponent],
   providers: [

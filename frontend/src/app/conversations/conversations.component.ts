@@ -1,17 +1,24 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { Conversation } from '@app/_models/conversation';
+import { User } from '@app/_models';
+import { Conversation, ConversationDto } from '@app/_models/conversation';
 import { ConversationsService, UserService } from '@app/_services';
 
 @Component({
   selector: 'app-conversations',
   templateUrl: './conversations.component.html',
-  styleUrls: ['./conversations.component.sass'],
+  styleUrls: ['./conversations.component.scss'],
 })
 export class ConversationsComponent implements OnInit {
-  @Output() selectConversationEvent = new EventEmitter<number>();
+  @Output() selectConversationEvent = new EventEmitter<Conversation>();
   loading = false;
   conversations: Conversation[] = [];
-  constructor(private conversationService: ConversationsService) {}
+  user: User;
+  constructor(
+    private conversationService: ConversationsService,
+    userService: UserService
+  ) {
+    this.user = userService.userValue!;
+  }
 
   ngOnInit() {
     this.loading = true;
@@ -28,9 +35,7 @@ export class ConversationsComponent implements OnInit {
   }
 
   addConversation() {
-    console.log('invoked');
-    const c: Conversation = {
-      id: 1,
+    const c: ConversationDto = {
       userIds: [1, 2],
     };
     this.conversationService
@@ -38,7 +43,7 @@ export class ConversationsComponent implements OnInit {
       .subscribe((conversation) => console.log(conversation));
   }
 
-  selectConversation(id: number) {
-    this.selectConversationEvent.emit(id);
+  selectConversation(c: Conversation) {
+    this.selectConversationEvent.emit(c);
   }
 }

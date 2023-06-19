@@ -26,7 +26,10 @@ export class ConversationsService {
         `${environment.apiUrl}/v1/conversations?userId=${this.userService.userValue?.id}&expanded=true`
       )
       .pipe(
-        map((conversations) => {
+        map((cs) => {
+          const conversations = cs.map(
+            (c) => new Conversation(c.id, c.users, c.lastMessage)
+          );
           this.conversationsSubject.next(conversations);
           return conversations;
         })
@@ -40,9 +43,12 @@ export class ConversationsService {
         cvs
       )
       .pipe(
-        map((conversation) => {
+        map((c) => {
           const conversations = this.conversationsValue;
-          this.conversationsSubject.next([...conversations, conversation]);
+          this.conversationsSubject.next([
+            ...conversations,
+            new Conversation(c.id, c.users, c.lastMessage),
+          ]);
           return conversations;
         })
       );

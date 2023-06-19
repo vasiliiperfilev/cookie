@@ -1,0 +1,26 @@
+.chat {
+  overflow-y: scroll;
+  flex: 1;
+  background-image: url('/assets/subtle-prism.svg');
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+}
+
+.chat-input {
+  width: 100%;
+}
+
+.message {
+  height: fit-content;
+  padding: 0.1rem;
+  width: 50%;
+}
+
+.own-message {
+  margin-left: auto;
+}

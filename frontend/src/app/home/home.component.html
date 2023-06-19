@@ -1,8 +1,12 @@
-<div class="p-4">
-  <div class="container">
-    <h1>Hi {{ user?.email }}!</h1>
-    <p>You're logged in with Angular 14!!</p>
-  </div>
-  <app-conversations (selectConversationEvent)="selectConversation($event)"/>
-  <app-chat *ngIf="currentConversationId" [conversationId]="currentConversationId"/>
+<div class="d-flex h-100">
+  <app-conversations
+    (selectConversationEvent)="selectConversation($event)"
+    class="w-25 bg-white"
+  />
+  <app-chat
+    *ngIf="currentConversation"
+    [conversation]="currentConversation"
+    class="w-75 p-0"
+  />
+  <div *ngIf="!currentConversation" class="chat-placeholder"></div>
 </div>

@@ -1,9 +1,23 @@
 import { Message } from './message';
+import { User } from './user';
 
-export interface Conversation {
+export class Conversation {
   id: number;
-  userIds: number[];
+  users: User[];
   lastMessage?: Message;
+  constructor(id: number, users: User[], lastMessage?: Message) {
+    this.id = id;
+    this.users = users;
+    this.lastMessage = lastMessage;
+  }
+
+  getName(userId: number) {
+    if (this.users.length == 2) {
+      const user = this.users.find((user) => user.id !== userId);
+      return user?.email ?? null;
+    }
+    return null;
+  }
 }
 
 export interface ConversationDto {

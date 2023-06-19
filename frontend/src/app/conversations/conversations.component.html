@@ -1,10 +1,16 @@
-<button (click)="addConversation()">Add conversation</button>
-<mat-list *ngFor="let conversation of conversations">
-  <mat-list-item (click)="selectConversation(conversation.id)">
-    <div matListItemIcon>
-      <div class="avatar">{{getInitials(conversation.lastMessage?.sender?.email || "EM")}}</div>
+<mat-toolbar color="secondary" class="p-0">
+  <button (click)="addConversation()">Add conversation</button>
+</mat-toolbar>
+<mat-list>
+  <mat-list-item
+    *ngFor="let conversation of conversations"
+    (click)="selectConversation(conversation)"
+  >
+    <div matListItemAvatar>
+      <div class="avatar">
+        {{ getInitials(conversation.getName(user.id) || 'EM') }}
+      </div>
     </div>
-    <div matListItemLine>{{conversation.lastMessage?.sender?.email}}</div>
-    <div matListItemLine>{{conversation.lastMessage?.content}}</div>
+    <div matListItemLine>{{ conversation.getName(user.id) }}</div>
   </mat-list-item>
- </mat-list>
+</mat-list>
