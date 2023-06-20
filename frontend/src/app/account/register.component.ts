@@ -12,7 +12,7 @@ import {
 import { first } from 'rxjs/operators';
 
 import { AlertService, UserService } from '@app/_services';
-import { FormErrors, UserRequest, UserType } from '@app/_models';
+import { FormErrors, PostUserDto, UserType } from '@app/_models';
 import { HttpErrorResponse } from '@angular/common/http';
 
 export const passwordMatchingValidatior: ValidatorFn = (
@@ -32,7 +32,7 @@ export const passwordMatchingValidatior: ValidatorFn = (
 export class RegisterComponent {
   loading = false;
   submitted = false;
-  serverError: FormErrors<UserRequest> | null = null;
+  serverError: FormErrors<PostUserDto> | null = null;
   form = new FormGroup(
     {
       email: new FormControl('', [Validators.required, Validators.email]),
@@ -42,6 +42,7 @@ export class RegisterComponent {
           /(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*#?&^_-]).{8,}/
         ),
       ]),
+      name: new FormControl('', [Validators.required]),
       confirmPassword: new FormControl('', [Validators.required]),
       type: new FormControl(1, [Validators.required]),
       imageId: new FormControl('test', [Validators.required]),
@@ -79,14 +80,13 @@ export class RegisterComponent {
 
     this.loading = true;
     this.userService
-      .register(
-        new UserRequest(
-          this.form.value.email!,
-          this.form.value.password!,
-          this.form.value.type!,
-          this.form.value.imageId!
-        )
-      )
+      .register({
+        email: this.form.value.email!,
+        name: this.form.value.name!,
+        password: this.form.value.password!,
+        type: this.form.value.type!,
+        imageId: this.form.value.imageId!,
+      })
       .pipe(first())
       .subscribe({
         next: () => {
@@ -99,7 +99,7 @@ export class RegisterComponent {
         error: (error: HttpErrorResponse) => {
           this.alertService.error(error.error.message);
           this.loading = false;
-          this.serverError = error.error as FormErrors<UserRequest>;
+          this.serverError = error.error as FormErrors<PostUserDto>;
         },
       });
   }

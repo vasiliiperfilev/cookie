@@ -1,0 +1,13 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+
+.avatar {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+  background-color: #e91e63;
+  border: 2px solid #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

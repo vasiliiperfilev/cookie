@@ -1,4 +1,12 @@
-import { Component, Input, OnInit } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Input,
+  OnInit,
+  QueryList,
+  ViewChild,
+  ViewChildren,
+} from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Conversation, Message, User } from '@app/_models';
 import { UserService } from '@app/_services';
@@ -12,6 +20,8 @@ import { HistoryService } from '@app/_services/history.service';
 })
 export class ChatComponent implements OnInit {
   @Input({ required: true }) conversation!: Conversation;
+  @ViewChild('chat', { read: ElementRef }) chatEl!: ElementRef;
+  @ViewChildren('messages') messagesEl!: QueryList<any>;
   messages: Message[] = [];
   user: User;
   form = new FormGroup({
@@ -37,6 +47,11 @@ export class ChatComponent implements OnInit {
       });
   }
 
+  ngAfterViewInit() {
+    this.scrollToBottom();
+    this.messagesEl.changes.subscribe(this.scrollToBottom);
+  }
+
   sendMessage() {
     if (!this.form.value.message) {
       return;
@@ -44,4 +59,18 @@ export class ChatComponent implements OnInit {
     this.chatService.sendMessage(this.form.value.message, this.conversation.id);
     this.form.reset();
   }
+
+  getSender(message: Message) {
+    return this.conversation.users.find((user) => user.id === message.senderId)
+      ?.name;
+  }
+
+  scrollToBottom = () => {
+    try {
+      this.chatEl.nativeElement.scrollTop =
+        this.chatEl.nativeElement.scrollHeight;
+    } catch (err) {
+      console.log(err);
+    }
+  };
 }

@@ -1,4 +1,4 @@
-import { UserRequest } from './request';
+import { PostUserDto } from './request';
 import { Token } from './token';
 import { User } from './user';
 

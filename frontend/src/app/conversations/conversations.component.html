@@ -7,9 +7,7 @@
     (click)="selectConversation(conversation)"
   >
     <div matListItemAvatar>
-      <div class="avatar">
-        {{ getInitials(conversation.getName(user.id) || 'EM') }}
-      </div>
+      <avatar [fallback]="conversation.getName(user.id) || 'EM'" />
     </div>
     <div matListItemLine>{{ conversation.getName(user.id) }}</div>
   </mat-list-item>

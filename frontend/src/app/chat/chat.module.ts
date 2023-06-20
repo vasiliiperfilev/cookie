@@ -11,6 +11,7 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { AvatarComponent } from '@app/_components/avatar.component';
 
 @NgModule({
   declarations: [ChatComponent],
@@ -26,6 +27,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     MatListModule,
     MatButtonModule,
     MatToolbarModule,
+    AvatarComponent,
   ],
   exports: [ChatComponent],
 })

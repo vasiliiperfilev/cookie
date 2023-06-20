@@ -9,14 +9,14 @@ import {
 import { first } from 'rxjs/operators';
 
 import { AlertService, UserService } from '@app/_services';
-import { FormErrors, TokenRequest } from '@app/_models';
+import { FormErrors, PostTokenDto } from '@app/_models';
 import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({ templateUrl: 'login.component.html' })
 export class LoginComponent {
   loading = false;
   submitted = false;
-  serverError: FormErrors<TokenRequest> | null = null;
+  serverError: FormErrors<PostTokenDto> | null = null;
   form = this.formBuilder.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
@@ -60,7 +60,7 @@ export class LoginComponent {
         error: (error: HttpErrorResponse) => {
           this.alertService.error(error.error.message);
           this.loading = false;
-          this.serverError = error.error as FormErrors<TokenRequest>;
+          this.serverError = error.error as FormErrors<PostTokenDto>;
         },
       });
   }

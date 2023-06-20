@@ -14,7 +14,7 @@ export class Conversation {
   getName(userId: number) {
     if (this.users.length == 2) {
       const user = this.users.find((user) => user.id !== userId);
-      return user?.email ?? null;
+      return user?.name ?? null;
     }
     return null;
   }

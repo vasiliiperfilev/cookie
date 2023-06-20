@@ -5,7 +5,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { environment } from '@environments/environment';
-import { User, UserRequest, UserResponse } from '@app/_models';
+import { User, PostUserDto, UserResponse } from '@app/_models';
 import { Token } from '@app/_models/token';
 
 @Injectable({ providedIn: 'root' })
@@ -59,7 +59,7 @@ export class UserService {
     this.router.navigate(['/account/login']);
   }
 
-  register(user: UserRequest) {
+  register(user: PostUserDto) {
     return this.http.post(`${environment.apiUrl}/v1/users`, user);
   }
 

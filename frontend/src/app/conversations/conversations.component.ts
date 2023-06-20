@@ -22,11 +22,12 @@ export class ConversationsComponent implements OnInit {
 
   ngOnInit() {
     this.loading = true;
-    this.conversationService.getConversations().subscribe((conversations) => {
-      this.conversations = conversations;
-      this.loading = false;
-      console.log(conversations);
-    });
+    this.conversationService
+      .getConversations()
+      .subscribe({ error: (err) => console.log(err) });
+    this.conversationService.conversations.subscribe(
+      (conversations) => (this.conversations = conversations)
+    );
   }
 
   getInitials(name: string) {
@@ -36,11 +37,11 @@ export class ConversationsComponent implements OnInit {
 
   addConversation() {
     const c: ConversationDto = {
-      userIds: [1, 2],
+      userIds: [3, 4],
     };
     this.conversationService
       .postConversation(c)
-      .subscribe((conversation) => console.log(conversation));
+      .subscribe({ error: (err) => console.log(err) });
   }
 
   selectConversation(c: Conversation) {

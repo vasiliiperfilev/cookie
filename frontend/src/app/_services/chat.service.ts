@@ -14,7 +14,7 @@ export class ChatService {
 
   constructor(
     private historyService: HistoryService,
-    userService: UserService
+    private userService: UserService
   ) {
     this.wsConn = webSocket<WsMessageEvent>(
       `${environment.webSocketUrl}/v1/chat?token=${userService.tokenValue?.token}`
@@ -45,6 +45,7 @@ export class ChatService {
     this.wsConn.next(wsMsgEvt);
     this.historyService.pushToLocalHistory({
       ...wsMsgEvt.payload,
+      senderId: this.userService.userValue?.id,
       createdAt: new Date(),
     } as Message);
   }
