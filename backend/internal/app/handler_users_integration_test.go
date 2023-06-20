@@ -48,7 +48,7 @@ func TestIntegrationUserPost(t *testing.T) {
 			ImageId: userInput.ImageId,
 		}
 		got := mustRegisterUser(t, server, userInput)
-		assertUser(t, got, want)
+		data.AssertUser(t, got, want)
 	})
 	db.Close()
 }

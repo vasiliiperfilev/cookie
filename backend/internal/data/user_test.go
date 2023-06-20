@@ -98,7 +98,7 @@ func TestUserModelIntegration(t *testing.T) {
 		tester.AssertNoError(t, err)
 		gotUser, err := model.GetByEmail(insertedUser.Email)
 		tester.AssertNoError(t, err)
-		assertUser(t, gotUser, insertedUser)
+		data.AssertUser(t, gotUser, insertedUser)
 	})
 
 	t.Run("it inserts 2 users concurently", func(t *testing.T) {
@@ -185,12 +185,4 @@ func assertErrorKeys(t *testing.T, keys []string, errors map[string]string) {
 			t.Fatalf("Expected to have error in %v field", v)
 		}
 	}
-}
-
-func assertUser(t *testing.T, got data.User, want data.User) {
-	tester.AssertValue(t, got.Email, want.Email, "Expect same emails")
-	tester.AssertValue(t, got.Id, want.Id, "Expect same id")
-	tester.AssertValue(t, got.Type, want.Type, "Expect same type")
-	tester.AssertValue(t, got.Name, want.Name, "Expect same name")
-	tester.AssertValue(t, got.CreatedAt, want.CreatedAt, "Expect same createdAt")
 }

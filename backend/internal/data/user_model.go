@@ -5,7 +5,10 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"errors"
+	"testing"
 	"time"
+
+	"github.com/vasiliiperfilev/cookie/internal/tester"
 )
 
 type UserModel interface {
@@ -201,4 +204,12 @@ func (m PsqlUserModel) GetForToken(tokenScope, tokenPlaintext string) (User, err
 
 	// Return the matching user.
 	return user, nil
+}
+
+func AssertUser(t *testing.T, got User, want User) {
+	tester.AssertValue(t, got.Email, want.Email, "Expect same emails")
+	tester.AssertValue(t, got.Id, want.Id, "Expect same id")
+	tester.AssertValue(t, got.Type, want.Type, "Expect same type")
+	tester.AssertValue(t, got.Name, want.Name, "Expect same name")
+	tester.AssertValue(t, got.CreatedAt, want.CreatedAt, "Expect same createdAt")
 }

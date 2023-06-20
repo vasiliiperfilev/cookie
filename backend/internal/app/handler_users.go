@@ -22,7 +22,12 @@ func (a *Application) handlePostUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := data.User{Email: registerUserInput.Email, Type: registerUserInput.Type, ImageId: registerUserInput.ImageId}
+	user := data.User{
+		Email:   registerUserInput.Email,
+		Type:    registerUserInput.Type,
+		Name:    registerUserInput.Name,
+		ImageId: registerUserInput.ImageId,
+	}
 	err = user.Password.Set(registerUserInput.Password)
 	if err != nil {
 		a.serverErrorResponse(w, r, err)
