@@ -109,7 +109,7 @@ func TestUserSearch(t *testing.T) {
 		tester.AssertNoError(t, err)
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
-		// expect to have all 3 users in query
+		// expect
 		assertStatus(t, response.Code, http.StatusOK)
 		assertContentType(t, response, app.JsonContentType)
 		var got []data.User

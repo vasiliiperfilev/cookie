@@ -92,21 +92,25 @@ func TestIntegrationUserSearch(t *testing.T) {
 			"Password": "test123!A",
 		}
 		userToken := mustLoginUser(t, server, loginInput)
-		request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/users?q=%v", query), nil)
-		tester.AssertNoError(t, err)
-		request.Header.Set("Authorization", "Bearer "+userToken.Token.Plaintext)
-		response := httptest.NewRecorder()
-		server.ServeHTTP(response, request)
-		assertStatus(t, response.Code, http.StatusOK)
-		assertStatus(t, response.Code, http.StatusOK)
-		assertContentType(t, response, app.JsonContentType)
-		var got []data.User
-		err = json.NewDecoder(response.Body).Decode(&got)
-		tester.AssertNoError(t, err)
-		fmt.Print(got)
+		got := mustGetAllUsersBySearch(query, t, userToken, server)
 		assertUserSearch(t, got, want, query)
 	})
 	db.Close()
+}
+
+func mustGetAllUsersBySearch(query string, t *testing.T, userToken app.UserToken, server *app.Application) []data.User {
+	request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/users?q=%v", query), nil)
+	tester.AssertNoError(t, err)
+	request.Header.Set("Authorization", "Bearer "+userToken.Token.Plaintext)
+	response := httptest.NewRecorder()
+	server.ServeHTTP(response, request)
+	assertStatus(t, response.Code, http.StatusOK)
+	assertStatus(t, response.Code, http.StatusOK)
+	assertContentType(t, response, app.JsonContentType)
+	var got []data.User
+	err = json.NewDecoder(response.Body).Decode(&got)
+	tester.AssertNoError(t, err)
+	return got
 }
 
 func mustRegisterUser(t *testing.T, server http.Handler, input data.PostUserDto) data.User {
