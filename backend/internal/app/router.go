@@ -11,6 +11,7 @@ func (a *Application) routes() http.Handler {
 	routes := []route{
 		newRoute(http.MethodGet, "/v1/healthcheck", a.healthcheckHandler),
 		newRoute(http.MethodPost, "/v1/users", a.handlePostUser),
+		newRoute(http.MethodGet, "/v1/users", a.handleGetUsers),
 		newRoute(http.MethodPost, "/v1/tokens", a.handlePostToken),
 		newRoute(http.MethodPost, "/v1/conversations", a.handlePostConversation),
 		newRoute(http.MethodGet, "/v1/conversations", a.handleGetConversation),

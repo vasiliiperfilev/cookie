@@ -48,3 +48,30 @@ func (a *Application) handlePostUser(w http.ResponseWriter, r *http.Request) {
 
 	writeJsonResponse(w, http.StatusOK, user, nil)
 }
+
+func (a *Application) handleGetUsers(w http.ResponseWriter, r *http.Request) {
+	_, err := a.AuthenticateHttpRequest(w, r)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrUnathorized):
+			a.invalidAuthenticationTokenResponse(w, r)
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	search := r.URL.Query().Get("q")
+	users, err := a.models.User.GetAllBySearch(search)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	writeJsonResponse(w, http.StatusOK, users, nil)
+}

@@ -3,21 +3,23 @@ package app_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/vasiliiperfilev/cookie/internal/app"
 	"github.com/vasiliiperfilev/cookie/internal/data"
 	"github.com/vasiliiperfilev/cookie/internal/tester"
+	"golang.org/x/exp/slices"
 )
 
 // bad request if incorrect json
 func TestUserPost(t *testing.T) {
-	env := "testing"
-	cfg := app.Config{Port: 4000, Env: env}
+	cfg := app.Config{Port: 4000, Env: "development"}
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	models := data.Models{User: data.NewStubUserModel([]data.User{})}
 	server := app.New(cfg, logger, models)
@@ -84,6 +86,58 @@ func TestUserPost(t *testing.T) {
 		assertHeader(t, response.Header().Get("Allow"), http.MethodPost)
 		assertStatus(t, response.Code, http.StatusMethodNotAllowed)
 	})
+}
+
+func TestUserSearch(t *testing.T) {
+	cfg := app.Config{Port: 4000, Env: "development"}
+	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+
+	t.Run("it returns array of users with names similar to search query", func(t *testing.T) {
+		r := "test+name"
+		// generate 3 users with "test" in names
+		users := generateUsers(4)
+		// replace one user name with "name"
+		users[2].Name = "name 1"
+		// replace last user name with unmatching string
+		users[3].Name = "unmatching"
+		// setup a server
+		models := data.Models{User: data.NewStubUserModel(users)}
+		server := app.New(cfg, logger, models)
+		// create and send request
+		request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/users?q=%v", r), nil)
+		request.Header.Set("Authorization", "Bearer "+strings.Repeat("1", 26))
+		tester.AssertNoError(t, err)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
+		// expect to have all 3 users in query
+		assertStatus(t, response.Code, http.StatusOK)
+		assertContentType(t, response, app.JsonContentType)
+		var got []data.User
+		err = json.NewDecoder(response.Body).Decode(&got)
+		tester.AssertNoError(t, err)
+		// all users except unmatching
+		want := users[:len(users)-1]
+		assertUserSearch(t, got, want, r)
+	})
+}
+
+func assertUserSearch(t *testing.T, got []data.User, want []data.User, r string) {
+	if len(got) != len(want) {
+		t.Fatalf("Expected to have %v responses", len(want))
+	}
+	keywords := strings.Split(r, "+")
+	for _, usr := range got {
+		nameKw := strings.Split(usr.Name, " ")
+		fit := false
+		for _, w := range nameKw {
+			if slices.Contains(keywords, w) {
+				fit = true
+			}
+		}
+		if !fit {
+			t.Fatalf("Expected name %v to match regexp %v", usr.Name, r)
+		}
+	}
 }
 
 func assertRegisterResponse(t *testing.T, body *bytes.Buffer, want data.User) {

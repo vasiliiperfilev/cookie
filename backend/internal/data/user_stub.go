@@ -1,6 +1,12 @@
 package data
 
-import "strconv"
+import (
+	"regexp"
+	"strconv"
+	"strings"
+
+	"golang.org/x/exp/slices"
+)
 
 type StubUserModel struct {
 	users   []User
@@ -63,4 +69,20 @@ func (s *StubUserModel) GetForToken(tokenScope, tokenPlaintext string) (User, er
 		}
 	}
 	return User{}, ErrRecordNotFound
+}
+
+func (s *StubUserModel) GetAllBySearch(query string) ([]User, error) {
+	result := []User{}
+	queryNoSymbols := regexp.MustCompile(`[^a-zA-Z0-9 ]+`).ReplaceAllString(query, "")
+	keywords := strings.Split(queryNoSymbols, " ")
+	for _, user := range s.users {
+		nameNoSymbols := regexp.MustCompile(`[^a-zA-Z0-9 ]+`).ReplaceAllString(user.Name, "")
+		nameWords := strings.Split(nameNoSymbols, " ")
+		for _, keyword := range keywords {
+			if slices.Contains(nameWords, keyword) {
+				result = append(result, user)
+			}
+		}
+	}
+	return result, nil
 }

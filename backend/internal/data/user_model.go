@@ -15,6 +15,7 @@ type UserModel interface {
 	Insert(user *User) error
 	GetByEmail(email string) (User, error)
 	GetById(id int64) (User, error)
+	GetAllBySearch(query string) ([]User, error)
 	Update(user User) error
 	GetForToken(tokenScope, tokenPlaintext string) (User, error)
 }
@@ -204,6 +205,41 @@ func (m PsqlUserModel) GetForToken(tokenScope, tokenPlaintext string) (User, err
 
 	// Return the matching user.
 	return user, nil
+}
+
+func (m PsqlUserModel) GetAllBySearch(query string) ([]User, error) {
+	q := `
+        SELECT user_id, created_at, email, name, user_type_id
+        FROM users
+        WHERE (to_tsvector('simple', name) @@ plainto_tsquery('simple', $1) OR $1 = '') `
+
+	var users []User
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.db.QueryContext(ctx, q, query)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	for rows.Next() {
+		user := User{}
+		if err := rows.Scan(&user.Id, &user.CreatedAt, &user.Email, &user.Name, &user.Type); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
 
 func AssertUser(t *testing.T, got User, want User) {
