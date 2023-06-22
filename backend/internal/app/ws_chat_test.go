@@ -60,7 +60,7 @@ func TestChat(t *testing.T) {
 		assertContainsMessage(t, messageModel, 1, want)
 		// receive first message
 		within(t, 500*time.Millisecond, func() { assertMessage(t, ws2, want) })
-		// // send second message
+		// send second message
 		dto = PostMessageEvent{
 			Type: app.EventMessage,
 			Payload: data.PostMessageDto{
@@ -167,6 +167,48 @@ func TestChat(t *testing.T) {
 				within(t, 500*time.Millisecond, func() { assertMessage(t, ws1, want) })
 			}
 		}
+	})
+
+	t.Run("only user in conversation receive messages", func(t *testing.T) {
+		cfg := app.Config{Port: 4000, Env: "development"}
+		logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+		// create 3 users
+		userModel := data.NewStubUserModel(generateUsers(3))
+		// create only 1 conversation between user ids 1 and 2
+		conversationModel := data.NewStubConversationModel(generateConversation(2))
+		messageModel := data.NewStubMessageModel(generateConversation(2), []data.Message{})
+		models := data.Models{Message: messageModel, User: userModel, Conversation: conversationModel}
+		appServer := app.New(cfg, logger, models)
+		server := httptest.NewServer(appServer)
+		conns := []*websocket.Conn{}
+		for i := 1; i <= 3; i++ {
+			ws := mustDialWS(t, "ws"+strings.TrimPrefix(server.URL, "http")+"/v1/chat?token="+strings.Repeat(strconv.Itoa(i), 26))
+			defer ws.Close()
+			conns = append(conns, ws)
+		}
+		// send a message
+		dto := PostMessageEvent{
+			Type: app.EventMessage,
+			Payload: data.PostMessageDto{
+				ConversationId: 1,
+				Content:        "test1",
+				PrevMessageId:  0,
+			},
+		}
+		want := data.Message{
+			Id:             1,
+			SenderId:       1,
+			ConversationId: 1,
+			Content:        "test1",
+			PrevMessageId:  0,
+		}
+		js := createWsPayload(t, dto)
+		writeWSMessage(t, conns[0], js)
+		assertContainsMessage(t, messageModel, 1, want)
+		// user 2 receives message
+		within(t, 500*time.Millisecond, func() { assertMessage(t, conns[1], want) })
+		// user 3 doesn't receive the message
+		assertNoMessage(t, conns[2])
 	})
 }
 
@@ -352,7 +394,7 @@ func assertNoMessage(t *testing.T, ws *websocket.Conn) {
 
 	select {
 	case msg := <-done:
-		t.Errorf("Get message %s, expected nothing", string(msg))
+		t.Errorf("Got message %s, expected nothing", string(msg))
 	case <-time.After(500 * time.Millisecond):
 	}
 }

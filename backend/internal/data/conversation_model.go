@@ -73,7 +73,7 @@ func (m PsqlConversationModel) GetAllByUserId(userId int64) ([]Conversation, err
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, ErrRecordNotFound
+			return conversations, nil
 		default:
 			return nil, err
 		}

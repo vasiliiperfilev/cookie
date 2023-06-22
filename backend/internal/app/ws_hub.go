@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/vasiliiperfilev/cookie/internal/data"
+	"golang.org/x/exp/slices"
 )
 
 type Hub struct {
@@ -74,8 +75,22 @@ func (h *Hub) handleMessageEvent(event WsEvent) {
 		Type:    EventMessage,
 		Payload: payload,
 	}
+	var conversation data.Conversation
+	if c, ok := event.Sender.Conversations[dto.ConversationId]; !ok {
+		conv, err := h.app.models.Conversation.GetById(msg.ConversationId)
+		if err != nil {
+			h.errors <- h.createErrorMessage(event.Sender, PayloadErrorMessage)
+			return
+		}
+		event.Sender.Conversations[dto.ConversationId] = conv
+		conversation = conv
+	} else {
+		conversation = c
+	}
+
 	for client := range h.clients {
-		if client != event.Sender {
+		if client != event.Sender && slices.Contains(conversation.UserIds, client.User.Id) {
+			client.Conversations[dto.ConversationId] = conversation
 			client.messages <- msgEvt
 		}
 	}

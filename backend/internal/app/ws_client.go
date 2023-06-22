@@ -25,10 +25,11 @@ const (
 )
 
 type Client struct {
-	User     data.User
-	hub      *Hub
-	conn     *websocket.Conn
-	messages chan WsEvent
+	User          data.User
+	Conversations map[int64]data.Conversation
+	hub           *Hub
+	conn          *websocket.Conn
+	messages      chan WsEvent
 }
 
 func (c *Client) readPump() {
