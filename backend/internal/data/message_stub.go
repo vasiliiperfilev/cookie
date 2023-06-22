@@ -24,7 +24,7 @@ func NewStubMessageModel(conversations []Conversation, messages []Message) *Stub
 			IdCount  int64
 		}{
 			UserIds:  conversation.UserIds,
-			Messages: []Message{},
+			Messages: []Message{{Id: 0, SenderId: 0, ConversationId: conversation.Id, PrevMessageId: 0}},
 			IdCount:  int64(0),
 		}
 	}

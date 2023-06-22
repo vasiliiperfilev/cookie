@@ -78,12 +78,12 @@ func TestUserPost(t *testing.T) {
 		assertStatus(t, response.Code, http.StatusBadRequest)
 	})
 
-	t.Run("can't GET", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/v1/users", nil)
+	t.Run("can't PUT", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodPut, "/v1/users", nil)
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
-		assertHeader(t, response.Header().Get("Allow"), http.MethodPost)
+		assertHeader(t, response.Header().Get("Allow"), http.MethodPost, http.MethodGet)
 		assertStatus(t, response.Code, http.StatusMethodNotAllowed)
 	})
 }

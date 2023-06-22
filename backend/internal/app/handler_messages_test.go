@@ -35,7 +35,8 @@ func TestMessagesHandler(t *testing.T) {
 		assertStatus(t, response.Code, http.StatusOK)
 		var got []data.Message
 		json.NewDecoder(response.Body).Decode(&got)
-		if !reflect.DeepEqual(got[0], want) {
+		// 0 message is sentinel node
+		if !reflect.DeepEqual(got[1], want) {
 			t.Fatalf("Want message %v, but got %v", want, got[0])
 		}
 	})
