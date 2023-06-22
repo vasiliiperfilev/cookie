@@ -79,6 +79,10 @@ export class UserService {
       );
   }
 
+  getAllBySearch(query: string) {
+    return this.http.get<User[]>(`${environment.apiUrl}/v1/users?q=${query}`);
+  }
+
   delete(id: number) {
     return this.http.delete(`${environment.apiUrl}/v1/users/${id}`).pipe(
       map((x) => {

@@ -45,11 +45,9 @@ export class ConversationsService {
       .pipe(
         map((c) => {
           const conversations = this.conversationsValue;
-          this.conversationsSubject.next([
-            ...conversations,
-            new Conversation(c.id, c.users, c.lastMessage),
-          ]);
-          return conversations;
+          const newConv = new Conversation(c.id, c.users, c.lastMessage);
+          this.conversationsSubject.next([...conversations, newConv]);
+          return newConv;
         })
       );
   }

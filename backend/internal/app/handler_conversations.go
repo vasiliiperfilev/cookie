@@ -52,7 +52,23 @@ func (a *Application) handlePostConversation(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	writeJsonResponse(w, http.StatusCreated, cvs, nil)
+	msg, err := a.models.Message.GetById(cvs.LastMessageId)
+	if err != nil {
+		a.serverErrorResponse(w, r, err)
+		return
+	}
+	u := []data.User{}
+	for _, usrId := range cvs.UserIds {
+		usr, err := a.models.User.GetById(usrId)
+		if err != nil {
+			a.serverErrorResponse(w, r, err)
+			return
+		}
+		u = append(u, usr)
+	}
+	expandedConv := ExpandedConversation{Conversation: cvs, Users: u, LastMessage: msg}
+
+	writeJsonResponse(w, http.StatusCreated, expandedConv, nil)
 }
 
 func (a *Application) handleGetConversation(w http.ResponseWriter, r *http.Request) {

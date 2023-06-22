@@ -1,15 +1,34 @@
-<mat-toolbar color="secondary" class="p-0">
-  <button (click)="addConversation()">Add conversation</button>
+<mat-toolbar color="secondary" class="p-1">
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+    <input
+      type="text"
+      placeholder="Search user"
+      aria-label="Search user"
+      matInput
+      [formControl]="userSearchControl"
+      [matAutocomplete]="auto"
+    />
+    <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete">
+      <mat-option *ngIf="loading">Loading...</mat-option>
+      <mat-option
+        *ngFor="let user of searchedUsers"
+        [value]="user.name"
+        (click)="onUserSearchClick(user.id)"
+      >
+        {{ user.name }}
+      </mat-option>
+    </mat-autocomplete>
+  </mat-form-field>
 </mat-toolbar>
 <mat-list>
   <mat-list-item
     *ngFor="let conversation of conversations"
     (click)="selectConversation(conversation)"
+    class="border-bottom"
   >
     <div matListItemAvatar>
       <avatar [fallback]="conversation.getName(user.id) || 'EM'" />
     </div>
     <div matListItemLine>{{ conversation.getName(user.id) }}</div>
   </mat-list-item>
-  <mat-divider />
 </mat-list>

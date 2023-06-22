@@ -19,7 +19,21 @@ import { HistoryService } from '@app/_services/history.service';
   styleUrls: ['./chat.component.scss'],
 })
 export class ChatComponent implements OnInit {
-  @Input({ required: true }) conversation!: Conversation;
+  private _conversation!: Conversation; // private property _item
+
+  // use getter setter to define the property
+  get conversation(): Conversation {
+    return this._conversation;
+  }
+
+  @Input({ required: true })
+  set conversation(val: Conversation) {
+    this._conversation = val;
+    this.historyService.getMessagesByConversationId(val.id).subscribe({
+      error: (err) => console.log(err),
+    });
+  }
+
   @ViewChild('chat', { read: ElementRef }) chatEl!: ElementRef;
   @ViewChildren('messages') messagesEl!: QueryList<any>;
   messages: Message[] = [];
