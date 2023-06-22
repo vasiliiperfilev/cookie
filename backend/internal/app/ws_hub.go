@@ -75,17 +75,10 @@ func (h *Hub) handleMessageEvent(event WsEvent) {
 		Type:    EventMessage,
 		Payload: payload,
 	}
-	var conversation data.Conversation
-	if c, ok := event.Sender.Conversations[dto.ConversationId]; !ok {
-		conv, err := h.app.models.Conversation.GetById(msg.ConversationId)
-		if err != nil {
-			h.errors <- h.createErrorMessage(event.Sender, PayloadErrorMessage)
-			return
-		}
-		event.Sender.Conversations[dto.ConversationId] = conv
-		conversation = conv
-	} else {
-		conversation = c
+	conversation, err := h.getConversation(event, msg)
+	if err != nil {
+		h.errors <- h.createErrorMessage(event.Sender, PayloadErrorMessage)
+		return
 	}
 
 	for client := range h.clients {
@@ -93,6 +86,19 @@ func (h *Hub) handleMessageEvent(event WsEvent) {
 			client.Conversations[dto.ConversationId] = conversation
 			client.messages <- msgEvt
 		}
+	}
+}
+
+func (h *Hub) getConversation(event WsEvent, msg data.Message) (data.Conversation, error) {
+	if conversation, ok := event.Sender.Conversations[msg.ConversationId]; !ok {
+		c, err := h.app.models.Conversation.GetById(msg.ConversationId)
+		if err != nil {
+			return data.Conversation{}, err
+		}
+		event.Sender.Conversations[msg.ConversationId] = c
+		return c, nil
+	} else {
+		return conversation, nil
 	}
 }
 
