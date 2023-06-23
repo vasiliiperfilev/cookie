@@ -207,6 +207,8 @@ func TestChat(t *testing.T) {
 		assertContainsMessage(t, messageModel, 1, want)
 		// user 2 receives message
 		within(t, 500*time.Millisecond, func() { assertMessage(t, conns[1], want) })
+		// sender doesn't receive a message
+		assertNoMessage(t, conns[0])
 		// user 3 doesn't receive the message
 		assertNoMessage(t, conns[2])
 	})
