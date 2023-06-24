@@ -207,8 +207,8 @@ func TestChat(t *testing.T) {
 		assertContainsMessage(t, messageModel, 1, want)
 		// user 2 receives message
 		within(t, 500*time.Millisecond, func() { assertMessage(t, conns[1], want) })
-		// sender doesn't receive a message
-		assertNoMessage(t, conns[0])
+		// sender receive a message back as confirmation
+		within(t, 500*time.Millisecond, func() { assertMessage(t, conns[0], want) })
 		// user 3 doesn't receive the message
 		assertNoMessage(t, conns[2])
 	})
@@ -370,12 +370,11 @@ func assertContainsMessage(t *testing.T, m data.MessageModel, conversationId int
 func assertMessage(t *testing.T, ws *websocket.Conn, want data.Message) {
 	t.Helper()
 
-	_, msg, err := ws.ReadMessage()
-	tester.AssertNoError(t, err)
-	var got MessageEvent
-	json.NewDecoder(bytes.NewReader(msg)).Decode(&got)
-
 	passed := tester.RetryUntil(1000*time.Millisecond, func() bool {
+		_, msg, err := ws.ReadMessage()
+		tester.AssertNoError(t, err)
+		var got MessageEvent
+		json.NewDecoder(bytes.NewReader(msg)).Decode(&got)
 		return reflect.DeepEqual(got.Payload, want)
 	})
 
