@@ -25,22 +25,22 @@ func TestItemPost(t *testing.T) {
 
 	t.Run("it POST item with correct values", func(t *testing.T) {
 		itemId := int64(1)
+		supplierId := int64(2)
 		dto := data.PostItemDto{
-			SupplierId: 2,
-			Unit:       "l",
-			Size:       1,
-			Name:       "milk",
-			ImageUrl:   "test",
+			Unit:     "l",
+			Size:     1,
+			Name:     "milk",
+			ImageUrl: "test",
 		}
 		want := data.Item{
 			Id:         itemId,
-			SupplierId: dto.SupplierId,
+			SupplierId: supplierId,
 			Unit:       dto.Unit,
 			Size:       dto.Size,
 			Name:       dto.Name,
 			ImageUrl:   dto.ImageUrl,
 		}
-		request := createPostItemRequest(t, dto)
+		request := createPostItemRequest(t, dto, supplierId)
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
 
@@ -48,6 +48,23 @@ func TestItemPost(t *testing.T) {
 		assertContentType(t, response, app.JsonContentType)
 		assertItemResponse(t, response, want)
 		asserItemInModel(t, itemModel, itemId, want)
+	})
+
+	t.Run("can't POST unathorized", func(t *testing.T) {
+		dto := data.PostItemDto{
+			Unit:     "l",
+			Size:     1,
+			Name:     "milk",
+			ImageUrl: "test",
+		}
+		requestBody := new(bytes.Buffer)
+		json.NewEncoder(requestBody).Encode(dto)
+		request, err := http.NewRequest(http.MethodPost, "/v1/items", requestBody)
+		tester.AssertNoError(t, err)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
+
+		tester.AssertStatus(t, response.Code, http.StatusUnauthorized)
 	})
 
 	t.Run("can't POST item with empty body", func(t *testing.T) {
@@ -59,6 +76,10 @@ func TestItemPost(t *testing.T) {
 	})
 
 	t.Run("can't POST item if not supplier", func(t *testing.T) {
+
+	})
+
+	t.Run("can't POST item with empty name, empty unit, size < 0", func(t *testing.T) {
 
 	})
 }
@@ -79,11 +100,11 @@ func assertItemResponse(t *testing.T, response *httptest.ResponseRecorder, want 
 	}
 }
 
-func createPostItemRequest(t *testing.T, dto data.PostItemDto) *http.Request {
+func createPostItemRequest(t *testing.T, dto data.PostItemDto, supplierId int64) *http.Request {
 	requestBody := new(bytes.Buffer)
 	json.NewEncoder(requestBody).Encode(dto)
 	request, err := http.NewRequest(http.MethodPost, "/v1/items", requestBody)
 	tester.AssertNoError(t, err)
-	request.Header.Set("Authorization", "Bearer "+strings.Repeat(strconv.FormatInt(dto.SupplierId, 10), 26))
+	request.Header.Set("Authorization", "Bearer "+strings.Repeat(strconv.FormatInt(supplierId, 10), 26))
 	return request
 }
