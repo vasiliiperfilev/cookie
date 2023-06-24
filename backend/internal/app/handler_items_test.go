@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -24,7 +25,7 @@ func TestItemPost(t *testing.T) {
 
 	t.Run("it POST item with correct values", func(t *testing.T) {
 		itemId := int64(1)
-		itemInput := data.PostItemDto{
+		dto := data.PostItemDto{
 			SupplierId: 2,
 			Unit:       "l",
 			Size:       1,
@@ -33,32 +34,20 @@ func TestItemPost(t *testing.T) {
 		}
 		want := data.Item{
 			Id:         itemId,
-			SupplierId: itemInput.SupplierId,
-			Unit:       itemInput.Unit,
-			Size:       itemInput.Size,
-			Name:       itemInput.Name,
-			ImageUrl:   itemInput.ImageUrl,
+			SupplierId: dto.SupplierId,
+			Unit:       dto.Unit,
+			Size:       dto.Size,
+			Name:       dto.Name,
+			ImageUrl:   dto.ImageUrl,
 		}
-		requestBody := new(bytes.Buffer)
-		json.NewEncoder(requestBody).Encode(itemInput)
-		request, err := http.NewRequest(http.MethodPost, "/v1/items", requestBody)
-		request.Header.Set("Authorization", "Bearer "+strings.Repeat("2", 26))
-		tester.AssertNoError(t, err)
+		request := createPostItemRequest(t, dto)
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
 
 		tester.AssertStatus(t, response.Code, http.StatusCreated)
 		assertContentType(t, response, app.JsonContentType)
-		var got data.Item
-		json.NewDecoder(response.Body).Decode(&got)
-		if got != want {
-			t.Fatalf("Want %v, got %v", want, got)
-		}
-		got, err = itemModel.GetById(itemId)
-		tester.AssertNoError(t, err)
-		if got != want {
-			t.Fatalf("Want %v, got %v", want, got)
-		}
+		assertItemResponse(t, response, want)
+		asserItemInModel(t, itemModel, itemId, want)
 	})
 
 	t.Run("can't POST item with empty body", func(t *testing.T) {
@@ -72,4 +61,29 @@ func TestItemPost(t *testing.T) {
 	t.Run("can't POST item if not supplier", func(t *testing.T) {
 
 	})
+}
+
+func asserItemInModel(t *testing.T, itemModel *data.StubItemModel, itemId int64, want data.Item) {
+	got, err := itemModel.GetById(itemId)
+	tester.AssertNoError(t, err)
+	if got != want {
+		t.Fatalf("Want %v, got %v", want, got)
+	}
+}
+
+func assertItemResponse(t *testing.T, response *httptest.ResponseRecorder, want data.Item) {
+	var got data.Item
+	json.NewDecoder(response.Body).Decode(&got)
+	if got != want {
+		t.Fatalf("Want %v, got %v", want, got)
+	}
+}
+
+func createPostItemRequest(t *testing.T, dto data.PostItemDto) *http.Request {
+	requestBody := new(bytes.Buffer)
+	json.NewEncoder(requestBody).Encode(dto)
+	request, err := http.NewRequest(http.MethodPost, "/v1/items", requestBody)
+	tester.AssertNoError(t, err)
+	request.Header.Set("Authorization", "Bearer "+strings.Repeat(strconv.FormatInt(dto.SupplierId, 10), 26))
+	return request
 }
