@@ -27,13 +27,9 @@ export class ChatService {
   }
 
   sendMessage(content: string, conversationId: number) {
-    const prevMessageId = this.historyService.messagesValue[
-      this.historyService.messagesValue.length - 1
-    ]
-      ? this.historyService.messagesValue[
-          this.historyService.messagesValue.length - 1
-        ].id
-      : 0;
+    const msgs = this.historyService.messagesValue[conversationId];
+    const prevMessageId =
+      msgs && msgs.length > 0 ? msgs[msgs.length - 1].id : 0;
     const wsMsgEvt: WsMessageEvent = {
       type: WsEventType.MESSAGE,
       payload: {
@@ -43,11 +39,6 @@ export class ChatService {
       },
     };
     this.wsConn.next(wsMsgEvt);
-    this.historyService.pushToLocalHistory({
-      ...wsMsgEvt.payload,
-      senderId: this.userService.userValue?.id,
-      createdAt: new Date(),
-    } as Message);
   }
 
   private receiveEvent(evt: WsMessageEvent) {

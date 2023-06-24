@@ -82,7 +82,7 @@ func (h *Hub) handleMessageEvent(event WsEvent) {
 	}
 
 	for client := range h.clients {
-		if client != event.Sender && slices.Contains(conversation.UserIds, client.User.Id) {
+		if slices.Contains(conversation.UserIds, client.User.Id) {
 			client.Conversations[dto.ConversationId] = conversation
 			client.messages <- msgEvt
 		}

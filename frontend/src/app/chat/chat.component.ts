@@ -52,7 +52,7 @@ export class ChatComponent implements OnInit {
 
   ngOnInit(): void {
     this.historyService.messages.subscribe(
-      (messages) => (this.messages = messages)
+      (messages) => (this.messages = messages[this.conversation.id])
     );
     this.historyService
       .getMessagesByConversationId(this.conversation.id)

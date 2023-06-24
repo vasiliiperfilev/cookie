@@ -33,12 +33,12 @@ export class ConversationsComponent implements OnInit {
 
   ngOnInit() {
     this.loading = true;
-    this.conversationService
-      .getConversations()
-      .subscribe({ error: (err) => console.log(err) });
     this.conversationService.conversations.subscribe(
       (conversations) => (this.conversations = conversations)
     );
+    this.conversationService
+      .getConversations()
+      .subscribe({ error: (err) => console.log(err) });
     this.autocomplete();
   }
 
