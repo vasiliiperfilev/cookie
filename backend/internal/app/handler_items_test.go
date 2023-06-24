@@ -68,7 +68,15 @@ func TestItemPost(t *testing.T) {
 	})
 
 	t.Run("can't POST item with empty body", func(t *testing.T) {
+		requestBody := new(bytes.Buffer)
+		json.NewEncoder(requestBody).Encode("")
+		request, err := http.NewRequest(http.MethodPost, "/v1/items", requestBody)
+		request.Header.Set("Authorization", "Bearer "+strings.Repeat(strconv.FormatInt(2, 10), 26))
+		tester.AssertNoError(t, err)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
 
+		tester.AssertStatus(t, response.Code, http.StatusBadRequest)
 	})
 
 	t.Run("can't POST item for another supplier", func(t *testing.T) {
