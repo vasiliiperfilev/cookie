@@ -15,6 +15,7 @@ type Models struct {
 	Token        TokenModel
 	Conversation ConversationModel
 	Message      MessageModel
+	Item         ItemModel
 }
 
 func NewModels(db *sql.DB) Models {

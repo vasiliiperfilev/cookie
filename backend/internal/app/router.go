@@ -19,6 +19,7 @@ func (a *Application) routes() http.Handler {
 			a.wsChatHandler(a.hub, w, r)
 		})),
 		newRoute(http.MethodGet, "/v1/conversations/([0-9]+)/messages", a.handleGetMessages),
+		newRoute(http.MethodPost, "/v1/items", a.handlePostItem),
 	}
 	return NewRouter(routes)
 }
