@@ -62,7 +62,7 @@ func mustLoginUser(t *testing.T, server http.Handler, input map[string]string) a
 	tester.AssertNoError(t, err)
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
-	assertStatus(t, response.Code, http.StatusCreated)
+	tester.AssertStatus(t, response.Code, http.StatusCreated)
 	var userToken app.UserToken
 	json.NewDecoder(response.Body).Decode(&userToken)
 	return userToken

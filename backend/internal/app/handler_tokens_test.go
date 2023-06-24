@@ -12,6 +12,7 @@ import (
 
 	"github.com/vasiliiperfilev/cookie/internal/app"
 	"github.com/vasiliiperfilev/cookie/internal/data"
+	"github.com/vasiliiperfilev/cookie/internal/tester"
 	"github.com/vasiliiperfilev/cookie/internal/validator"
 )
 
@@ -46,7 +47,7 @@ func TestPostToken(t *testing.T) {
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
 
-		assertStatus(t, response.Code, http.StatusCreated)
+		tester.AssertStatus(t, response.Code, http.StatusCreated)
 		assertContentType(t, response, app.JsonContentType)
 		assertTokenResponse(t, response.Body, user.Id)
 	})

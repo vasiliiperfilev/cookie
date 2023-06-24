@@ -33,3 +33,7 @@ func RetryUntil(d time.Duration, f func() bool) bool {
 	}
 	return false
 }
+
+func AssertStatus(t *testing.T, got int, want int) {
+	AssertValue(t, got, want, "Wrong http response status")
+}

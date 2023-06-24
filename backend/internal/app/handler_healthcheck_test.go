@@ -25,7 +25,7 @@ func TestHealthcheckHandler(t *testing.T) {
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
 
-		assertStatus(t, response.Code, http.StatusOK)
+		tester.AssertStatus(t, response.Code, http.StatusOK)
 		assertContentType(t, response, app.JsonContentType)
 
 		got := getAppStateFromResponse(t, response.Body)
@@ -37,12 +37,8 @@ func TestHealthcheckHandler(t *testing.T) {
 
 		server.ServeHTTP(response, request)
 		assertHeader(t, response.Header().Get("Allow"), http.MethodGet)
-		assertStatus(t, response.Code, http.StatusMethodNotAllowed)
+		tester.AssertStatus(t, response.Code, http.StatusMethodNotAllowed)
 	})
-}
-
-func assertStatus(t *testing.T, got int, want int) {
-	tester.AssertValue(t, got, want, "Wrong http response status")
 }
 
 func assertHeader(t *testing.T, got string, want ...string) {

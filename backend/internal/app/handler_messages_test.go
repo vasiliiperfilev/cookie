@@ -32,7 +32,7 @@ func TestMessagesHandler(t *testing.T) {
 		tester.AssertNoError(t, err)
 		response := httptest.NewRecorder()
 		app.ServeHTTP(response, request)
-		assertStatus(t, response.Code, http.StatusOK)
+		tester.AssertStatus(t, response.Code, http.StatusOK)
 		var got []data.Message
 		json.NewDecoder(response.Body).Decode(&got)
 		// 0 message is sentinel node
@@ -47,6 +47,6 @@ func TestMessagesHandler(t *testing.T) {
 		tester.AssertNoError(t, err)
 		response := httptest.NewRecorder()
 		app.ServeHTTP(response, request)
-		assertStatus(t, response.Code, http.StatusNotFound)
+		tester.AssertStatus(t, response.Code, http.StatusNotFound)
 	})
 }

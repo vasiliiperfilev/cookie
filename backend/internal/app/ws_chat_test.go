@@ -325,7 +325,7 @@ func generateConversation(numUsers int) []data.Conversation {
 func generateUsers(numUsers int) []data.User {
 	u := []data.User{}
 	for i := 1; i <= numUsers; i++ {
-		u = append(u, data.User{Id: int64(i), Name: fmt.Sprintf("test user %v", i)})
+		u = append(u, data.User{Id: int64(i), Name: fmt.Sprintf("test user %v", i), Type: i%2 + 1})
 	}
 	return u
 }

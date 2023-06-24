@@ -107,8 +107,8 @@ func mustGetAllUsersBySearch(query string, t *testing.T, userToken app.UserToken
 	request.Header.Set("Authorization", "Bearer "+userToken.Token.Plaintext)
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
-	assertStatus(t, response.Code, http.StatusOK)
-	assertStatus(t, response.Code, http.StatusOK)
+	tester.AssertStatus(t, response.Code, http.StatusOK)
+	tester.AssertStatus(t, response.Code, http.StatusOK)
 	assertContentType(t, response, app.JsonContentType)
 	var got []data.User
 	err = json.NewDecoder(response.Body).Decode(&got)
@@ -125,7 +125,7 @@ func mustRegisterUser(t *testing.T, server http.Handler, input data.PostUserDto)
 	tester.AssertNoError(t, err)
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
-	assertStatus(t, response.Code, http.StatusOK)
+	tester.AssertStatus(t, response.Code, http.StatusOK)
 	var user data.User
 	json.NewDecoder(response.Body).Decode(&user)
 

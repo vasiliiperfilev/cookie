@@ -85,7 +85,7 @@ func postConversation(t *testing.T, server http.Handler, token string, dto data.
 	tester.AssertNoError(t, err)
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
-	assertStatus(t, response.Code, http.StatusCreated)
+	tester.AssertStatus(t, response.Code, http.StatusCreated)
 	var cvs data.Conversation
 	json.NewDecoder(response.Body).Decode(&cvs)
 	return cvs
@@ -99,7 +99,7 @@ func getConversations(t *testing.T, server *app.Application, token app.UserToken
 	tester.AssertNoError(t, err)
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
-	assertStatus(t, response.Code, http.StatusOK)
+	tester.AssertStatus(t, response.Code, http.StatusOK)
 	var conversations []data.Conversation
 	json.NewDecoder(response.Body).Decode(&conversations)
 

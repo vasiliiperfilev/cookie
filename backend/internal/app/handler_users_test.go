@@ -43,7 +43,7 @@ func TestUserPost(t *testing.T) {
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
 
-		assertStatus(t, response.Code, http.StatusOK)
+		tester.AssertStatus(t, response.Code, http.StatusOK)
 		assertContentType(t, response, app.JsonContentType)
 		assertRegisterResponse(t, response.Body, expectedResponse)
 	})
@@ -65,7 +65,7 @@ func TestUserPost(t *testing.T) {
 		request = createRegisterRequest(t, requestBody, userInput)
 		server.ServeHTTP(response, request)
 
-		assertStatus(t, response.Code, http.StatusUnprocessableEntity)
+		tester.AssertStatus(t, response.Code, http.StatusUnprocessableEntity)
 	})
 
 	t.Run("can't POST with empty body", func(t *testing.T) {
@@ -75,7 +75,7 @@ func TestUserPost(t *testing.T) {
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
-		assertStatus(t, response.Code, http.StatusBadRequest)
+		tester.AssertStatus(t, response.Code, http.StatusBadRequest)
 	})
 
 	t.Run("can't PUT", func(t *testing.T) {
@@ -84,7 +84,7 @@ func TestUserPost(t *testing.T) {
 
 		server.ServeHTTP(response, request)
 		assertHeader(t, response.Header().Get("Allow"), http.MethodPost, http.MethodGet)
-		assertStatus(t, response.Code, http.StatusMethodNotAllowed)
+		tester.AssertStatus(t, response.Code, http.StatusMethodNotAllowed)
 	})
 }
 
@@ -110,7 +110,7 @@ func TestUserSearch(t *testing.T) {
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
 		// expect
-		assertStatus(t, response.Code, http.StatusOK)
+		tester.AssertStatus(t, response.Code, http.StatusOK)
 		assertContentType(t, response, app.JsonContentType)
 		var got []data.User
 		err = json.NewDecoder(response.Body).Decode(&got)

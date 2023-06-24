@@ -42,7 +42,7 @@ func TestPostConversation(t *testing.T) {
 		// assertion
 		var gotConversation data.Conversation
 		json.NewDecoder(response.Body).Decode(&gotConversation)
-		assertStatus(t, response.Code, http.StatusCreated)
+		tester.AssertStatus(t, response.Code, http.StatusCreated)
 		assertContentType(t, response, app.JsonContentType)
 		data.AssertConversation(t, gotConversation, expectedResponse)
 	})
@@ -75,7 +75,7 @@ func TestPostConversation(t *testing.T) {
 			var gotConversations []data.Conversation
 			json.NewDecoder(response.Body).Decode(&gotConversations)
 
-			assertStatus(t, response.Code, http.StatusOK)
+			tester.AssertStatus(t, response.Code, http.StatusOK)
 			assertContentType(t, response, app.JsonContentType)
 			data.AssertConversation(t, gotConversations[0], expectedResponse[0])
 		}
@@ -94,7 +94,7 @@ func TestPostConversation(t *testing.T) {
 			postRequest.Header.Set("Authorization", "Bearer "+strings.Repeat("3", 26))
 			server.ServeHTTP(response, postRequest)
 		}
-		assertStatus(t, response.Code, http.StatusUnprocessableEntity)
+		tester.AssertStatus(t, response.Code, http.StatusUnprocessableEntity)
 	})
 
 	t.Run("can't PUT", func(t *testing.T) {
@@ -104,7 +104,7 @@ func TestPostConversation(t *testing.T) {
 		response := httptest.NewRecorder()
 
 		server.ServeHTTP(response, request)
-		assertStatus(t, response.Code, http.StatusMethodNotAllowed)
+		tester.AssertStatus(t, response.Code, http.StatusMethodNotAllowed)
 		assertHeader(t, response.Header().Get("Allow"), http.MethodPost, http.MethodGet)
 	})
 }
