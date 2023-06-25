@@ -14,8 +14,8 @@ export const canActivate: CanActivateFn = (
 ) => {
   const userService = inject(UserService);
   const router = inject(Router);
-  const user = userService.userValue;
-  if (user) {
+  const token = userService.tokenValue;
+  if (token) {
     // authorised so return true
     return true;
   }
