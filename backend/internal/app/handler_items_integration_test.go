@@ -68,9 +68,12 @@ func TestIntegrationPostItems(t *testing.T) {
 		// assert item
 		got := postItem(t, server, userToken.Token.Plaintext, dto)
 		tester.AssertValue(t, got, want, "Expected to have same item after POST")
-		// get item
+		// get array of supplier's items
 		items := getItemsBySupplierId(t, server, userToken, user.Id)
-		tester.AssertValue(t, items[0], want, "Expected to have same item after GET")
+		tester.AssertValue(t, items[0], want, "Expected to have same item after GET all")
+		// get one item
+		got = getItem(t, server, userToken, itemId)
+		tester.AssertValue(t, got, want, "Expected to have same item after GET")
 	})
 }
 
@@ -99,7 +102,22 @@ func getItemsBySupplierId(t *testing.T, server *app.Application, token app.UserT
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
 	tester.AssertStatus(t, response.Code, http.StatusOK)
-	var item []data.Item
+	var items []data.Item
+	json.NewDecoder(response.Body).Decode(&items)
+
+	return items
+}
+
+func getItem(t *testing.T, server *app.Application, token app.UserToken, itemId int64) data.Item {
+	t.Helper()
+
+	request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/items/%v", itemId), nil)
+	request.Header.Add("Authorization", fmt.Sprintf("Bearer %v", token.Token.Plaintext))
+	tester.AssertNoError(t, err)
+	response := httptest.NewRecorder()
+	server.ServeHTTP(response, request)
+	tester.AssertStatus(t, response.Code, http.StatusOK)
+	var item data.Item
 	json.NewDecoder(response.Body).Decode(&item)
 
 	return item
