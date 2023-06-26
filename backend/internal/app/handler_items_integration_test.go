@@ -32,7 +32,6 @@ func TestIntegrationPostItems(t *testing.T) {
 	tester.AssertNoError(t, err)
 
 	t.Run("it POST and GET an item", func(t *testing.T) {
-		itemId := int64(1)
 		server := app.PrepareIntegrationTestServer(db, 4000)
 		email := "testItems@nowhere.com"
 		password := "test123!A"
@@ -58,7 +57,6 @@ func TestIntegrationPostItems(t *testing.T) {
 			ImageUrl: "test",
 		}
 		want := data.Item{
-			Id:         itemId,
 			SupplierId: user.Id,
 			Unit:       dto.Unit,
 			Size:       dto.Size,
@@ -67,12 +65,13 @@ func TestIntegrationPostItems(t *testing.T) {
 		}
 		// assert item
 		got := postItem(t, server, userToken.Token.Plaintext, dto)
+		want.Id = got.Id
 		tester.AssertValue(t, got, want, "Expected to have same item after POST")
 		// get array of supplier's items
 		items := getItemsBySupplierId(t, server, userToken, user.Id)
 		tester.AssertValue(t, items[0], want, "Expected to have same item after GET all")
 		// get one item
-		got = getItem(t, server, userToken, itemId)
+		got = getItem(t, server, userToken, want.Id)
 		tester.AssertValue(t, got, want, "Expected to have same item after GET")
 	})
 }
