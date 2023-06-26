@@ -1,0 +1,3 @@
+ALTER TABLE units DROP CONSTRAINT IF EXISTS units_name_min_length;
+
+DROP TABLE IF EXISTS units;

@@ -14,6 +14,7 @@ import (
 	"github.com/vasiliiperfilev/cookie/internal/app"
 	"github.com/vasiliiperfilev/cookie/internal/data"
 	"github.com/vasiliiperfilev/cookie/internal/tester"
+	"golang.org/x/exp/slices"
 )
 
 func TestItemPost(t *testing.T) {
@@ -79,16 +80,46 @@ func TestItemPost(t *testing.T) {
 		tester.AssertStatus(t, response.Code, http.StatusBadRequest)
 	})
 
-	t.Run("can't POST item for another supplier", func(t *testing.T) {
-
-	})
-
 	t.Run("can't POST item if not supplier", func(t *testing.T) {
+		// not an actual supplier
+		supplierId := int64(1)
+		dto := data.PostItemDto{
+			Unit:     "l",
+			Size:     1,
+			Name:     "milk",
+			ImageUrl: "test",
+		}
+		request := createPostItemRequest(t, dto, supplierId)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
 
+		tester.AssertStatus(t, response.Code, http.StatusForbidden)
 	})
 
 	t.Run("can't POST item with empty name, empty unit, size < 0", func(t *testing.T) {
+		supplierId := int64(2)
+		dto := data.PostItemDto{
+			Unit:     "",
+			Size:     -1,
+			Name:     "",
+			ImageUrl: "",
+		}
+		want := []string{
+			"unit", "size", "name", "imageUrl",
+		}
+		request := createPostItemRequest(t, dto, supplierId)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
 
+		tester.AssertStatus(t, response.Code, http.StatusUnprocessableEntity)
+		assertContentType(t, response, app.JsonContentType)
+		var errors app.ErrorResponse
+		json.NewDecoder(response.Body).Decode(&errors)
+		for k := range errors.Errors {
+			if !slices.Contains(want, k) {
+				t.Fatalf("Want %v error key but not found", k)
+			}
+		}
 	})
 }
 

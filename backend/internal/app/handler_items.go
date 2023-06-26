@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/vasiliiperfilev/cookie/internal/data"
+	"github.com/vasiliiperfilev/cookie/internal/validator"
 )
 
 func (a *Application) handlePostItem(w http.ResponseWriter, r *http.Request) {
@@ -12,10 +13,19 @@ func (a *Application) handlePostItem(w http.ResponseWriter, r *http.Request) {
 		a.invalidCredentialsResponse(w, r)
 		return
 	}
+	if user.Type != data.SupplierUserType {
+		a.forbiddenResponse(w, r)
+		return
+	}
 	var dto data.PostItemDto
 	err = readJsonFromBody(w, r, &dto)
 	if err != nil {
 		a.badRequestResponse(w, r, err)
+		return
+	}
+	v := validator.New()
+	if data.ValidatePostItemInput(v, dto); !v.Valid() {
+		a.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 	item := data.Item{

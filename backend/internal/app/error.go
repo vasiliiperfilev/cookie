@@ -63,6 +63,11 @@ func (a *Application) invalidCredentialsResponse(w http.ResponseWriter, r *http.
 	a.errorResponse(w, r, http.StatusUnauthorized, ErrorResponse{Message: message})
 }
 
+func (a *Application) forbiddenResponse(w http.ResponseWriter, r *http.Request) {
+	message := "Not authorized"
+	a.errorResponse(w, r, http.StatusForbidden, ErrorResponse{Message: message})
+}
+
 func (a *Application) invalidAuthenticationTokenResponse(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("WWW-Authenticate", "Bearer")
 
