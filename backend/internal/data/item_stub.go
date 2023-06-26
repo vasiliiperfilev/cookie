@@ -26,3 +26,16 @@ func (s *StubItemModel) GetById(id int64) (Item, error) {
 	}
 	return Item{}, ErrRecordNotFound
 }
+
+func (s *StubItemModel) GetAllBySupplierId(id int64) ([]Item, error) {
+	result := []Item{}
+	for _, item := range s.items {
+		if item.SupplierId == id {
+			result = append(result, item)
+		}
+	}
+	if len(result) == 0 {
+		return result, ErrRecordNotFound
+	}
+	return result, nil
+}

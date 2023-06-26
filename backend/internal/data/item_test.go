@@ -25,19 +25,39 @@ func TestItemModelIntegration(t *testing.T) {
 	}
 	db, err := database.OpenDB(cfg)
 	tester.AssertNoError(t, err)
-	t.Run("it inserts Item and retrieves it", func(t *testing.T) {
-		model := data.NewPsqlItemModel(db)
-		want := data.Item{
-			SupplierId: 1,
+	supplierId := int64(5)
+	testData := []data.Item{
+		{
+			SupplierId: supplierId,
 			Unit:       "l",
 			Size:       1,
 			Name:       "Milk",
 			ImageUrl:   "test",
-		}
-		err := model.Insert(&want)
+		},
+		{
+			SupplierId: supplierId,
+			Unit:       "kg",
+			Size:       1,
+			Name:       "Apples",
+			ImageUrl:   "test",
+		},
+	}
+	t.Run("it inserts Item and retrieves it", func(t *testing.T) {
+		model := data.NewPsqlItemModel(db)
+		err := model.Insert(&testData[0])
 		tester.AssertNoError(t, err)
-		got, err := model.GetById(want.Id)
+		got, err := model.GetById(testData[0].Id)
 		tester.AssertNoError(t, err)
-		tester.AssertValue(t, got, want, "Expected same item")
+		tester.AssertValue(t, got, testData[0], "Expected same item")
+	})
+
+	t.Run("it retrieves items by user id", func(t *testing.T) {
+		model := data.NewPsqlItemModel(db)
+		want := testData
+		err := model.Insert(&want[1])
+		tester.AssertNoError(t, err)
+		got, err := model.GetAllBySupplierId(supplierId)
+		tester.AssertNoError(t, err)
+		tester.AssertValue(t, got, want, "Expected same items array")
 	})
 }

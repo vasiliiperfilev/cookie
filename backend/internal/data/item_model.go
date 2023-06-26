@@ -10,7 +10,8 @@ import (
 )
 
 var ItemUnitsToId = map[string]int64{
-	"l": 1,
+	"l":  1,
+	"kg": 2,
 }
 
 var IdToItemUnits = reverseMap(ItemUnitsToId)
@@ -18,6 +19,7 @@ var IdToItemUnits = reverseMap(ItemUnitsToId)
 type ItemModel interface {
 	Insert(item *Item) error
 	GetById(id int64) (Item, error)
+	GetAllBySupplierId(id int64) ([]Item, error)
 }
 
 type PsqlItemModel struct {
@@ -80,4 +82,50 @@ func (m PsqlItemModel) GetById(id int64) (Item, error) {
 	item.Unit = IdToItemUnits[unitId]
 
 	return item, nil
+}
+
+func (m PsqlItemModel) GetAllBySupplierId(id int64) ([]Item, error) {
+	query := `
+		SELECT item_id, supplier_id, unit_id, size, name, image_url
+		FROM items
+		WHERE supplier_id=$1
+	`
+
+	var items []Item = []Item{}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.db.QueryContext(ctx, query, id)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		item := Item{}
+		var unitId int64
+		if err := rows.Scan(
+			&item.Id,
+			&item.SupplierId,
+			&unitId,
+			&item.Size,
+			&item.Name,
+			&item.ImageUrl,
+		); err != nil {
+			return nil, err
+		}
+		item.Unit = IdToItemUnits[unitId]
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return items, nil
 }
