@@ -150,7 +150,12 @@ func TestItemGet(t *testing.T) {
 	})
 
 	t.Run("it 404 if item doesn't exist", func(t *testing.T) {
-
+		request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/items/%v", 234), nil)
+		request.Header.Set("Authorization", "Bearer "+strings.Repeat("1", 26))
+		tester.AssertNoError(t, err)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
+		tester.AssertStatus(t, response.Code, http.StatusNotFound)
 	})
 
 	t.Run("it 401 if incorrect token", func(t *testing.T) {
