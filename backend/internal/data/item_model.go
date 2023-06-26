@@ -30,11 +30,11 @@ func NewPsqlItemModel(db *sql.DB) *PsqlItemModel {
 
 func (m PsqlItemModel) Insert(item *Item) error {
 	query := `
-        INSERT INTO items(supplier_id, unit_id, name, image_url)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO items(supplier_id, unit_id, size, name, image_url)
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING item_id`
 
-	args := []any{item.SupplierId, ItemUnitsToId[item.Unit], item.Name, item.ImageUrl}
+	args := []any{item.SupplierId, ItemUnitsToId[item.Unit], item.Size, item.Name, item.ImageUrl}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -49,7 +49,7 @@ func (m PsqlItemModel) Insert(item *Item) error {
 
 func (m PsqlItemModel) GetById(id int64) (Item, error) {
 	query := `
-		SELECT item_id, supplier_id, unit_id, name, image_url
+		SELECT item_id, supplier_id, unit_id, size, name, image_url
 		FROM items
 		WHERE item_id=$1
 	`
@@ -63,7 +63,8 @@ func (m PsqlItemModel) GetById(id int64) (Item, error) {
 	err := m.db.QueryRowContext(ctx, query, id).Scan(
 		&item.Id,
 		&item.SupplierId,
-		unitId,
+		&unitId,
+		&item.Size,
 		&item.Name,
 		&item.ImageUrl,
 	)

@@ -3,19 +3,19 @@ package data
 import "github.com/vasiliiperfilev/cookie/internal/validator"
 
 type Item struct {
-	Id         int64  `json:"id"`
-	SupplierId int64  `json:"supplierId"`
-	Unit       string `json:"unit"`
-	Size       int    `json:"size"`
-	Name       string `json:"name"`
-	ImageUrl   string `json:"imageUrl"`
+	Id         int64   `json:"id"`
+	SupplierId int64   `json:"supplierId"`
+	Unit       string  `json:"unit"`
+	Size       float32 `json:"size"`
+	Name       string  `json:"name"`
+	ImageUrl   string  `json:"imageUrl"`
 }
 
 type PostItemDto struct {
-	Unit     string `json:"unit"`
-	Size     int    `json:"size"`
-	Name     string `json:"name"`
-	ImageUrl string `json:"imageUrl"`
+	Unit     string  `json:"unit"`
+	Size     float32 `json:"size"`
+	Name     string  `json:"name"`
+	ImageUrl string  `json:"imageUrl"`
 }
 
 func ValidatePostItemInput(v *validator.Validator, input PostItemDto) {
