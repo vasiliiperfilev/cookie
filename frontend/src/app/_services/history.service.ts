@@ -2,10 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '@environments/environment';
 import { BehaviorSubject, Observable, map } from 'rxjs';
-import { UserService } from './user.service';
 import { Message } from '@app/_models/message';
 import { ConversationsService } from './conversations.service';
-import { Conversation } from '@app/_models';
 
 @Injectable({
   providedIn: 'root',
@@ -13,10 +11,10 @@ import { Conversation } from '@app/_models';
 export class HistoryService {
   private messagesSubject: BehaviorSubject<Record<number, Message[]>>;
   public messages: Observable<Record<number, Message[]>>;
+
   constructor(
     private http: HttpClient,
-    private conversationService: ConversationsService,
-    private userService: UserService
+    private conversationService: ConversationsService
   ) {
     this.messagesSubject = new BehaviorSubject<Record<number, Message[]>>({});
     this.messages = this.messagesSubject.asObservable();
@@ -42,11 +40,21 @@ export class HistoryService {
   }
 
   pushToLocalHistory(msg: Message) {
-    const convExists = this.conversationService.conversationsValue.find(
-      (c) => c.id === msg.conversationId
-    );
+    const convExists =
+      this.conversationService.conversationsValue[msg.conversationId];
     if (!convExists) {
       this.conversationService.getConversations().subscribe({
+        error: (e) => console.log(e),
+        next: (cs) => {
+          this.conversationService.setUnreadMessage(msg);
+        },
+      });
+    } else {
+      this.conversationService.setUnreadMessage(msg);
+    }
+    const msgs = this.messagesValue[msg.conversationId];
+    if (!msgs) {
+      this.getMessagesByConversationId(msg.conversationId).subscribe({
         error: (e) => console.log(e),
         next: () => {
           this.addNextMessage(msg);

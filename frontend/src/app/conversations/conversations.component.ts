@@ -1,8 +1,10 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { User } from '@app/_models';
+import { Message, User } from '@app/_models';
 import { Conversation, ConversationDto } from '@app/_models/conversation';
 import { ConversationsService, UserService } from '@app/_services';
+import { ChatService } from '@app/_services/chat.service';
+import { HistoryService } from '@app/_services/history.service';
 import {
   debounceTime,
   distinctUntilChanged,
@@ -20,13 +22,15 @@ import {
 export class ConversationsComponent implements OnInit {
   @Output() selectConversationEvent = new EventEmitter<Conversation>();
   loading = false;
-  conversations: Conversation[] = [];
+  conversations: Record<number, Conversation> = {};
+  selectedConversation: Conversation | null = null;
   user: User;
   userSearchControl = new FormControl('');
   searchedUsers: User[] = [];
   constructor(
     private conversationService: ConversationsService,
-    private userService: UserService
+    private userService: UserService,
+    private chatService: ChatService
   ) {
     this.user = userService.userValue!;
   }
@@ -58,6 +62,7 @@ export class ConversationsComponent implements OnInit {
 
   selectConversation(c: Conversation) {
     this.selectConversationEvent.emit(c);
+    this.selectedConversation = c;
   }
 
   autocomplete() {
@@ -95,7 +100,7 @@ export class ConversationsComponent implements OnInit {
   }
 
   onUserSearchClick(id: number) {
-    const existingConv = this.conversations.find((c) =>
+    const existingConv = Object.values(this.conversations).find((c) =>
       c.users.some((u) => u.id === id)
     );
     if (existingConv) {

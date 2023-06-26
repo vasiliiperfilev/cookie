@@ -4,16 +4,23 @@ import { Conversation, ConversationDto } from '@app/_models/conversation';
 import { environment } from '@environments/environment';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { UserService } from './user.service';
+import { Message } from '@app/_models';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ConversationsService {
-  private conversationsSubject: BehaviorSubject<Conversation[]>;
-  public conversations: Observable<Conversation[]>;
+  private conversationsSubject: BehaviorSubject<Record<number, Conversation>>;
+  public conversations: Observable<Record<number, Conversation>>;
+
   constructor(private http: HttpClient, private userService: UserService) {
-    this.conversationsSubject = new BehaviorSubject<Conversation[]>([]);
+    this.conversationsSubject = new BehaviorSubject<
+      Record<number, Conversation>
+    >({});
     this.conversations = this.conversationsSubject.asObservable();
+    this.getConversations().subscribe({
+      error: (err) => console.log(err),
+    });
   }
 
   public get conversationsValue() {
@@ -27,8 +34,13 @@ export class ConversationsService {
       )
       .pipe(
         map((cs) => {
-          const conversations = cs.map(
-            (c) => new Conversation(c.id, c.users, c.lastMessage)
+          const conversations: Record<number, Conversation> = cs.reduce(
+            (acc, c) => {
+              const conv = new Conversation(c.id, c.users, c.lastMessage);
+              acc[c.id] = conv;
+              return acc;
+            },
+            {} as Record<number, Conversation>
           );
           this.conversationsSubject.next(conversations);
           return conversations;
@@ -44,24 +56,23 @@ export class ConversationsService {
       )
       .pipe(
         map((c) => {
-          const conversations = this.conversationsValue;
-          const newConv = new Conversation(c.id, c.users, c.lastMessage);
-          this.conversationsSubject.next([...conversations, newConv]);
-          return newConv;
+          const newC = new Conversation(c.id, c.users, c.lastMessage);
+          this.conversationsValue[newC.id] = newC;
+          this.conversationsSubject.next(this.conversationsValue);
+          return newC;
         })
       );
   }
 
-  /*
-  Used to update conversation in a list after message was sent/received
-  */
-  updateConversation(conversation: Conversation) {
-    const conversations = this.conversationsValue.map((curr) => {
-      if (curr.id == conversation.id) {
-        return conversation;
-      }
-      return curr;
-    });
-    this.conversationsSubject.next(conversations);
+  setUnreadMessage(msg: Message) {
+    if (this.userService.userValue?.id !== msg.senderId) {
+      this.conversationsValue[msg.conversationId].hasUnreadMsg = true;
+      this.conversationsSubject.next(this.conversationsValue);
+    }
+  }
+
+  setReadMessage(id: number) {
+    this.conversationsValue[id].hasUnreadMsg = false;
+    this.conversationsSubject.next(this.conversationsValue);
   }
 }

@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Conversation, Message, User } from '@app/_models';
-import { UserService } from '@app/_services';
+import { ConversationsService, UserService } from '@app/_services';
 import { ChatService } from '@app/_services/chat.service';
 import { HistoryService } from '@app/_services/history.service';
 
@@ -19,9 +19,7 @@ import { HistoryService } from '@app/_services/history.service';
   styleUrls: ['./chat.component.scss'],
 })
 export class ChatComponent implements OnInit {
-  private _conversation!: Conversation; // private property _item
-
-  // use getter setter to define the property
+  private _conversation!: Conversation;
   get conversation(): Conversation {
     return this._conversation;
   }
@@ -45,15 +43,17 @@ export class ChatComponent implements OnInit {
   constructor(
     private historyService: HistoryService,
     private chatService: ChatService,
-    private userService: UserService
+    userService: UserService,
+    private conversationService: ConversationsService
   ) {
     this.user = userService.userValue!;
   }
 
   ngOnInit(): void {
-    this.historyService.messages.subscribe(
-      (messages) => (this.messages = messages[this.conversation.id])
-    );
+    this.historyService.messages.subscribe((messages) => {
+      this.messages = messages[this.conversation.id];
+      this.conversationService.setReadMessage(this.conversation.id);
+    });
     this.historyService
       .getMessagesByConversationId(this.conversation.id)
       .subscribe({

@@ -22,13 +22,18 @@
 </mat-toolbar>
 <mat-list>
   <mat-list-item
-    *ngFor="let conversation of conversations"
-    (click)="selectConversation(conversation)"
+    *ngFor="let conversation of conversations | keyvalue"
+    (click)="selectConversation(conversation.value)"
     class="border-bottom"
   >
     <div matListItemAvatar>
-      <avatar [fallback]="conversation.getName(user.id) || 'EM'" />
+      <avatar [fallback]="conversation.value.getName(user.id) || 'EM'" />
     </div>
-    <div matListItemLine>{{ conversation.getName(user.id) }}</div>
+    <div matListItemLine class="d-flex align-items-center">
+      <span> {{ conversation.value.getName(user.id) }}</span>
+      <mat-icon *ngIf="conversation.value.hasUnreadMsg" class="mail-icon"
+        >mail_outline</mat-icon
+      >
+    </div>
   </mat-list-item>
 </mat-list>

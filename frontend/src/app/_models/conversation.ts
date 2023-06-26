@@ -5,6 +5,7 @@ export class Conversation {
   id: number;
   users: User[];
   lastMessage?: Message;
+  hasUnreadMsg = false;
   constructor(id: number, users: User[], lastMessage?: Message) {
     this.id = id;
     this.users = users;
