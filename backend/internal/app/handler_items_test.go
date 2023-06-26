@@ -159,7 +159,11 @@ func TestItemGet(t *testing.T) {
 	})
 
 	t.Run("it 401 if incorrect token", func(t *testing.T) {
-
+		request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/items/%v", 234), nil)
+		tester.AssertNoError(t, err)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
+		tester.AssertStatus(t, response.Code, http.StatusUnauthorized)
 	})
 
 	t.Run("it GET all items of supplier_id", func(t *testing.T) {

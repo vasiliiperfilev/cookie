@@ -46,6 +46,16 @@ func (a *Application) handlePostItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *Application) handleGetItem(w http.ResponseWriter, r *http.Request) {
+	_, err := a.AuthenticateHttpRequest(w, r)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrUnathorized):
+			a.invalidAuthenticationTokenResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
 	itemId, _ := strconv.ParseInt(getField(r, 0), 10, 64)
 	item, err := a.models.Item.GetById(itemId)
 	if err != nil {
