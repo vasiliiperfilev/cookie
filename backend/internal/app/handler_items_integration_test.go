@@ -31,7 +31,7 @@ func TestIntegrationPostItems(t *testing.T) {
 	db, err := database.OpenDB(cfg)
 	tester.AssertNoError(t, err)
 
-	t.Run("it POST item", func(t *testing.T) {
+	t.Run("it POST and GET an item", func(t *testing.T) {
 		itemId := int64(1)
 		server := app.PrepareIntegrationTestServer(db, 4000)
 		email := "testItems@nowhere.com"
@@ -67,7 +67,10 @@ func TestIntegrationPostItems(t *testing.T) {
 		}
 		// assert item
 		got := postItem(t, server, userToken.Token.Plaintext, dto)
-		tester.AssertValue(t, got, want, "Expected to have same item")
+		tester.AssertValue(t, got, want, "Expected to have same item after POST")
+		// get item
+		items := getItemsBySupplierId(t, server, userToken, user.Id)
+		tester.AssertValue(t, items[0], want, "Expected to have same item after GET")
 	})
 }
 
@@ -84,5 +87,20 @@ func postItem(t *testing.T, server http.Handler, token string, dto data.PostItem
 	tester.AssertStatus(t, response.Code, http.StatusCreated)
 	var item data.Item
 	json.NewDecoder(response.Body).Decode(&item)
+	return item
+}
+
+func getItemsBySupplierId(t *testing.T, server *app.Application, token app.UserToken, supplierId int64) []data.Item {
+	t.Helper()
+
+	request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/items?supplierId=%v", supplierId), nil)
+	request.Header.Add("Authorization", fmt.Sprintf("Bearer %v", token.Token.Plaintext))
+	tester.AssertNoError(t, err)
+	response := httptest.NewRecorder()
+	server.ServeHTTP(response, request)
+	tester.AssertStatus(t, response.Code, http.StatusOK)
+	var item []data.Item
+	json.NewDecoder(response.Body).Decode(&item)
+
 	return item
 }
