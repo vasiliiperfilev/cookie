@@ -1,7 +1,9 @@
 package app
 
 import (
+	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/vasiliiperfilev/cookie/internal/data"
 	"github.com/vasiliiperfilev/cookie/internal/validator"
@@ -41,4 +43,19 @@ func (a *Application) handlePostItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJsonResponse(w, http.StatusCreated, item, nil)
+}
+
+func (a *Application) handleGetItem(w http.ResponseWriter, r *http.Request) {
+	itemId, _ := strconv.ParseInt(getField(r, 0), 10, 64)
+	item, err := a.models.Item.GetById(itemId)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	writeJsonResponse(w, http.StatusOK, item, nil)
 }

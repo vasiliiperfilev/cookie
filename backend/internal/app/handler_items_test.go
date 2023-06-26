@@ -3,6 +3,7 @@ package app_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -120,6 +121,44 @@ func TestItemPost(t *testing.T) {
 				t.Fatalf("Want %v error key but not found", k)
 			}
 		}
+	})
+}
+
+func TestItemGet(t *testing.T) {
+	cfg := app.Config{Port: 4000, Env: "development"}
+	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	item1 := data.Item{Id: 1, SupplierId: 2, Name: "Milk", Unit: "l", Size: 1, ImageUrl: "test"}
+	itemModel := data.NewStubItemModel([]data.Item{
+		item1,
+	})
+	models := data.Models{User: data.NewStubUserModel(generateUsers(4)), Item: itemModel}
+	server := app.New(cfg, logger, models)
+
+	t.Run("it GET item if exists", func(t *testing.T) {
+		request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/items/%v", item1.Id), nil)
+		request.Header.Set("Authorization", "Bearer "+strings.Repeat("1", 26))
+		tester.AssertNoError(t, err)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
+		tester.AssertStatus(t, response.Code, http.StatusOK)
+		var got data.Item
+		json.NewDecoder(response.Body).Decode(&got)
+		want := item1
+		tester.AssertStatus(t, response.Code, http.StatusOK)
+		assertContentType(t, response, app.JsonContentType)
+		tester.AssertValue(t, got, want, "Expected same item")
+	})
+
+	t.Run("it 404 if item doesn't exist", func(t *testing.T) {
+
+	})
+
+	t.Run("it 401 if incorrect token", func(t *testing.T) {
+
+	})
+
+	t.Run("it GET all items of supplier_id", func(t *testing.T) {
+
 	})
 }
 
