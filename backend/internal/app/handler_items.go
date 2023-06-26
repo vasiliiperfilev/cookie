@@ -69,3 +69,32 @@ func (a *Application) handleGetItem(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJsonResponse(w, http.StatusOK, item, nil)
 }
+
+func (a *Application) handleGetAllItems(w http.ResponseWriter, r *http.Request) {
+	_, err := a.AuthenticateHttpRequest(w, r)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrUnathorized):
+			a.invalidAuthenticationTokenResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	supplierId, err := strconv.ParseInt(r.URL.Query().Get("supplierId"), 10, 64)
+	if err != nil {
+		a.badRequestResponse(w, r, err)
+		return
+	}
+	items, err := a.models.Item.GetAllBySupplierId(supplierId)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	writeJsonResponse(w, http.StatusOK, items, nil)
+}
