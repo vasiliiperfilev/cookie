@@ -225,11 +225,67 @@ func TestItemGetAll(t *testing.T) {
 	})
 }
 
+func TestItemPut(t *testing.T) {
+	cfg := app.Config{Port: 4000, Env: "development"}
+	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	item1 := data.Item{Id: 1, SupplierId: 2, Name: "Milk", Unit: "l", Size: 1, ImageUrl: "test"}
+	itemModel := data.NewStubItemModel([]data.Item{
+		item1,
+	})
+	models := data.Models{User: data.NewStubUserModel(generateUsers(4)), Item: itemModel}
+	server := app.New(cfg, logger, models)
+
+	t.Run("it PUT changed item if requested by owner", func(t *testing.T) {
+		dto := data.PostItemDto{
+			Unit:     "kg",
+			Size:     2,
+			Name:     "Potato",
+			ImageUrl: "New url",
+		}
+		want := data.Item{
+			Id:         item1.Id,
+			SupplierId: item1.SupplierId,
+			Unit:       dto.Unit,
+			Size:       dto.Size,
+			Name:       dto.Name,
+			ImageUrl:   dto.ImageUrl,
+		}
+		requestBody := new(bytes.Buffer)
+		json.NewEncoder(requestBody).Encode(dto)
+		request, err := http.NewRequest(http.MethodPut, fmt.Sprintf("/v1/items/%v", item1.Id), requestBody)
+		request.Header.Set("Authorization", "Bearer "+strings.Repeat(strconv.FormatInt(item1.SupplierId, 10), 26))
+		tester.AssertNoError(t, err)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
+
+		tester.AssertStatus(t, response.Code, http.StatusOK)
+		assertContentType(t, response, app.JsonContentType)
+		assertItemResponse(t, response, want)
+		asserItemInModel(t, itemModel, item1.Id, want)
+	})
+
+	t.Run("it return 403 if requested not by owner", func(t *testing.T) {
+
+	})
+
+	t.Run("it return 401 if not authed", func(t *testing.T) {
+
+	})
+
+	t.Run("it return 404 if item was not found", func(t *testing.T) {
+
+	})
+
+	t.Run("it return 422 if empty name, empty unit, size < 0", func(t *testing.T) {
+
+	})
+}
+
 func asserItemInModel(t *testing.T, itemModel *data.StubItemModel, itemId int64, want data.Item) {
 	got, err := itemModel.GetById(itemId)
 	tester.AssertNoError(t, err)
 	if got != want {
-		t.Fatalf("Want %v, got %v", want, got)
+		t.Fatalf("In Item Model: want %v, got %v", want, got)
 	}
 }
 
@@ -237,7 +293,7 @@ func assertItemResponse(t *testing.T, response *httptest.ResponseRecorder, want 
 	var got data.Item
 	json.NewDecoder(response.Body).Decode(&got)
 	if got != want {
-		t.Fatalf("Want %v, got %v", want, got)
+		t.Fatalf("In response: want %v, got %v", want, got)
 	}
 }
 

@@ -98,3 +98,43 @@ func (a *Application) handleGetAllItems(w http.ResponseWriter, r *http.Request) 
 	}
 	writeJsonResponse(w, http.StatusOK, items, nil)
 }
+
+func (a *Application) handlePutItem(w http.ResponseWriter, r *http.Request) {
+	_, err := a.AuthenticateHttpRequest(w, r)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrUnathorized):
+			a.invalidAuthenticationTokenResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	itemId, _ := strconv.ParseInt(getField(r, 0), 10, 64)
+	var dto data.PostItemDto
+	err = readJsonFromBody(w, r, &dto)
+	if err != nil {
+		a.badRequestResponse(w, r, err)
+		return
+	}
+	v := validator.New()
+	if data.ValidatePostItemInput(v, dto); !v.Valid() {
+		a.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+	item, err := a.models.Item.GetById(itemId)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	item.Unit = dto.Unit
+	item.Size = dto.Size
+	item.Name = dto.Name
+	item.ImageUrl = dto.ImageUrl
+	writeJsonResponse(w, http.StatusOK, item, nil)
+}
