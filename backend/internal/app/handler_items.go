@@ -136,5 +136,10 @@ func (a *Application) handlePutItem(w http.ResponseWriter, r *http.Request) {
 	item.Size = dto.Size
 	item.Name = dto.Name
 	item.ImageUrl = dto.ImageUrl
-	writeJsonResponse(w, http.StatusOK, item, nil)
+	updatedItem, err := a.models.Item.Update(item)
+	if err != nil {
+		a.serverErrorResponse(w, r, err)
+		return
+	}
+	writeJsonResponse(w, http.StatusOK, updatedItem, nil)
 }
