@@ -39,3 +39,17 @@ func (s *StubItemModel) GetAllBySupplierId(id int64) ([]Item, error) {
 	}
 	return result, nil
 }
+
+func (s *StubItemModel) Update(item Item) (Item, error) {
+	updated := false
+	for i, existingItem := range s.items {
+		if existingItem.Id == item.Id {
+			s.items[i] = item
+			updated = true
+		}
+	}
+	if !updated {
+		return Item{}, ErrRecordNotFound
+	}
+	return item, nil
+}

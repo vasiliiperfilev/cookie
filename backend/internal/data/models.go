@@ -6,8 +6,9 @@ import (
 )
 
 var (
-	ErrRecordNotFound = errors.New("record not found")
-	ErrEditConflict   = errors.New("edit conflict")
+	ErrRecordNotFound      = errors.New("record not found")
+	ErrEditConflict        = errors.New("edit conflict")
+	ErrUnprocessableEntity = errors.New("can't process value")
 )
 
 type Models struct {

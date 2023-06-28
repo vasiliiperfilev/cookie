@@ -17,9 +17,10 @@ var ItemUnitsToId = map[string]int64{
 var IdToItemUnits = reverseMap(ItemUnitsToId)
 
 type ItemModel interface {
-	Insert(item *Item) error
+	Insert(item *Item) error // TODO: use value instead of pointers
 	GetById(id int64) (Item, error)
 	GetAllBySupplierId(id int64) ([]Item, error)
+	Update(item Item) (Item, error)
 }
 
 type PsqlItemModel struct {
@@ -32,11 +33,16 @@ func NewPsqlItemModel(db *sql.DB) *PsqlItemModel {
 
 func (m PsqlItemModel) Insert(item *Item) error {
 	query := `
-        INSERT INTO items(supplier_id, unit_id, size, name, image_url)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING item_id`
+    INSERT INTO items(supplier_id, unit_id, size, name, image_url)
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING item_id
+	`
 
-	args := []any{item.SupplierId, ItemUnitsToId[item.Unit], item.Size, item.Name, item.ImageUrl}
+	unitId, ok := ItemUnitsToId[item.Unit]
+	if !ok {
+		return ErrUnprocessableEntity
+	}
+	args := []any{item.SupplierId, unitId, item.Size, item.Name, item.ImageUrl}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -128,4 +134,28 @@ func (m PsqlItemModel) GetAllBySupplierId(id int64) ([]Item, error) {
 	}
 
 	return items, nil
+}
+
+func (m PsqlItemModel) Update(item Item) (Item, error) {
+	query := `
+		UPDATE items
+		SET unit_id = $1, size = $2, name = $3, image_url = $4
+		WHERE item_id = $5
+	`
+	unitId, ok := ItemUnitsToId[item.Unit]
+	if !ok {
+		return Item{}, ErrUnprocessableEntity
+	}
+
+	args := []any{unitId, item.Size, item.Name, item.ImageUrl, item.Id}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := m.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return Item{}, err
+	}
+
+	return item, nil
 }

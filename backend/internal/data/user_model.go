@@ -12,7 +12,7 @@ import (
 )
 
 type UserModel interface {
-	Insert(user *User) error
+	Insert(user *User) error // TODO: use value, not pointer
 	GetByEmail(email string) (User, error)
 	GetById(id int64) (User, error)
 	GetAllBySearch(query string) ([]User, error)

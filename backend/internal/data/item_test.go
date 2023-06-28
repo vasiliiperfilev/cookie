@@ -60,4 +60,18 @@ func TestItemModelIntegration(t *testing.T) {
 		tester.AssertNoError(t, err)
 		tester.AssertValue(t, got, want, "Expected same items array")
 	})
+
+	t.Run("it updates item", func(t *testing.T) {
+		model := data.NewPsqlItemModel(db)
+		want := testData[1]
+		err := model.Insert(&want)
+		tester.AssertNoError(t, err)
+		want.Unit = "l"
+		want.Name = "Juice"
+		want.Size = 2
+		want.ImageUrl = "test 2"
+		got, err := model.Update(want)
+		tester.AssertNoError(t, err)
+		tester.AssertValue(t, got, want, "Expected same items array")
+	})
 }

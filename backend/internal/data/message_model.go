@@ -8,7 +8,7 @@ import (
 )
 
 type MessageModel interface {
-	Insert(msg *Message) error
+	Insert(msg *Message) error // TODO: use value, not pointer
 	GetAllByConversationId(id int64) ([]Message, error)
 	GetById(id int64) (Message, error)
 }
