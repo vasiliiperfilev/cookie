@@ -71,8 +71,25 @@ func TestIntegrationPostItems(t *testing.T) {
 		items := getItemsBySupplierId(t, server, userToken, user.Id)
 		tester.AssertValue(t, items[0], want, "Expected to have same item after GET all")
 		// get one item
-		got = getItem(t, server, userToken, want.Id)
+		got = getItem(t, server, userToken.Token.Plaintext, want.Id)
 		tester.AssertValue(t, got, want, "Expected to have same item after GET")
+		// put item
+		dto.Unit = "l"
+		dto.Name = "Juice"
+		dto.Size = 2
+		dto.ImageUrl = "test 2"
+		want.Unit = "l"
+		want.Name = "Juice"
+		want.Size = 2
+		want.ImageUrl = "test 2"
+		request := putItemRequest(t, userToken.Token.Plaintext, dto, want.Id)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
+		tester.AssertStatus(t, response.Code, http.StatusOK)
+		got = decodeResponse[data.Item](t, response)
+		tester.AssertValue(t, got, want, "Expected to have same item after PUT")
+		got = getItem(t, server, userToken.Token.Plaintext, want.Id)
+		tester.AssertValue(t, got, want, "Expected to GET same item after PUT")
 	})
 }
 
@@ -107,11 +124,11 @@ func getItemsBySupplierId(t *testing.T, server *app.Application, token app.UserT
 	return items
 }
 
-func getItem(t *testing.T, server *app.Application, token app.UserToken, itemId int64) data.Item {
+func getItem(t *testing.T, server *app.Application, token string, itemId int64) data.Item {
 	t.Helper()
 
 	request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/items/%v", itemId), nil)
-	request.Header.Add("Authorization", fmt.Sprintf("Bearer %v", token.Token.Plaintext))
+	request.Header.Add("Authorization", fmt.Sprintf("Bearer %v", token))
 	tester.AssertNoError(t, err)
 	response := httptest.NewRecorder()
 	server.ServeHTTP(response, request)
@@ -119,5 +136,22 @@ func getItem(t *testing.T, server *app.Application, token app.UserToken, itemId 
 	var item data.Item
 	json.NewDecoder(response.Body).Decode(&item)
 
+	return item
+}
+
+func putItemRequest(t *testing.T, token string, dto data.PostItemDto, itemId int64) *http.Request {
+	t.Helper()
+	requestBody := new(bytes.Buffer)
+	json.NewEncoder(requestBody).Encode(dto)
+
+	request, err := http.NewRequest(http.MethodPut, fmt.Sprintf("/v1/items/%v", itemId), requestBody)
+	request.Header.Add("Authorization", fmt.Sprintf("Bearer %v", token))
+	tester.AssertNoError(t, err)
+	return request
+}
+
+func decodeResponse[T any](t *testing.T, response *httptest.ResponseRecorder) T {
+	var item T
+	json.NewDecoder(response.Body).Decode(&item)
 	return item
 }
