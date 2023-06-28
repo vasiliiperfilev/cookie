@@ -100,7 +100,7 @@ func (a *Application) handleGetAllItems(w http.ResponseWriter, r *http.Request) 
 }
 
 func (a *Application) handlePutItem(w http.ResponseWriter, r *http.Request) {
-	_, err := a.AuthenticateHttpRequest(w, r)
+	user, err := a.AuthenticateHttpRequest(w, r)
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrUnathorized):
@@ -130,6 +130,10 @@ func (a *Application) handlePutItem(w http.ResponseWriter, r *http.Request) {
 		default:
 			a.serverErrorResponse(w, r, err)
 		}
+		return
+	}
+	if item.SupplierId != user.Id {
+		a.forbiddenResponse(w, r)
 		return
 	}
 	item.Unit = dto.Unit

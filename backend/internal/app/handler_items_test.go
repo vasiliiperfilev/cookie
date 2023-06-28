@@ -265,19 +265,86 @@ func TestItemPut(t *testing.T) {
 	})
 
 	t.Run("it return 403 if requested not by owner", func(t *testing.T) {
+		dto := data.PostItemDto{
+			Unit:     "kg",
+			Size:     2,
+			Name:     "Potato",
+			ImageUrl: "New url",
+		}
+		requestBody := new(bytes.Buffer)
+		json.NewEncoder(requestBody).Encode(dto)
+		request, err := http.NewRequest(http.MethodPut, fmt.Sprintf("/v1/items/%v", item1.Id), requestBody)
+		request.Header.Set("Authorization", "Bearer "+strings.Repeat("3", 26))
+		tester.AssertNoError(t, err)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
 
+		tester.AssertStatus(t, response.Code, http.StatusForbidden)
 	})
 
 	t.Run("it return 401 if not authed", func(t *testing.T) {
+		dto := data.PostItemDto{
+			Unit:     "kg",
+			Size:     2,
+			Name:     "Potato",
+			ImageUrl: "New url",
+		}
+		requestBody := new(bytes.Buffer)
+		json.NewEncoder(requestBody).Encode(dto)
+		request, err := http.NewRequest(http.MethodPut, fmt.Sprintf("/v1/items/%v", item1.Id), requestBody)
+		tester.AssertNoError(t, err)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
 
+		tester.AssertStatus(t, response.Code, http.StatusUnauthorized)
 	})
 
 	t.Run("it return 404 if item was not found", func(t *testing.T) {
+		dto := data.PostItemDto{
+			Unit:     "kg",
+			Size:     2,
+			Name:     "Potato",
+			ImageUrl: "New url",
+		}
+		requestBody := new(bytes.Buffer)
+		json.NewEncoder(requestBody).Encode(dto)
+		request, err := http.NewRequest(http.MethodPut, fmt.Sprintf("/v1/items/%v", 123), requestBody)
+		request.Header.Set("Authorization", "Bearer "+strings.Repeat("3", 26))
+		tester.AssertNoError(t, err)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
 
+		tester.AssertStatus(t, response.Code, http.StatusNotFound)
 	})
 
 	t.Run("it return 422 if empty name, empty unit, size < 0", func(t *testing.T) {
+		dto := data.PostItemDto{
+			Unit:     "",
+			Size:     2,
+			Name:     "",
+			ImageUrl: "",
+		}
+		requestBody := new(bytes.Buffer)
+		json.NewEncoder(requestBody).Encode(dto)
+		request, err := http.NewRequest(http.MethodPut, fmt.Sprintf("/v1/items/%v", item1.Id), requestBody)
+		request.Header.Set("Authorization", "Bearer "+strings.Repeat("3", 26))
+		tester.AssertNoError(t, err)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
 
+		want := []string{
+			"unit", "size", "name", "imageUrl",
+		}
+
+		tester.AssertStatus(t, response.Code, http.StatusUnprocessableEntity)
+		assertContentType(t, response, app.JsonContentType)
+		var errors app.ErrorResponse
+		json.NewDecoder(response.Body).Decode(&errors)
+		for k := range errors.Errors {
+			if !slices.Contains(want, k) {
+				t.Fatalf("Want %v error key but not found", k)
+			}
+		}
 	})
 }
 
