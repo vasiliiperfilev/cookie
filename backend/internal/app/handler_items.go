@@ -147,3 +147,7 @@ func (a *Application) handlePutItem(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJsonResponse(w, http.StatusOK, updatedItem, nil)
 }
+
+func (a *Application) handleDeleteItem(w http.ResponseWriter, r *http.Request) {
+	writeJsonResponse(w, http.StatusNoContent, nil, nil)
+}

@@ -3,6 +3,7 @@ package app_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -149,7 +150,7 @@ func TestItemGet(t *testing.T) {
 		tester.AssertValue(t, got, want, "Expected same item")
 	})
 
-	t.Run("it 404 if item doesn't exist", func(t *testing.T) {
+	t.Run("it 404 on GET if item doesn't exist", func(t *testing.T) {
 		request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/items/%v", 234), nil)
 		request.Header.Set("Authorization", "Bearer "+strings.Repeat("1", 26))
 		tester.AssertNoError(t, err)
@@ -158,7 +159,7 @@ func TestItemGet(t *testing.T) {
 		tester.AssertStatus(t, response.Code, http.StatusNotFound)
 	})
 
-	t.Run("it 401 if incorrect token", func(t *testing.T) {
+	t.Run("it 401 on GET if incorrect token", func(t *testing.T) {
 		request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/items/%v", 234), nil)
 		tester.AssertNoError(t, err)
 		response := httptest.NewRecorder()
@@ -216,7 +217,7 @@ func TestItemGetAll(t *testing.T) {
 		tester.AssertStatus(t, response.Code, http.StatusNotFound)
 	})
 
-	t.Run("it return 401 if not authed", func(t *testing.T) {
+	t.Run("it return 401 if GET not authed", func(t *testing.T) {
 		request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/items?supplierId=%v", item1.SupplierId), nil)
 		tester.AssertNoError(t, err)
 		response := httptest.NewRecorder()
@@ -264,7 +265,7 @@ func TestItemPut(t *testing.T) {
 		asserItemInModel(t, itemModel, item1.Id, want)
 	})
 
-	t.Run("it return 403 if requested not by owner", func(t *testing.T) {
+	t.Run("it return 403 if PUT requested not by owner", func(t *testing.T) {
 		dto := data.PostItemDto{
 			Unit:     "kg",
 			Size:     2,
@@ -282,7 +283,7 @@ func TestItemPut(t *testing.T) {
 		tester.AssertStatus(t, response.Code, http.StatusForbidden)
 	})
 
-	t.Run("it return 401 if not authed", func(t *testing.T) {
+	t.Run("it return 401 if PUT not authed", func(t *testing.T) {
 		dto := data.PostItemDto{
 			Unit:     "kg",
 			Size:     2,
@@ -299,7 +300,7 @@ func TestItemPut(t *testing.T) {
 		tester.AssertStatus(t, response.Code, http.StatusUnauthorized)
 	})
 
-	t.Run("it return 404 if item was not found", func(t *testing.T) {
+	t.Run("it return 404 if PUT item was not found", func(t *testing.T) {
 		dto := data.PostItemDto{
 			Unit:     "kg",
 			Size:     2,
@@ -317,7 +318,7 @@ func TestItemPut(t *testing.T) {
 		tester.AssertStatus(t, response.Code, http.StatusNotFound)
 	})
 
-	t.Run("it return 422 if empty name, empty unit, size < 0", func(t *testing.T) {
+	t.Run("it return 422 if PUT empty name, empty unit, size < 0", func(t *testing.T) {
 		dto := data.PostItemDto{
 			Unit:     "",
 			Size:     2,
@@ -348,11 +349,52 @@ func TestItemPut(t *testing.T) {
 	})
 }
 
+func TestItemDelete(t *testing.T) {
+	cfg := app.Config{Port: 4000, Env: "development"}
+	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	item1 := data.Item{Id: 1, SupplierId: 2, Name: "Milk", Unit: "l", Size: 1, ImageUrl: "test"}
+	item2 := data.Item{Id: 2, SupplierId: 2, Name: "Juice", Unit: "l", Size: 2, ImageUrl: "test"}
+	itemModel := data.NewStubItemModel([]data.Item{
+		item1, item2,
+	})
+	models := data.Models{User: data.NewStubUserModel(generateUsers(4)), Item: itemModel}
+	server := app.New(cfg, logger, models)
+
+	t.Run("it DELETE item if requested by owner", func(t *testing.T) {
+		request, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("/v1/items/%v", item1.Id), nil)
+		request.Header.Set("Authorization", "Bearer "+strings.Repeat("2", 26))
+		tester.AssertNoError(t, err)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
+		tester.AssertStatus(t, response.Code, http.StatusNoContent)
+		asserItemNotInModel(t, itemModel, item1.Id)
+	})
+
+	t.Run("it return 403 if DELETE requested not by owner", func(t *testing.T) {
+
+	})
+
+	t.Run("it return 401 if DELETE not authed", func(t *testing.T) {
+
+	})
+
+	t.Run("it return 404 if DELETE item was not found", func(t *testing.T) {
+
+	})
+}
+
 func asserItemInModel(t *testing.T, itemModel *data.StubItemModel, itemId int64, want data.Item) {
 	got, err := itemModel.GetById(itemId)
 	tester.AssertNoError(t, err)
 	if got != want {
 		t.Fatalf("In Item Model: want %v, got %v", want, got)
+	}
+}
+
+func asserItemNotInModel(t *testing.T, itemModel *data.StubItemModel, itemId int64) {
+	_, err := itemModel.GetById(itemId)
+	if !errors.Is(err, data.ErrRecordNotFound) {
+		t.Fatalf("Wanted to have not found error, got %v", err)
 	}
 }
 
