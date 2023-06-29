@@ -7,10 +7,12 @@ type StubItemModel struct {
 
 func NewStubItemModel(items []Item) *StubItemModel {
 	itemMap := map[int64]Item{}
+	idCount := 0
 	for _, item := range items {
 		itemMap[item.Id] = item
+		idCount++
 	}
-	return &StubItemModel{items: itemMap}
+	return &StubItemModel{items: itemMap, idCount: int64(idCount)}
 }
 
 func (s *StubItemModel) Insert(item *Item) error {
