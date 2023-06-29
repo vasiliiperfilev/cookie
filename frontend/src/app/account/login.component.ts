@@ -1,16 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  Validators,
-} from '@angular/forms';
+import { Component } from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { first } from 'rxjs/operators';
 
-import { AlertService, UserService } from '@app/_services';
-import { FormErrors, PostTokenDto } from '@app/_models';
 import { HttpErrorResponse } from '@angular/common/http';
+import { FormErrors, PostTokenDto } from '@app/_models';
+import { AlertService, UserService } from '@app/_services';
 
 @Component({ templateUrl: 'login.component.html' })
 export class LoginComponent {
@@ -53,7 +48,8 @@ export class LoginComponent {
       .subscribe({
         next: () => {
           // get return url from query parameters or default to home page
-          const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+          const returnUrl =
+            this.route.snapshot.queryParams['returnUrl'] || '/chat';
           this.router.navigateByUrl(returnUrl);
           this.loading = false;
         },

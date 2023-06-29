@@ -1,18 +1,14 @@
-﻿import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+﻿import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
-
-import { AppRoutingModule } from './app-routing.module';
-// import { JwtInterceptor, ErrorInterceptor } from "./_helpers";
-import { AppComponent } from './app.component';
-import { AlertComponent } from './_components';
-import { HomeComponent } from './home';
-import { ConversationsModule } from './conversations/conversations.module';
-import { TokenInterceptor } from './_helpers/token.interceptor';
-import { ChatModule } from './chat/chat.module';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatGridListModule } from '@angular/material/grid-list';
+import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { AlertComponent } from './_components';
+import { TokenInterceptor } from './_helpers/token.interceptor';
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
+import { ChatModule } from './chat/chat.module';
 
 @NgModule({
   imports: [
@@ -20,17 +16,13 @@ import { MatGridListModule } from '@angular/material/grid-list';
     ReactiveFormsModule,
     HttpClientModule,
     AppRoutingModule,
-    ConversationsModule,
     ChatModule,
     BrowserAnimationsModule,
     MatGridListModule,
   ],
-  declarations: [AppComponent, AlertComponent, HomeComponent],
+  declarations: [AppComponent, AlertComponent],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: TokenInterceptor, multi: true },
-    // { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
-    // // provider used to create fake backend
-    // fakeBackendProvider
   ],
   bootstrap: [AppComponent],
 })

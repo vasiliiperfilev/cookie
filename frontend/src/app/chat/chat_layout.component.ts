@@ -4,10 +4,10 @@ import { Conversation, User } from '@app/_models';
 import { UserService } from '@app/_services';
 
 @Component({
-  templateUrl: 'home.component.html',
-  styleUrls: ['./home.component.scss'],
+  templateUrl: 'chat_layout.component.html',
+  styleUrls: ['chat_layout.component.scss'],
 })
-export class HomeComponent {
+export class ChatLayoutComponent {
   user: User | null;
   currentConversation: Conversation | undefined;
 
