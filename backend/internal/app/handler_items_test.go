@@ -371,15 +371,32 @@ func TestItemDelete(t *testing.T) {
 	})
 
 	t.Run("it return 403 if DELETE requested not by owner", func(t *testing.T) {
-
+		request, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("/v1/items/%v", item2.Id), nil)
+		request.Header.Set("Authorization", "Bearer "+strings.Repeat("1", 26))
+		tester.AssertNoError(t, err)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
+		tester.AssertStatus(t, response.Code, http.StatusForbidden)
+		asserItemInModel(t, itemModel, item2.Id, item2)
 	})
 
 	t.Run("it return 401 if DELETE not authed", func(t *testing.T) {
-
+		request, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("/v1/items/%v", item2.Id), nil)
+		tester.AssertNoError(t, err)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
+		tester.AssertStatus(t, response.Code, http.StatusUnauthorized)
+		asserItemInModel(t, itemModel, item2.Id, item2)
 	})
 
 	t.Run("it return 404 if DELETE item was not found", func(t *testing.T) {
-
+		request, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("/v1/items/%v", 123), nil)
+		request.Header.Set("Authorization", "Bearer "+strings.Repeat("2", 26))
+		tester.AssertNoError(t, err)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
+		tester.AssertStatus(t, response.Code, http.StatusNotFound)
+		asserItemInModel(t, itemModel, item2.Id, item2)
 	})
 }
 
