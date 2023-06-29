@@ -5,7 +5,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { environment } from '@environments/environment';
-import { User, PostUserDto, UserResponse } from '@app/_models';
+import { User, PostUserDto } from '@app/_models';
 import { Token } from '@app/_models/token';
 
 @Injectable({ providedIn: 'root' })
@@ -35,7 +35,7 @@ export class UserService {
 
   login(email: string, password: string) {
     return this.http
-      .post<UserResponse>(`${environment.apiUrl}/v1/tokens`, {
+      .post<{ user: User; token: Token }>(`${environment.apiUrl}/v1/tokens`, {
         email,
         password,
       })
