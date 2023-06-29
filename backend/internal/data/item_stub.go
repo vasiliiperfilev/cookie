@@ -55,3 +55,11 @@ func (s *StubItemModel) Update(item Item) (Item, error) {
 	}
 	return item, nil
 }
+
+func (s *StubItemModel) Delete(id int64) error {
+	if _, ok := s.items[id]; ok {
+		delete(s.items, id)
+		return nil
+	}
+	return ErrRecordNotFound
+}

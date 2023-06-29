@@ -21,6 +21,7 @@ type ItemModel interface {
 	GetById(id int64) (Item, error)
 	GetAllBySupplierId(id int64) ([]Item, error)
 	Update(item Item) (Item, error)
+	Delete(id int64) error
 }
 
 type PsqlItemModel struct {
@@ -56,6 +57,9 @@ func (m PsqlItemModel) Insert(item *Item) error {
 }
 
 func (m PsqlItemModel) GetById(id int64) (Item, error) {
+	if id < 1 {
+		return Item{}, ErrRecordNotFound
+	}
 	query := `
 		SELECT item_id, supplier_id, unit_id, size, name, image_url
 		FROM items
@@ -91,6 +95,9 @@ func (m PsqlItemModel) GetById(id int64) (Item, error) {
 }
 
 func (m PsqlItemModel) GetAllBySupplierId(id int64) ([]Item, error) {
+	if id < 1 {
+		return nil, ErrRecordNotFound
+	}
 	query := `
 		SELECT item_id, supplier_id, unit_id, size, name, image_url
 		FROM items
@@ -137,6 +144,9 @@ func (m PsqlItemModel) GetAllBySupplierId(id int64) ([]Item, error) {
 }
 
 func (m PsqlItemModel) Update(item Item) (Item, error) {
+	if item.Id < 1 {
+		return Item{}, ErrRecordNotFound
+	}
 	query := `
 		UPDATE items
 		SET unit_id = $1, size = $2, name = $3, image_url = $4
@@ -158,4 +168,30 @@ func (m PsqlItemModel) Update(item Item) (Item, error) {
 	}
 
 	return item, nil
+}
+
+func (m PsqlItemModel) Delete(id int64) error {
+	if id < 1 {
+		return ErrRecordNotFound
+	}
+
+	query := `
+			DELETE FROM items
+			WHERE item_id = $1`
+
+	result, err := m.db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
+	}
+
+	return nil
 }

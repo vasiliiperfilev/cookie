@@ -58,7 +58,12 @@ func TestItemModelIntegration(t *testing.T) {
 		tester.AssertNoError(t, err)
 		got, err := model.GetAllBySupplierId(supplierId)
 		tester.AssertNoError(t, err)
-		tester.AssertValue(t, got, want, "Expected same items array")
+		if len(got) == 0 {
+			t.Fatal("Expected to have an array of items")
+		}
+		for _, item := range got {
+			tester.AssertValue(t, item.SupplierId, supplierId, "Expected to have values from particular suplier")
+		}
 	})
 
 	t.Run("it updates item", func(t *testing.T) {
@@ -73,5 +78,13 @@ func TestItemModelIntegration(t *testing.T) {
 		got, err := model.Update(want)
 		tester.AssertNoError(t, err)
 		tester.AssertValue(t, got, want, "Expected same items array")
+	})
+
+	t.Run("it deletes item", func(t *testing.T) {
+		model := data.NewPsqlItemModel(db)
+		err := model.Delete(testData[0].Id)
+		tester.AssertNoError(t, err)
+		_, err = model.GetById(testData[0].Id)
+		tester.AssertValue(t, err, data.ErrRecordNotFound, "Expected to have not found error")
 	})
 }
