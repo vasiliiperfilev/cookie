@@ -14,7 +14,6 @@ import { CrudDialogAction, ItemDialogData } from '../catalog.component';
   styleUrls: ['./item-dialog.component.scss'],
 })
 export class CreateItemDialogComponent {
-  serverError: FormErrors<PostItemDto> | null = null;
   constructor(
     private alertService: AlertService,
     private itemService: ItemsService,
@@ -46,17 +45,19 @@ export class CreateItemDialogComponent {
   }
 
   getErrorMessage(fieldName: keyof PostItemDto) {
-    if (this.form.controls[fieldName].hasError('required')) {
-      return 'You must enter a value';
-    } else if (this.serverError?.errors) {
-      return this.serverError.errors[fieldName];
+    const errors = this.f[fieldName].errors;
+    if (errors) {
+      if (errors['required']) {
+        return 'You must enter a value';
+      } else if (errors['serverError']) {
+        return errors['serverError'];
+      }
     }
     return '';
   }
 
   onSubmit() {
     this.alertService.clear();
-    this.serverError = null;
     // stop here if form is invalid
     if (this.form.invalid) {
       return;
@@ -93,7 +94,6 @@ export class CreateItemDialogComponent {
         error: (error: HttpErrorResponse) => {
           this.alertService.error(error.error.message);
           console.log(error);
-          this.serverError = error.error as FormErrors<PostItemDto>;
         },
       });
   }
@@ -115,7 +115,7 @@ export class CreateItemDialogComponent {
         error: (error: HttpErrorResponse) => {
           this.alertService.error(error.error.message);
           console.log(error);
-          this.serverError = error.error as FormErrors<PostItemDto>;
+          this.setServerErrors(error.error as FormErrors<PostItemDto>);
         },
       });
   }
@@ -137,12 +137,23 @@ export class CreateItemDialogComponent {
         error: (error: HttpErrorResponse) => {
           this.alertService.error(error.error.message);
           console.log(error);
-          this.serverError = error.error as FormErrors<PostItemDto>;
+          this.setServerErrors(error.error as FormErrors<PostItemDto>);
         },
       });
   }
 
   onCancel(): void {
     this.dialogRef.close();
+  }
+
+  private setServerErrors(e: FormErrors<PostItemDto>) {
+    for (const field in e.errors) {
+      const formControl = this.form.get(field);
+      if (formControl) {
+        formControl.setErrors({
+          serverError: e.errors[field as keyof PostItemDto],
+        });
+      }
+    }
   }
 }

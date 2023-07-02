@@ -5,7 +5,7 @@
       <mat-form-field>
         <mat-label>Item name</mat-label>
         <input matInput placeholder="Milk" [formControl]="f.name" required />
-        <mat-error *ngIf="f.name.invalid">{{
+        <mat-error *ngIf="f.name.errors">{{
           getErrorMessage('name')
         }}</mat-error>
       </mat-form-field>
@@ -18,7 +18,7 @@
           [formControl]="f.size"
           required
         />
-        <mat-error *ngIf="f.size.invalid">{{
+        <mat-error *ngIf="f.size.errors">{{
           getErrorMessage('size')
         }}</mat-error>
       </mat-form-field>
@@ -28,6 +28,9 @@
           <mat-option value="kg" selected>kg</mat-option>
           <mat-option value="l">l</mat-option>
         </mat-select>
+        <mat-error *ngIf="f.unit.errors">{{
+          getErrorMessage('unit')
+        }}</mat-error>
       </mat-form-field>
     </div>
     <div mat-dialog-actions>

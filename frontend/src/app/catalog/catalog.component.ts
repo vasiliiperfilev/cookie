@@ -15,6 +15,10 @@ export interface ItemDialogData {
   item?: Item;
 }
 
+// add no items to display
+// add layout
+// add navbar with logout button
+
 @Component({
   selector: 'app-catalog',
   templateUrl: './catalog.component.html',
@@ -43,7 +47,7 @@ export class CatalogComponent implements OnInit {
       data: itemDialogData,
     });
     dialogRef.afterClosed().subscribe((result: ItemDialogData) => {
-      if (result.item) {
+      if (result && result.item) {
         if (result.action == CrudDialogAction.CREATE) {
           this.addRowData(result.item);
         } else if (result.action == CrudDialogAction.UPDATE) {
