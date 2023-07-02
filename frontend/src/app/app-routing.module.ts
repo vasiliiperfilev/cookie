@@ -1,7 +1,8 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-import { canActivate } from './_helpers';
+import { canActivate, canActivateSupplier } from './_helpers';
+import { CatalogComponent } from './catalog/catalog.component';
 import { ChatLayoutComponent } from './chat';
 
 const accountModule = () =>
@@ -9,6 +10,11 @@ const accountModule = () =>
 
 const routes: Routes = [
   { path: 'chat', component: ChatLayoutComponent, canActivate: [canActivate] },
+  {
+    path: 'catalog',
+    component: CatalogComponent,
+    canActivate: [canActivateSupplier],
+  },
   { path: '', loadChildren: accountModule },
 
   // otherwise redirect to login
