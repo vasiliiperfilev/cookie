@@ -54,7 +54,7 @@ func NewRouter(routes []route) http.Handler {
 			}
 		}
 		if len(allow) > 0 && r.Method == http.MethodOptions {
-			w.Header().Set("Allow", strings.Join(allow, ", "))
+			w.Header().Set("Access-Control-Allow-Methods", strings.Join(allow, ", "))
 			writeJsonResponse(w, http.StatusOK, nil, nil)
 			return
 		}
