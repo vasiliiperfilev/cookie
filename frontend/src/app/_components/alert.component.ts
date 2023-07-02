@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
-import { Router, NavigationStart } from '@angular/router';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { NavigationStart, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { Alert, AlertType } from '@app/_models';
@@ -78,7 +78,15 @@ export class AlertComponent implements OnInit, OnDestroy {
   cssClass(alert: Alert) {
     if (!alert) return;
 
-    const classes = ['alert', 'alert-dismissible', 'mt-4', 'container'];
+    const classes = [
+      'alert',
+      'alert-dismissible',
+      'start-50',
+      'mt-1',
+      'translate-middle-x',
+      'container',
+      'position-absolute',
+    ];
 
     const alertTypeClass = {
       [AlertType.Success]: 'alert-success',
