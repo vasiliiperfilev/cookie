@@ -13,8 +13,8 @@ import { MatListModule } from '@angular/material/list';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { AvatarComponent } from '@app/_components/avatar.component';
 import { ChatComponent } from './chat.component';
-import { ChatLayoutComponent } from './chat_layout.component';
-import { ConversationsComponent } from './conversations.component';
+import { ChatLayoutComponent } from './chat_layout/chat_layout.component';
+import { ConversationsComponent } from './conversations/conversations.component';
 
 @NgModule({
   declarations: [ChatComponent, ChatLayoutComponent, ConversationsComponent],
