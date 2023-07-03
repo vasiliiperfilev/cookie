@@ -9,6 +9,6 @@ VALUES
     ('order:accept'),
     ('order:decline'),
     ('order:fulfill'),
-    ('order:confirm_fulfillemnt'),
+    ('order:confirm_fulfillment'),
     ('order:supplier_changes'),
     ('order:client_changes');
