@@ -1,14 +1,22 @@
-﻿import { Component } from "@angular/core";
+﻿import { Component } from '@angular/core';
 
-import { UserService } from "./_services";
-import { User } from "./_models";
+import { User, UserType } from './_models';
+import { UserService } from './_services';
 
-@Component({ selector: "app-root", templateUrl: "app.component.html" })
+@Component({
+  selector: 'app-root',
+  templateUrl: 'app.component.html',
+  styleUrls: ['app.component.scss'],
+})
 export class AppComponent {
   user?: User | null;
 
   constructor(private userService: UserService) {
     this.userService.user.subscribe((x) => (this.user = x));
+  }
+
+  public get UserType() {
+    return UserType;
   }
 
   logout() {

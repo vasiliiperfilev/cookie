@@ -15,10 +15,6 @@ export interface ItemDialogData {
   item?: Item;
 }
 
-// add no items to display
-// add layout
-// add navbar with logout button
-
 @Component({
   selector: 'app-catalog',
   templateUrl: './catalog.component.html',

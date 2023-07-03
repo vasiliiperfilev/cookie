@@ -42,5 +42,7 @@ export const canActivateSupplier: CanActivateFn = (
     }
   }
 
+  router.navigate(['/chat']);
+
   return false;
 };

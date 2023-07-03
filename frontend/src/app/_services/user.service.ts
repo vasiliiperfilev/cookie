@@ -1,12 +1,12 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { environment } from '@environments/environment';
-import { User, PostUserDto } from '@app/_models';
+import { PostUserDto, User } from '@app/_models';
 import { Token } from '@app/_models/token';
+import { environment } from '@environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -54,9 +54,10 @@ export class UserService {
   logout() {
     // remove user from local storage and set current user to null
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     this.tokenSubject.next(null);
     this.userSubject.next(null);
-    this.router.navigate(['/account/login']);
+    this.router.navigate(['/login']);
   }
 
   register(user: PostUserDto) {

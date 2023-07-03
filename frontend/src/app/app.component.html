@@ -1,4 +1,45 @@
-<div class="vh-100" [ngClass]="{ 'bg-light': user }">
-  <alert></alert>
-  <router-outlet></router-outlet>
-</div>
+<mat-drawer-container>
+  <mat-drawer mode="side" opened class="sidebar" *ngIf="user">
+    <mat-list class="p-0">
+      <div mat-header class="logo-container">
+        <img src="assets/cookie-logo.png" class="logo" />
+      </div>
+      <a
+        mat-flat-button
+        [routerLink]="['/chat']"
+        class="w-100 justify-content-start"
+      >
+        <mat-list-item>
+          <mat-icon matListItemIcon>message</mat-icon>
+          <div matListItemTitle>Chat</div>
+        </mat-list-item>
+      </a>
+      <a
+        *ngIf="user?.type === UserType.SUPPLIER"
+        mat-flat-button
+        [routerLink]="['/catalog']"
+        class="w-100 justify-content-start"
+      >
+        <mat-list-item>
+          <mat-icon matListItemIcon>list_alt</mat-icon>
+          <div matListItemTitle>Catalog</div>
+        </mat-list-item>
+      </a>
+      <a
+        mat-flat-button
+        [routerLink]="['/login']"
+        class="w-100 justify-content-start"
+        (click)="logout()"
+      >
+        <mat-list-item>
+          <mat-icon matListItemIcon>exit_to_app</mat-icon>
+          <div matListItemTitle>Logout</div>
+        </mat-list-item>
+      </a>
+    </mat-list>
+  </mat-drawer>
+  <mat-drawer-content class="vh-100">
+    <alert></alert>
+    <router-outlet></router-outlet>
+  </mat-drawer-content>
+</mat-drawer-container>
