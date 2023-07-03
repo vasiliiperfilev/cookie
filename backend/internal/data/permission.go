@@ -4,19 +4,28 @@ import (
 	"testing"
 )
 
-type Permission int
+type Permissions []int
 
 const (
-	PermissionCreateOrder          Permission = 1
-	PermissionAcceptOrder          Permission = 2
-	PermissionDeclineOrder         Permission = 3
-	PermissionFulfillOrder         Permission = 4
-	PermissionConfirmFulfillOrder  Permission = 5
-	PermissionSupplierChangesOrder Permission = 6
-	PermissionClientChangesOrder   Permission = 7
+	PermissionCreateOrder          = 1
+	PermissionAcceptOrder          = 2
+	PermissionDeclineOrder         = 3
+	PermissionFulfillOrder         = 4
+	PermissionConfirmFulfillOrder  = 5
+	PermissionSupplierChangesOrder = 6
+	PermissionClientChangesOrder   = 7
 )
 
-func AssertUserPermissions(t *testing.T, got []Permission, want []Permission) {
+func (p Permissions) Include(code int) bool {
+	for i := range p {
+		if code == p[i] {
+			return true
+		}
+	}
+	return false
+}
+
+func AssertUserPermissions(t *testing.T, got Permissions, want Permissions) {
 	if !EqualArrays(got, want) {
 		t.Fatalf("Expected equal arrays: want %v, got %v", want, got)
 	}

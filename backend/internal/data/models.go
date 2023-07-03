@@ -17,6 +17,7 @@ type Models struct {
 	Conversation ConversationModel
 	Message      MessageModel
 	Item         ItemModel
+	Permission   PermissionModel
 }
 
 func NewModels(db *sql.DB) Models {
@@ -26,5 +27,6 @@ func NewModels(db *sql.DB) Models {
 		Conversation: NewPsqlConversationModel(db),
 		Message:      NewPsqlMessageModel(db),
 		Item:         NewPsqlItemModel(db),
+		Permission:   NewPsqlPermissionModel(db),
 	}
 }
