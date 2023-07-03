@@ -39,7 +39,7 @@ func TestIntegrationPostItems(t *testing.T) {
 			Email:    email,
 			Password: password,
 			Name:     "test",
-			Type:     data.SupplierUserType,
+			Type:     data.UserTypeSupplier,
 			ImageId:  "imageid",
 		}
 		// register a supplier

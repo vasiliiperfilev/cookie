@@ -14,7 +14,7 @@ var ItemUnitsToId = map[string]int64{
 	"kg": 2,
 }
 
-var IdToItemUnits = reverseMap(ItemUnitsToId)
+var IdToItemUnits = ReverseMap(ItemUnitsToId)
 
 type ItemModel interface {
 	Insert(item *Item) error // TODO: use value instead of pointers

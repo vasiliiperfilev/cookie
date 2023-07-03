@@ -15,7 +15,7 @@ func (a *Application) handlePostItem(w http.ResponseWriter, r *http.Request) {
 		a.invalidCredentialsResponse(w, r)
 		return
 	}
-	if user.Type != data.SupplierUserType {
+	if user.Type != data.UserTypeSupplier {
 		a.forbiddenResponse(w, r)
 		return
 	}
