@@ -9,4 +9,4 @@ ALTER TABLE user_types ADD CONSTRAINT user_types_type_name_min_len_check CHECK (
 INSERT INTO user_types (user_type_id, type_name)
 VALUES 
     (1, 'supplier'),
-    (2, 'business');
+    (2, 'client');

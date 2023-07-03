@@ -12,7 +12,7 @@ import (
 var (
 	ErrDuplicateEmail = errors.New("duplicate email")
 	SupplierUserType  = 1
-	BusinessUserType  = 2
+	ClientUserType    = 2
 )
 
 // add type enum
@@ -117,7 +117,7 @@ func verifyNewPassword(s string) bool {
 }
 
 func verifyUserType(i int) bool {
-	userTypes := map[string]int{"supplier": SupplierUserType, "business": BusinessUserType}
+	userTypes := map[string]int{"supplier": SupplierUserType, "client": ClientUserType}
 	for _, value := range userTypes {
 		if value == i {
 			return true
