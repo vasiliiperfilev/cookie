@@ -30,6 +30,8 @@ func NewStubMessageModel(conversations []Conversation, messages []Message) *Stub
 	}
 	for _, message := range messages {
 		if entry, ok := msgStorage[message.ConversationId]; ok {
+			entry.IdCount++
+			message.Id = entry.IdCount
 			entry.Messages = append(entry.Messages, message)
 			msgStorage[message.ConversationId] = entry
 		}

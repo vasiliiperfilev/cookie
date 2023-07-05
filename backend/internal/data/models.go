@@ -18,6 +18,7 @@ type Models struct {
 	Message      MessageModel
 	Item         ItemModel
 	Permission   PermissionModel
+	Order        OrderModel
 }
 
 func NewModels(db *sql.DB) Models {
