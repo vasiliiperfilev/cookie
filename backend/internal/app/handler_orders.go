@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/vasiliiperfilev/cookie/internal/data"
@@ -27,7 +28,14 @@ func (a *Application) handlePostOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	order, err := a.repositories.Order.Insert(dto)
 	if err != nil {
-		a.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, errors.New("incorrect item ids")):
+			v.AddError("itemIds", "At least one of order items doesn't exist")
+			a.failedValidationResponse(w, r, v.Errors)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
 	}
 	writeJsonResponse(w, http.StatusCreated, order, nil)
 }

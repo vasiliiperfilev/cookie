@@ -34,8 +34,9 @@ func TestOrderPost(t *testing.T) {
 			SupplierId: 4,
 		},
 	})
-	orderModel := data.NewStubOrderModel([]data.Order{})
+	conversationModel := data.NewStubConversationModel(generateConversation(4))
 	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0}})
+	orderModel := data.NewStubOrderModel([]data.Order{}, itemModel, conversationModel, messageModel)
 	models := data.Models{
 		Conversation: data.NewStubConversationModel(generateConversation(4)),
 		User:         data.NewStubUserModel(generateUsers(4)),
@@ -69,11 +70,36 @@ func TestOrderPost(t *testing.T) {
 		got := parseOrderResponse(t, response)
 		want.Id = got.Id
 		assertOrder(t, got, want)
-		asserOrderInModel(t, orderModel, got.Id, want)
+		assertOrderInModel(t, orderModel, got.Id, want)
 	})
 
 	t.Run("it 422 if POST order with non existing items", func(t *testing.T) {
+		clientId := int64(1)
+		dto := data.PostOrderDto{
+			ConversationId: 1,
+			ItemIds:        []int64{4, 5},
+		}
+		request := createPostOrderRequest(t, dto, clientId)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
 
+		messages, err := messageModel.GetAllByConversationId(1)
+		tester.AssertNoError(t, err)
+		wantMsgCount := len(messages)
+		orders, err := orderModel.GetAllByUserId(1)
+		tester.AssertNoError(t, err)
+		wantOrderCount := len(orders)
+
+		orders, err = orderModel.GetAllByUserId(1)
+		tester.AssertNoError(t, err)
+		gotOrderCount := len(orders)
+		tester.AssertValue(t, gotOrderCount, wantOrderCount, "Expected to not have new orders")
+		messages, err = messageModel.GetAllByConversationId(1)
+		tester.AssertNoError(t, err)
+		gotMsgCount := len(messages)
+		tester.AssertValue(t, gotMsgCount, wantMsgCount, "Expected to not have new messages")
+		tester.AssertStatus(t, response.Code, http.StatusUnprocessableEntity)
+		assertContentType(t, response, app.JsonContentType)
 	})
 
 	t.Run("it 422 if POST order with items of different suppliers", func(t *testing.T) {
@@ -264,7 +290,7 @@ func assertOrder(t *testing.T, got, want data.Order) {
 	}
 }
 
-func asserOrderInModel(t *testing.T, orderModel *data.StubOrderModel, orderId int64, want data.Order) {
+func assertOrderInModel(t *testing.T, orderModel *data.StubOrderModel, orderId int64, want data.Order) {
 	got, err := orderModel.GetById(orderId)
 	tester.AssertNoError(t, err)
 	if !reflect.DeepEqual(got, want) {
