@@ -15,18 +15,20 @@ type Config struct {
 }
 
 type Application struct {
-	config Config
-	logger *log.Logger
-	models data.Models
-	hub    *Hub
+	config       Config
+	logger       *log.Logger
+	models       data.Models
+	repositories data.Repositories
+	hub          *Hub
 	http.Handler
 }
 
-func New(config Config, logger *log.Logger, models data.Models) *Application {
+func New(config Config, logger *log.Logger, models data.Models, repositories data.Repositories) *Application {
 	a := new(Application)
 	a.config = config
 	a.logger = logger
 	a.models = models
+	a.repositories = repositories
 	// start websocket hub
 	a.hub = newHub(a)
 	go a.hub.run()

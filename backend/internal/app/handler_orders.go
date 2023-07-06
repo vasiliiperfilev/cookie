@@ -19,30 +19,15 @@ func (a *Application) handlePostOrder(w http.ResponseWriter, r *http.Request) {
 		a.badRequestResponse(w, r, err)
 		return
 	}
+	dto.ClientId = user.Id
 	v := validator.New()
 	if data.ValidatePostOrderInput(v, dto); !v.Valid() {
 		a.failedValidationResponse(w, r, v.Errors)
 		return
 	}
-	message := data.Message{
-		ConversationId: dto.ConversationId,
-		Content:        "Order created",
-		SenderId:       user.Id,
-	}
-	err = a.models.Message.Insert(&message)
+	order, err := a.repositories.Order.Insert(dto)
 	if err != nil {
 		a.serverErrorResponse(w, r, err)
-		return
-	}
-	order := data.Order{
-		ItemIds:   dto.ItemIds,
-		StateId:   data.OrderStateCreated,
-		MessageId: message.Id,
-	}
-	order, err = a.models.Order.Insert(order)
-	if err != nil {
-		a.serverErrorResponse(w, r, err)
-		return
 	}
 	writeJsonResponse(w, http.StatusCreated, order, nil)
 }

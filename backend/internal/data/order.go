@@ -16,6 +16,7 @@ type Order struct {
 }
 
 type PostOrderDto struct {
+	ClientId       int64
 	ItemIds        []int64 `json:"itemIds"`
 	ConversationId int64
 }

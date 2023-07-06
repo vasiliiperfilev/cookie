@@ -25,7 +25,7 @@ func TestMessagesHandler(t *testing.T) {
 	})
 	userModel := data.NewStubUserModel(generateUsers(4))
 	models := data.Models{Message: messageModel, User: userModel, Conversation: conversationModel}
-	app := app.New(cfg, logger, models)
+	app := app.New(cfg, logger, models, data.Repositories{})
 	t.Run("it GET messages by conversation id", func(t *testing.T) {
 		request, err := http.NewRequest(http.MethodGet, "/v1/conversations/1/messages", nil)
 		request.Header.Set("Authorization", "Bearer "+strings.Repeat("1", 26))

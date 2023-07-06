@@ -13,7 +13,8 @@ func PrepareIntegrationTestServer(db *sql.DB, port int) *Application {
 
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	models := data.NewModels(db)
+	repositories := data.NewRepositories(db, models)
 
-	server := New(cfg, logger, models)
+	server := New(cfg, logger, models, repositories)
 	return server
 }

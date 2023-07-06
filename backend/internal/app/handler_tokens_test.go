@@ -31,7 +31,7 @@ func TestPostToken(t *testing.T) {
 	}
 	user.Password.Set(password)
 	models := data.Models{User: data.NewStubUserModel([]data.User{user}), Token: data.NewStubTokenModel([]data.Token{})}
-	server := app.New(cfg, logger, models)
+	server := app.New(cfg, logger, models, data.Repositories{})
 
 	t.Run("it sends token response", func(t *testing.T) {
 		userInput := struct {

@@ -43,7 +43,8 @@ func TestOrderPost(t *testing.T) {
 		Message:      messageModel,
 		Order:        orderModel,
 	}
-	server := app.New(cfg, logger, models)
+	repositories := data.Repositories{Order: data.NewStubOrderRepository(orderModel, messageModel)}
+	server := app.New(cfg, logger, models, repositories)
 
 	t.Run("it POST order with correct values", func(t *testing.T) {
 		clientId := int64(1)

@@ -22,7 +22,7 @@ func TestUserPost(t *testing.T) {
 	cfg := app.Config{Port: 4000, Env: "development"}
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	models := data.Models{User: data.NewStubUserModel([]data.User{})}
-	server := app.New(cfg, logger, models)
+	server := app.New(cfg, logger, models, data.Repositories{})
 
 	t.Run("it allows registration with correct values", func(t *testing.T) {
 		userInput := data.PostUserDto{
@@ -102,7 +102,7 @@ func TestUserSearch(t *testing.T) {
 		users[3].Name = "unmatching"
 		// setup a server
 		models := data.Models{User: data.NewStubUserModel(users)}
-		server := app.New(cfg, logger, models)
+		server := app.New(cfg, logger, models, data.Repositories{})
 		// create and send request
 		request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/users?q=%v", r), nil)
 		request.Header.Set("Authorization", "Bearer "+strings.Repeat("1", 26))
