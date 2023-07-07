@@ -65,3 +65,32 @@ func (a *Application) handleGetOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJsonResponse(w, http.StatusOK, order, nil)
 }
+
+func (a *Application) handleGetAllOrders(w http.ResponseWriter, r *http.Request) {
+	user, err := a.AuthenticateHttpRequest(w, r)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrUnathorized):
+			a.invalidAuthenticationTokenResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	userId, err := strconv.ParseInt(r.URL.Query().Get("userId"), 10, 64)
+	if err != nil || userId != user.Id {
+		a.badRequestResponse(w, r, err)
+		return
+	}
+	orders, err := a.models.Order.GetAllByUserId(userId)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	writeJsonResponse(w, http.StatusOK, orders, nil)
+}

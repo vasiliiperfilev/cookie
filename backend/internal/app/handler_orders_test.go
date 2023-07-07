@@ -179,29 +179,72 @@ func TestOrderGet(t *testing.T) {
 	})
 }
 
-// func TestOrderGetAll(t *testing.T) {
-// 	cfg := app.Config{Port: 4000, Env: "development"}
-// 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-// 	itemModel := data.NewStubItemModel([]data.Item{})
-// 	models := data.Models{User: data.NewStubUserModel(generateUsers(4)), Item: itemModel}
-// 	server := app.New(cfg, logger, models)
+func TestOrderGetAll(t *testing.T) {
+	cfg := app.Config{Port: 4000, Env: "development"}
+	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	itemModel := data.NewStubItemModel([]data.Item{
+		{
+			Id:         1,
+			SupplierId: 2,
+		},
+		{
+			Id:         2,
+			SupplierId: 2,
+		},
+		{
+			Id:         3,
+			SupplierId: 4,
+		},
+	})
+	conversationModel := data.NewStubConversationModel(generateConversation(4))
+	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0}})
+	orderModel := data.NewStubOrderModel([]data.Order{}, itemModel, conversationModel, messageModel)
+	models := data.Models{
+		Conversation: data.NewStubConversationModel(generateConversation(4)),
+		User:         data.NewStubUserModel(generateUsers(4)),
+		Item:         itemModel,
+		Message:      messageModel,
+		Order:        orderModel,
+	}
+	orderRepository := data.NewStubOrderRepository(orderModel, messageModel)
+	repositories := data.Repositories{Order: orderRepository}
+	server := app.New(cfg, logger, models, repositories)
 
-// 	t.Run("it GET all orders of own id", func(t *testing.T) {
+	t.Run("it GET all orders of own id", func(t *testing.T) {
+		dto := data.PostOrderDto{
+			ConversationId: 1,
+			ItemIds:        []int64{1, 2},
+		}
+		order1, err := orderRepository.Insert(dto)
+		tester.AssertNoError(t, err)
+		order2, err := orderRepository.Insert(dto)
+		tester.AssertNoError(t, err)
+		want := []data.Order{order1, order2}
 
-// 	})
+		request := createGetAllOrdersRequest(t, 1)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
 
-// 	t.Run("it 404 if GET all orders of non-existing", func(t *testing.T) {
+		tester.AssertStatus(t, response.Code, http.StatusOK)
+		assertContentType(t, response, app.JsonContentType)
+		got := tester.ParseResponse[[]data.Order](t, response)
+		for _, order := range want {
+			assertOrderInArray(t, order, got)
+		}
+	})
 
-// 	})
+	t.Run("it 404 if GET all orders of non-existing", func(t *testing.T) {
 
-// 	t.Run("it 401 if GET all orders unathorized", func(t *testing.T) {
+	})
 
-// 	})
+	t.Run("it 401 if GET all orders unathorized", func(t *testing.T) {
 
-// 	t.Run("it 403 if GET all orders of not owning user", func(t *testing.T) {
+	})
 
-// 	})
-// }
+	t.Run("it 403 if GET all orders of not owning user", func(t *testing.T) {
+
+	})
+}
 
 // func TestOrderPut(t *testing.T) {
 // 	cfg := app.Config{Port: 4000, Env: "development"}
@@ -319,8 +362,22 @@ func createGetOrderRequest(t *testing.T, orderId int64, clientId int64) *http.Re
 	return request
 }
 
+func createGetAllOrdersRequest(t *testing.T, clientId int64) *http.Request {
+	request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/orders?userId=%v", clientId), nil)
+	tester.AssertNoError(t, err)
+	request.Header.Set("Authorization", "Bearer "+strings.Repeat(strconv.FormatInt(clientId, 10), 26))
+	return request
+}
+
 func parseOrderResponse(t *testing.T, response *httptest.ResponseRecorder) data.Order {
 	var got data.Order
+	err := json.NewDecoder(response.Body).Decode(&got)
+	tester.AssertNoError(t, err)
+	return got
+}
+
+func parseAllOrdersResponse(t *testing.T, response *httptest.ResponseRecorder) []data.Order {
+	var got []data.Order
 	err := json.NewDecoder(response.Body).Decode(&got)
 	tester.AssertNoError(t, err)
 	return got
@@ -359,4 +416,13 @@ func countUserOrder(t *testing.T, orderModel *data.StubOrderModel, userId int64)
 	orders, err := orderModel.GetAllByUserId(userId)
 	tester.AssertNoError(t, err)
 	return len(orders)
+}
+
+func assertOrderInArray(t *testing.T, o data.Order, arr []data.Order) {
+	for _, order := range arr {
+		if reflect.DeepEqual(order, o) {
+			return
+		}
+	}
+	t.Fatalf("Expected to find order %v in array %v", o, arr)
 }
