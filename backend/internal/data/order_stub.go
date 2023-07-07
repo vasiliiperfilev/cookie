@@ -1,8 +1,6 @@
 package data
 
 import (
-	"errors"
-
 	"golang.org/x/exp/slices"
 )
 
@@ -32,7 +30,7 @@ func (s *StubOrderModel) Insert(order Order) (Order, error) {
 	for _, itemId := range order.ItemIds {
 		_, err := s.item.GetById(itemId)
 		if err != nil {
-			return Order{}, errors.New("incorrect item ids")
+			return Order{}, ErrUnprocessableEntity
 		}
 	}
 	s.idCount++

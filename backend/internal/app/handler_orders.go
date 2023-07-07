@@ -29,7 +29,7 @@ func (a *Application) handlePostOrder(w http.ResponseWriter, r *http.Request) {
 	order, err := a.repositories.Order.Insert(dto)
 	if err != nil {
 		switch {
-		case errors.Is(err, errors.New("incorrect item ids")):
+		case errors.Is(err, data.ErrUnprocessableEntity):
 			v.AddError("itemIds", "At least one of order items doesn't exist")
 			a.failedValidationResponse(w, r, v.Errors)
 		default:

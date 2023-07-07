@@ -82,10 +82,11 @@ func (s *StubMessageModel) GetById(id int64) (Message, error) {
 func (s *StubMessageModel) DeleteById(id int64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	for _, conversation := range s.conversations {
+	for key, conversation := range s.conversations {
 		for i, msg := range conversation.Messages {
 			if msg.Id == id {
 				conversation.Messages = append(conversation.Messages[:i], conversation.Messages[i+1:]...)
+				s.conversations[key] = conversation
 				return nil
 			}
 		}

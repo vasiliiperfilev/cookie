@@ -3,6 +3,7 @@ package app_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -44,7 +45,8 @@ func TestOrderPost(t *testing.T) {
 		Message:      messageModel,
 		Order:        orderModel,
 	}
-	repositories := data.Repositories{Order: data.NewStubOrderRepository(orderModel, messageModel)}
+	orederRepository := data.NewStubOrderRepository(orderModel, messageModel)
+	repositories := data.Repositories{Order: orederRepository}
 	server := app.New(cfg, logger, models, repositories)
 
 	t.Run("it POST order with correct values", func(t *testing.T) {
@@ -79,61 +81,90 @@ func TestOrderPost(t *testing.T) {
 			ConversationId: 1,
 			ItemIds:        []int64{4, 5},
 		}
+		wantMsgCount := countUserMessages(t, messageModel, clientId)
+		wantOrderCount := countUserOrder(t, orderModel, clientId)
 		request := createPostOrderRequest(t, dto, clientId)
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
 
-		messages, err := messageModel.GetAllByConversationId(1)
-		tester.AssertNoError(t, err)
-		wantMsgCount := len(messages)
-		orders, err := orderModel.GetAllByUserId(1)
-		tester.AssertNoError(t, err)
-		wantOrderCount := len(orders)
-
-		orders, err = orderModel.GetAllByUserId(1)
-		tester.AssertNoError(t, err)
-		gotOrderCount := len(orders)
-		tester.AssertValue(t, gotOrderCount, wantOrderCount, "Expected to not have new orders")
-		messages, err = messageModel.GetAllByConversationId(1)
-		tester.AssertNoError(t, err)
-		gotMsgCount := len(messages)
+		gotOrderCount := countUserOrder(t, orderModel, clientId)
+		gotMsgCount := countUserMessages(t, messageModel, clientId)
 		tester.AssertValue(t, gotMsgCount, wantMsgCount, "Expected to not have new messages")
+		tester.AssertValue(t, gotOrderCount, wantOrderCount, "Expected to not have new orders")
 		tester.AssertStatus(t, response.Code, http.StatusUnprocessableEntity)
 		assertContentType(t, response, app.JsonContentType)
 	})
 
 	t.Run("it 422 if POST order with items of different suppliers", func(t *testing.T) {
-
+		// TODO: implement
 	})
 
 	t.Run("it 401 if POST order unathorized", func(t *testing.T) {
-
+		// TODO: implement
 	})
 }
 
-// func TestOrderGet(t *testing.T) {
-// 	cfg := app.Config{Port: 4000, Env: "development"}
-// 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-// 	itemModel := data.NewStubItemModel([]data.Item{})
-// 	models := data.Models{User: data.NewStubUserModel(generateUsers(4)), Item: itemModel}
-// 	server := app.New(cfg, logger, models)
+func TestOrderGet(t *testing.T) {
+	cfg := app.Config{Port: 4000, Env: "development"}
+	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	itemModel := data.NewStubItemModel([]data.Item{
+		{
+			Id:         1,
+			SupplierId: 2,
+		},
+		{
+			Id:         2,
+			SupplierId: 2,
+		},
+		{
+			Id:         3,
+			SupplierId: 4,
+		},
+	})
+	conversationModel := data.NewStubConversationModel(generateConversation(4))
+	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0}})
+	orderModel := data.NewStubOrderModel([]data.Order{}, itemModel, conversationModel, messageModel)
+	models := data.Models{
+		Conversation: data.NewStubConversationModel(generateConversation(4)),
+		User:         data.NewStubUserModel(generateUsers(4)),
+		Item:         itemModel,
+		Message:      messageModel,
+		Order:        orderModel,
+	}
+	orderRepository := data.NewStubOrderRepository(orderModel, messageModel)
+	repositories := data.Repositories{Order: orderRepository}
+	server := app.New(cfg, logger, models, repositories)
 
-// 	t.Run("it GET order", func(t *testing.T) {
+	t.Run("it GET order", func(t *testing.T) {
+		dto := data.PostOrderDto{
+			ConversationId: 1,
+			ItemIds:        []int64{1, 2},
+		}
+		want, err := orderRepository.Insert(dto)
+		tester.AssertNoError(t, err)
 
-// 	})
+		request := createGetOrderRequest(t, 1, 1)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
 
-// 	t.Run("it 404 if GET non-existing order", func(t *testing.T) {
+		tester.AssertStatus(t, response.Code, http.StatusOK)
+		assertContentType(t, response, app.JsonContentType)
+		got := parseOrderResponse(t, response)
+		assertOrder(t, got, want)
+	})
 
-// 	})
+	t.Run("it 404 if GET non-existing order", func(t *testing.T) {
 
-// 	t.Run("it 401 if GET order unathorized", func(t *testing.T) {
+	})
 
-// 	})
+	t.Run("it 401 if GET order unathorized", func(t *testing.T) {
 
-// 	t.Run("it 403 if GET not own order", func(t *testing.T) {
+	})
 
-// 	})
-// }
+	t.Run("it 403 if GET not own order", func(t *testing.T) {
+
+	})
+}
 
 // func TestOrderGetAll(t *testing.T) {
 // 	cfg := app.Config{Port: 4000, Env: "development"}
@@ -268,6 +299,13 @@ func createPostOrderRequest(t *testing.T, dto data.PostOrderDto, clientId int64)
 	return request
 }
 
+func createGetOrderRequest(t *testing.T, orderId int64, clientId int64) *http.Request {
+	request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/orders/%v", orderId), nil)
+	tester.AssertNoError(t, err)
+	request.Header.Set("Authorization", "Bearer "+strings.Repeat(strconv.FormatInt(clientId, 10), 26))
+	return request
+}
+
 func parseOrderResponse(t *testing.T, response *httptest.ResponseRecorder) data.Order {
 	var got data.Order
 	err := json.NewDecoder(response.Body).Decode(&got)
@@ -296,4 +334,16 @@ func assertOrderInModel(t *testing.T, orderModel *data.StubOrderModel, orderId i
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("In Item Model: want %v, got %v", want, got)
 	}
+}
+
+func countUserMessages(t *testing.T, messageModel *data.StubMessageModel, userId int64) int {
+	messages, err := messageModel.GetAllByConversationId(1)
+	tester.AssertNoError(t, err)
+	return len(messages)
+}
+
+func countUserOrder(t *testing.T, orderModel *data.StubOrderModel, userId int64) int {
+	orders, err := orderModel.GetAllByUserId(userId)
+	tester.AssertNoError(t, err)
+	return len(orders)
 }
