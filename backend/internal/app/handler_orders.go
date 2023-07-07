@@ -3,6 +3,7 @@ package app
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/vasiliiperfilev/cookie/internal/data"
 	"github.com/vasiliiperfilev/cookie/internal/validator"
@@ -38,4 +39,29 @@ func (a *Application) handlePostOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJsonResponse(w, http.StatusCreated, order, nil)
+}
+
+func (a *Application) handleGetOrder(w http.ResponseWriter, r *http.Request) {
+	_, err := a.AuthenticateHttpRequest(w, r)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrUnathorized):
+			a.invalidAuthenticationTokenResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	orderId, _ := strconv.ParseInt(getField(r, 0), 10, 64)
+	order, err := a.models.Order.GetById(orderId)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	writeJsonResponse(w, http.StatusOK, order, nil)
 }

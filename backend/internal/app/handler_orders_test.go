@@ -102,6 +102,10 @@ func TestOrderPost(t *testing.T) {
 	t.Run("it 401 if POST order unathorized", func(t *testing.T) {
 		// TODO: implement
 	})
+
+	t.Run("it 403 if POST order to not own conversation", func(t *testing.T) {
+		// TODO: implement
+	})
 }
 
 func TestOrderGet(t *testing.T) {
@@ -154,15 +158,24 @@ func TestOrderGet(t *testing.T) {
 	})
 
 	t.Run("it 404 if GET non-existing order", func(t *testing.T) {
+		request := createGetOrderRequest(t, 123, 1)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
 
+		tester.AssertStatus(t, response.Code, http.StatusNotFound)
 	})
 
 	t.Run("it 401 if GET order unathorized", func(t *testing.T) {
+		request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/orders/%v", 1), nil)
+		tester.AssertNoError(t, err)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
 
+		tester.AssertStatus(t, response.Code, http.StatusUnauthorized)
 	})
 
 	t.Run("it 403 if GET not own order", func(t *testing.T) {
-
+		// TODO: implement
 	})
 }
 
