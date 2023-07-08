@@ -61,3 +61,18 @@ func (s *StubOrderModel) GetAllByUserId(id int64) ([]Order, error) {
 	}
 	return result, nil
 }
+
+func (s *StubOrderModel) Update(order Order) (Order, error) {
+	for _, itemId := range order.ItemIds {
+		_, err := s.item.GetById(itemId)
+		if err != nil {
+			return Order{}, ErrUnprocessableEntity
+		}
+	}
+	if _, ok := s.orders[order.Id]; !ok {
+		return Order{}, ErrRecordNotFound
+	} else {
+		s.orders[order.Id] = order
+	}
+	return order, nil
+}

@@ -21,6 +21,11 @@ type PostOrderDto struct {
 	ConversationId int64
 }
 
+type PatchOrderDto struct {
+	ItemIds []int64 `json:"itemIds,omitempty"`
+	StateId int     `json:"stateId,omitempty"`
+}
+
 const (
 	OrderStateCreated              = 1
 	OrderStateAccepted             = 2
@@ -31,6 +36,19 @@ const (
 	OrderStateClientChanges        = 7
 )
 
-func ValidatePostOrderInput(v *validator.Validator, order PostOrderDto) {
-	v.Check(len(order.ItemIds) > 0, "itemIds", "must have at least 1 item")
+func ValidatePostOrderInput(v *validator.Validator, dto PostOrderDto) {
+	v.Check(len(dto.ItemIds) > 0, "itemIds", "must have at least 1 item")
+}
+
+func ValidatePatchOrderInput(v *validator.Validator, dto PatchOrderDto) {
+	hasItems := len(dto.ItemIds) > 0
+	validState := dto.StateId > 0 && dto.StateId <= 7
+	if hasItems && validState {
+		v.AddError("itemIds", "can't change both items and state")
+		v.AddError("stateId", "can't change both items and state")
+	}
+	if !hasItems && !validState {
+		v.AddError("itemIds", "valid items or state change is required")
+		v.AddError("stateId", "valid items or state change is required")
+	}
 }

@@ -94,3 +94,51 @@ func (a *Application) handleGetAllOrders(w http.ResponseWriter, r *http.Request)
 	}
 	writeJsonResponse(w, http.StatusOK, orders, nil)
 }
+
+func (a *Application) handlePatchOrder(w http.ResponseWriter, r *http.Request) {
+	_, err := a.AuthenticateHttpRequest(w, r)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrUnathorized):
+			a.invalidAuthenticationTokenResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	orderId, _ := strconv.ParseInt(getField(r, 0), 10, 64)
+	var dto data.PatchOrderDto
+	err = readJsonFromBody(w, r, &dto)
+	if err != nil {
+		a.badRequestResponse(w, r, err)
+		return
+	}
+	v := validator.New()
+	if data.ValidatePatchOrderInput(v, dto); !v.Valid() {
+		a.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+	order, err := a.models.Order.GetById(orderId)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	// if no permission to accept return 403
+	// if not in conversation return 403
+	if dto.ItemIds != nil {
+		order.ItemIds = dto.ItemIds
+	} else {
+		order.StateId = dto.StateId
+	}
+	updatedOrder, err := a.models.Order.Update(order)
+	if err != nil {
+		a.serverErrorResponse(w, r, err)
+		return
+	}
+	writeJsonResponse(w, http.StatusOK, updatedOrder, nil)
+}

@@ -246,90 +246,137 @@ func TestOrderGetAll(t *testing.T) {
 	})
 }
 
-// func TestOrderPut(t *testing.T) {
-// 	cfg := app.Config{Port: 4000, Env: "development"}
-// 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-// 	itemModel := data.NewStubItemModel([]data.Item{})
-// 	models := data.Models{User: data.NewStubUserModel(generateUsers(4)), Item: itemModel}
-// 	server := app.New(cfg, logger, models)
+func TestOrderPatch(t *testing.T) {
+	cfg := app.Config{Port: 4000, Env: "development"}
+	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	itemModel := data.NewStubItemModel([]data.Item{
+		{
+			Id:         1,
+			SupplierId: 2,
+		},
+		{
+			Id:         2,
+			SupplierId: 2,
+		},
+		{
+			Id:         3,
+			SupplierId: 4,
+		},
+	})
+	testOrder := data.Order{
+		Id:        1,
+		ItemIds:   []int64{1, 2},
+		StateId:   data.OrderStateCreated,
+		MessageId: 1,
+	}
+	conversationModel := data.NewStubConversationModel(generateConversation(4))
+	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0, Content: "Order created"}})
+	orderModel := data.NewStubOrderModel([]data.Order{testOrder}, itemModel, conversationModel, messageModel)
+	models := data.Models{
+		Conversation: data.NewStubConversationModel(generateConversation(4)),
+		User:         data.NewStubUserModel(generateUsers(4)),
+		Item:         itemModel,
+		Message:      messageModel,
+		Order:        orderModel,
+	}
+	orderRepository := data.NewStubOrderRepository(orderModel, messageModel)
+	repositories := data.Repositories{Order: orderRepository}
+	server := app.New(cfg, logger, models, repositories)
 
-// 	// Order states with owner:
-// 	// Created - 1 (client)
-// 	// Accepted - 2 (supplier)
-// 	// Declined - 3 (supplier)
-// 	// Fulfilled - 4 (supplier)
-// 	// Confirmed fulfillment - 5 (client)
-// 	// Supplier changes - 6 (supplier)
-// 	// Client changes - 7 (client)
+	// Order states with owner:
+	// Created - 1 (client)
+	// Accepted - 2 (supplier)
+	// Declined - 3 (supplier)
+	// Fulfilled - 4 (supplier)
+	// Confirmed fulfillment - 5 (client)
+	// Supplier changes - 6 (supplier)
+	// Client changes - 7 (client)
+	// switch handling function depending on what was changed: items or state
+	// switch patch state and require permission depending on state
+	// validate patch order inputs
 
-// 	t.Run("it 201 if supplier PUT order to accepted", func(t *testing.T) {
+	t.Run("it 200 if supplier PATCH order state to accepted", func(t *testing.T) {
+		supplierId := int64(2)
+		dto := data.PatchOrderDto{
+			StateId: data.OrderStateAccepted,
+		}
+		request := createPatchOrderRequest(t, dto, supplierId, 1)
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
 
-// 	})
+		want := testOrder
+		want.StateId = data.OrderStateAccepted
+		tester.AssertStatus(t, response.Code, http.StatusOK)
+		assertContentType(t, response, app.JsonContentType)
+		got := tester.ParseResponse[data.Order](t, response)
+		assertOrder(t, got, want)
+		assertOrderInModel(t, orderModel, got.Id, want)
+	})
 
-// 	t.Run("it 201 if supplier PUT order to fulfilled", func(t *testing.T) {
-// 		// stop at this point and implement frontend
-// 	})
+	// 	t.Run("it 200 if supplier PATCH order state to fulfilled", func(t *testing.T) {
+	// 		// stop at this point and implement frontend
+	// 	})
 
-// 	t.Run("it 201 if client PUT order to confirm fulfielment", func(t *testing.T) {
+	// 	t.Run("it 200 if client PATCH order state to confirm fulfielment", func(t *testing.T) {
 
-// 	})
+	// 	})
 
-// 	t.Run("it 201 if supplier PUT order to suggest changes before fulfielment", func(t *testing.T) {
+	// 	t.Run("it 200 if supplier PATCH order state to suggest changes before fulfielment", func(t *testing.T) {
 
-// 	})
+	// 	})
 
-// 	t.Run("it 201 if client PUT order to suggest changes before fulfielment", func(t *testing.T) {
+	// 	t.Run("it 200 if client PATCH order state to suggest changes before fulfielment", func(t *testing.T) {
 
-// 	})
+	// 	})
 
-// 	t.Run("it 201 if client PUT order to accept supplier changes", func(t *testing.T) {
+	// 	t.Run("it 200 if client PATCH order state to accept supplier changes", func(t *testing.T) {
 
-// 	})
+	// 	})
 
-// 	t.Run("it 201 if client PUT order to accept client changes", func(t *testing.T) {
+	// 	t.Run("it 200 if client PATCH order state to accept client changes", func(t *testing.T) {
 
-// 	})
+	// 	})
 
-// 	t.Run("it 201 if supplier PUT order to decline before accepting/suggesting changes", func(t *testing.T) {
+	// 	t.Run("it 200 if supplier PATCH order state to decline before accepting/suggesting changes", func(t *testing.T) {
 
-// 	})
+	// 	})
 
-// 	t.Run("it 400 if supplier PUT order to decline after fulfilled", func(t *testing.T) {
+	// 	t.Run("it 400 if supplier PATCH order state to decline after fulfilled", func(t *testing.T) {
 
-// 	})
+	// 	})
 
-// 	t.Run("it 400 if supplier PUT order to accepted after own changes", func(t *testing.T) {
+	// 	t.Run("it 400 if supplier PATCH order state to accepted after own changes", func(t *testing.T) {
 
-// 	})
+	// 	})
 
-// 	t.Run("it 400 if client PUT order to accepted after own changes", func(t *testing.T) {
+	// 	t.Run("it 400 if client PATCH order state to accepted after own changes", func(t *testing.T) {
 
-// 	})
+	// 	})
 
-// 	t.Run("it 400 if supplier PUT order to canceled by client", func(t *testing.T) {
+	// 	t.Run("it 400 if supplier PATCH order state to canceled by client", func(t *testing.T) {
 
-// 	})
+	// 	})
 
-// 	t.Run("it 400 if client PUT order to accepted by supplier", func(t *testing.T) {
+	// 	t.Run("it 400 if client PATCH order state to accepted by supplier", func(t *testing.T) {
 
-// 	})
+	// 	})
 
-// 	t.Run("it 400 if client PUT order to declined by supplier", func(t *testing.T) {
+	// 	t.Run("it 400 if client PATCH order state to declined by supplier", func(t *testing.T) {
 
-// 	})
+	// 	})
 
-// 	t.Run("it 404 if PUT order of non-existing id", func(t *testing.T) {
+	// 	t.Run("it 404 if PATCH order state of non-existing id", func(t *testing.T) {
 
-// 	})
+	// 	})
 
-// 	t.Run("it 401 if PUT order unathorized", func(t *testing.T) {
+	// 	t.Run("it 401 if PATCH order state unathorized", func(t *testing.T) {
 
-// 	})
+	// 	})
 
-// 	t.Run("it 403 if PUT order of not owning user", func(t *testing.T) {
+	// 	t.Run("it 403 if PATCH order state of not owning user", func(t *testing.T) {
 
-// 	})
-// }
+	// })
+}
 
 // func asserItemNotInModel(t *testing.T, itemModel *data.StubItemModel, itemId int64) {
 // 	_, err := itemModel.GetById(itemId)
@@ -350,6 +397,15 @@ func createPostOrderRequest(t *testing.T, dto data.PostOrderDto, clientId int64)
 	requestBody := new(bytes.Buffer)
 	json.NewEncoder(requestBody).Encode(dto)
 	request, err := http.NewRequest(http.MethodPost, "/v1/orders", requestBody)
+	tester.AssertNoError(t, err)
+	request.Header.Set("Authorization", "Bearer "+strings.Repeat(strconv.FormatInt(clientId, 10), 26))
+	return request
+}
+
+func createPatchOrderRequest(t *testing.T, dto data.PatchOrderDto, clientId int64, orderId int64) *http.Request {
+	requestBody := new(bytes.Buffer)
+	json.NewEncoder(requestBody).Encode(dto)
+	request, err := http.NewRequest(http.MethodPatch, fmt.Sprintf("/v1/orders/%v", orderId), requestBody)
 	tester.AssertNoError(t, err)
 	request.Header.Set("Authorization", "Bearer "+strings.Repeat(strconv.FormatInt(clientId, 10), 26))
 	return request

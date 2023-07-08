@@ -27,6 +27,7 @@ func (a *Application) routes() http.Handler {
 		newRoute(http.MethodPost, "/v1/orders", a.handlePostOrder),
 		newRoute(http.MethodGet, "/v1/orders", a.handleGetAllOrders),
 		newRoute(http.MethodGet, "/v1/orders/([0-9]+)", a.handleGetOrder),
+		newRoute(http.MethodPatch, "/v1/orders/([0-9]+)", a.handlePatchOrder),
 	}
 	return NewRouter(routes)
 }
