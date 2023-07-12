@@ -23,7 +23,7 @@ func (r *StubOrderRepository) Insert(dto PostOrderDto) (Order, error) {
 
 	// Create an order linked to the message
 	order := Order{
-		ItemIds:   dto.ItemIds,
+		Items:     dto.Items,
 		StateId:   OrderStateCreated,
 		MessageId: message.Id,
 	}

@@ -45,15 +45,24 @@ func TestOrderPost(t *testing.T) {
 		Message:      messageModel,
 		Order:        orderModel,
 	}
-	orederRepository := data.NewStubOrderRepository(orderModel, messageModel)
-	repositories := data.Repositories{Order: orederRepository}
+	orderRepository := data.NewStubOrderRepository(orderModel, messageModel)
+	repositories := data.Repositories{Order: orderRepository}
 	server := app.New(cfg, logger, models, repositories)
 
 	t.Run("it POST order with correct values", func(t *testing.T) {
 		clientId := int64(1)
 		dto := data.PostOrderDto{
 			ConversationId: 1,
-			ItemIds:        []int64{1, 2},
+			Items: []data.ItemQuantity{
+				{
+					ItemId:   1,
+					Quantity: 1,
+				},
+				{
+					ItemId:   2,
+					Quantity: 1,
+				},
+			},
 		}
 		request := createPostOrderRequest(t, dto, clientId)
 		response := httptest.NewRecorder()
@@ -62,7 +71,16 @@ func TestOrderPost(t *testing.T) {
 		messages, err := messageModel.GetAllByConversationId(1)
 		tester.AssertNoError(t, err)
 		want := data.Order{
-			ItemIds:   []int64{1, 2},
+			Items: []data.ItemQuantity{
+				{
+					ItemId:   1,
+					Quantity: 1,
+				},
+				{
+					ItemId:   2,
+					Quantity: 1,
+				},
+			},
 			StateId:   data.OrderStateCreated,
 			MessageId: int64(len(messages) - 1), // order attached to last message
 		}
@@ -79,7 +97,16 @@ func TestOrderPost(t *testing.T) {
 		clientId := int64(1)
 		dto := data.PostOrderDto{
 			ConversationId: 1,
-			ItemIds:        []int64{4, 5},
+			Items: []data.ItemQuantity{
+				{
+					ItemId:   4,
+					Quantity: 1,
+				},
+				{
+					ItemId:   5,
+					Quantity: 1,
+				},
+			},
 		}
 		wantMsgCount := countUserMessages(t, messageModel, clientId)
 		wantOrderCount := countUserOrder(t, orderModel, clientId)
@@ -142,7 +169,16 @@ func TestOrderGet(t *testing.T) {
 	t.Run("it GET order", func(t *testing.T) {
 		dto := data.PostOrderDto{
 			ConversationId: 1,
-			ItemIds:        []int64{1, 2},
+			Items: []data.ItemQuantity{
+				{
+					ItemId:   1,
+					Quantity: 1,
+				},
+				{
+					ItemId:   2,
+					Quantity: 1,
+				},
+			},
 		}
 		want, err := orderRepository.Insert(dto)
 		tester.AssertNoError(t, err)
@@ -213,7 +249,16 @@ func TestOrderGetAll(t *testing.T) {
 	t.Run("it GET all orders of own id", func(t *testing.T) {
 		dto := data.PostOrderDto{
 			ConversationId: 1,
-			ItemIds:        []int64{1, 2},
+			Items: []data.ItemQuantity{
+				{
+					ItemId:   1,
+					Quantity: 1,
+				},
+				{
+					ItemId:   2,
+					Quantity: 1,
+				},
+			},
 		}
 		order1, err := orderRepository.Insert(dto)
 		tester.AssertNoError(t, err)
@@ -264,8 +309,17 @@ func TestOrderPatch(t *testing.T) {
 		},
 	})
 	testOrder := data.Order{
-		Id:        1,
-		ItemIds:   []int64{1, 2},
+		Id: 1,
+		Items: []data.ItemQuantity{
+			{
+				ItemId:   1,
+				Quantity: 1,
+			},
+			{
+				ItemId:   2,
+				Quantity: 1,
+			},
+		},
 		StateId:   data.OrderStateCreated,
 		MessageId: 1,
 	}
@@ -446,8 +500,8 @@ func assertOrder(t *testing.T, got, want data.Order) {
 	if got.StateId != want.StateId {
 		t.Fatalf("Expected order with state id %v, got %v", want.StateId, got.StateId)
 	}
-	if !data.EqualArrays(got.ItemIds, want.ItemIds) {
-		t.Fatalf("Expected order with item ids %v, got %v", want.ItemIds, got.ItemIds)
+	if !data.EqualArrays(got.Items, want.Items) {
+		t.Fatalf("Expected order with item ids %v, got %v", want.Items, got.Items)
 	}
 	if got.MessageId != want.MessageId {
 		t.Fatalf("Expected order with message id %v, got %v", want.MessageId, got.MessageId)

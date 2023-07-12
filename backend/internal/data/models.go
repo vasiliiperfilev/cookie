@@ -29,5 +29,6 @@ func NewModels(db *sql.DB) Models {
 		Message:      NewPsqlMessageModel(db),
 		Item:         NewPsqlItemModel(db),
 		Permission:   NewPsqlPermissionModel(db),
+		Order:        NewPsqlOrderModel(db),
 	}
 }

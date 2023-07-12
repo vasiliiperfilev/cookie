@@ -130,8 +130,8 @@ func (a *Application) handlePatchOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	// if no permission to accept return 403
 	// if not in conversation return 403
-	if dto.ItemIds != nil {
-		order.ItemIds = dto.ItemIds
+	if dto.Items != nil {
+		order.Items = dto.Items
 	} else {
 		order.StateId = dto.StateId
 	}

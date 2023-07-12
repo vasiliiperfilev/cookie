@@ -27,8 +27,8 @@ func NewStubOrderModel(orders []Order, item *StubItemModel, conversation *StubCo
 }
 
 func (s *StubOrderModel) Insert(order Order) (Order, error) {
-	for _, itemId := range order.ItemIds {
-		_, err := s.item.GetById(itemId)
+	for _, item := range order.Items {
+		_, err := s.item.GetById(item.ItemId)
 		if err != nil {
 			return Order{}, ErrUnprocessableEntity
 		}
@@ -63,8 +63,8 @@ func (s *StubOrderModel) GetAllByUserId(id int64) ([]Order, error) {
 }
 
 func (s *StubOrderModel) Update(order Order) (Order, error) {
-	for _, itemId := range order.ItemIds {
-		_, err := s.item.GetById(itemId)
+	for _, item := range order.Items {
+		_, err := s.item.GetById(item.ItemId)
 		if err != nil {
 			return Order{}, ErrUnprocessableEntity
 		}

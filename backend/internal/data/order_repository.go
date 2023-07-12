@@ -30,6 +30,8 @@ func (r PsqlOrderRepository) Insert(dto PostOrderDto) (Order, error) {
 	}
 	defer tx.Rollback()
 
+	// check if user in conversation
+
 	// Create a message to store order
 	message := Message{
 		ConversationId: dto.ConversationId,
@@ -43,7 +45,7 @@ func (r PsqlOrderRepository) Insert(dto PostOrderDto) (Order, error) {
 
 	// Create an order linked to the message
 	order := Order{
-		ItemIds:   dto.ItemIds,
+		Items:     dto.Items,
 		StateId:   OrderStateCreated,
 		MessageId: message.Id,
 	}
