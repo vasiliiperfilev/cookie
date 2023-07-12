@@ -109,7 +109,7 @@ func TestOrderModelIntegration(t *testing.T) {
 			},
 		}
 		order.StateId = data.OrderStateClientChanges
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(1 * time.Second)
 		want, err := orderModel.Update(order)
 		tester.AssertNoError(t, err)
 		tester.AssertValue(t, want, order, "Expected same item from update order")

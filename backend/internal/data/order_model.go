@@ -57,6 +57,7 @@ func (m PsqlOrderModel) Insert(order Order) (Order, error) {
 	if err != nil {
 		return Order{}, err
 	}
+	defer txn.Rollback()
 
 	stmt, err := txn.Prepare(pq.CopyIn("orders_items", "order_id", "item_id", "quantity"))
 	if err != nil {
@@ -220,6 +221,7 @@ func (m PsqlOrderModel) Update(order Order) (Order, error) {
 	if err != nil {
 		return Order{}, err
 	}
+	defer txn.Rollback()
 
 	query := `
 		UPDATE orders
