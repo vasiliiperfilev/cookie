@@ -3,6 +3,7 @@ package data_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/vasiliiperfilev/cookie/internal/data"
 	"github.com/vasiliiperfilev/cookie/internal/database"
@@ -82,6 +83,38 @@ func TestOrderModelIntegration(t *testing.T) {
 	})
 
 	t.Run("it updates order", func(t *testing.T) {
-
+		orderModel := data.NewPsqlOrderModel(db)
+		messageModel := data.NewPsqlMessageModel(db)
+		repository := data.NewPsqlOrderRepository(db, orderModel, messageModel)
+		dto := data.PostOrderDto{
+			ConversationId: 1,
+			ClientId:       2,
+			Items: []data.ItemQuantity{
+				{
+					ItemId:   1,
+					Quantity: 1,
+				},
+				{
+					ItemId:   2,
+					Quantity: 3,
+				},
+			},
+		}
+		order, err := repository.Insert(dto)
+		tester.AssertNoError(t, err)
+		order.Items = []data.ItemQuantity{
+			{
+				ItemId:   2,
+				Quantity: 3,
+			},
+		}
+		order.StateId = data.OrderStateClientChanges
+		time.Sleep(500 * time.Millisecond)
+		want, err := orderModel.Update(order)
+		tester.AssertNoError(t, err)
+		tester.AssertValue(t, want, order, "Expected same item from update order")
+		got, err := orderModel.GetById(want.Id)
+		tester.AssertNoError(t, err)
+		tester.AssertValue(t, got, want, "Expected same item from get order")
 	})
 }

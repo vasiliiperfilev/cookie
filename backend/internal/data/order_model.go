@@ -207,29 +207,92 @@ func (m PsqlOrderModel) GetAllByUserId(id int64) ([]Order, error) {
 }
 
 func (m PsqlOrderModel) Update(order Order) (Order, error) {
-	return Order{}, nil
-	// if order.Id < 1 {
-	// 	return Item{}, ErrRecordNotFound
-	// }
-	// query := `
-	// 	UPDATE items
-	// 	SET unit_id = $1, size = $2, name = $3, image_url = $4
-	// 	WHERE item_id = $5
-	// `
-	// unitId, ok := ItemUnitsToId[order.Unit]
-	// if !ok {
-	// 	return Item{}, ErrUnprocessableEntity
-	// }
+	if order.Id < 1 {
+		return Order{}, ErrRecordNotFound
+	}
 
-	// args := []any{unitId, order.Size, order.Name, order.ImageUrl, order.Id}
+	prevOrder, err := m.GetById(order.Id)
+	if err != nil {
+		return Order{}, err
+	}
 
-	// ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	// defer cancel()
+	txn, err := m.db.Begin()
+	if err != nil {
+		return Order{}, err
+	}
 
-	// _, err := m.db.QueryContext(ctx, query, args...)
-	// if err != nil {
-	// 	return Item{}, err
-	// }
+	query := `
+		UPDATE orders
+		SET message_id = $1
+		WHERE order_id = $2
+	`
 
-	// return order, nil
+	args := []any{order.MessageId, order.Id}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := txn.QueryContext(ctx, query, args...)
+	if err != nil {
+		return Order{}, err
+	}
+	rows.Close()
+	// update state if required
+	if order.StateId != prevOrder.StateId {
+		query = `
+    	INSERT INTO orders_states(order_id, state_id)
+    	VALUES ($1, $2)
+		`
+		args := []any{order.Id, order.StateId}
+
+		rows, err := txn.QueryContext(ctx, query, args...)
+		if err != nil {
+			return Order{}, err
+		}
+		rows.Close()
+	}
+
+	// update items if required
+	if !EqualArrays(order.Items, prevOrder.Items) {
+
+		for _, iq := range prevOrder.Items {
+			query := `
+        DELETE FROM orders_items
+        WHERE order_id = $1 AND item_id = $2`
+
+			_, err := txn.Exec(query, prevOrder.Id, iq.ItemId)
+			if err != nil {
+				return Order{}, err
+			}
+		}
+
+		stmt, err := txn.Prepare(pq.CopyIn("orders_items", "order_id", "item_id", "quantity"))
+		if err != nil {
+			return Order{}, err
+		}
+
+		for _, iq := range order.Items {
+			_, err = stmt.Exec(order.Id, iq.ItemId, iq.Quantity)
+			if err != nil {
+				return Order{}, err
+			}
+		}
+
+		_, err = stmt.Exec()
+		if err != nil {
+			return Order{}, err
+		}
+
+		err = stmt.Close()
+		if err != nil {
+			return Order{}, err
+		}
+	}
+
+	err = txn.Commit()
+	if err != nil {
+		return Order{}, err
+	}
+
+	return order, nil
 }
