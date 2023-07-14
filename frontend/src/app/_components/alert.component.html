@@ -1,4 +1,8 @@
-<div *ngFor="let alert of alerts" class="{{cssClass(alert)}}">
-    <span [innerHTML]="alert.message"></span>
-    <button class="btn-close" (click)="removeAlert(alert)"></button>
+<div
+  *ngFor="let alert of alerts"
+  class="{{ cssClass(alert) }}"
+  style="z-index: 1051"
+>
+  <span [innerHTML]="alert.message"></span>
+  <button class="btn-close" (click)="removeAlert(alert)"></button>
 </div>
