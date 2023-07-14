@@ -95,7 +95,7 @@ func (m PsqlOrderModel) GetById(id int64) (Order, error) {
 	}
 	query := `
 		SELECT o.order_id, o.message_id, o.created_at, o.updated_at, os.state_id, json_agg(json_build_object(
-			'item_id', oi.item_id, 
+			'itemId', oi.item_id, 
 			'quantity', oi.quantity
 		)) as items
 		FROM orders as o

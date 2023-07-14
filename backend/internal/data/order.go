@@ -10,7 +10,7 @@ import (
 )
 
 type ItemQuantity struct {
-	ItemId   int64 `json:"item_id"`
+	ItemId   int64 `json:"itemId"`
 	Quantity int   `json:"quantity"`
 }
 
