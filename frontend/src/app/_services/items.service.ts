@@ -16,6 +16,12 @@ export class ItemsService {
     );
   }
 
+  getAllBySupplierId(id: number) {
+    return this.http.get<Item[]>(
+      `${environment.apiUrl}/v1/items?supplierId=${id}`
+    );
+  }
+
   getById(id: number) {
     return this.http.get<Item>(`${environment.apiUrl}/v1/items/${id}`);
   }

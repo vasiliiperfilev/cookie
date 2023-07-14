@@ -18,7 +18,28 @@
           </mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
-          <p>{{ message.content }}</p>
+          <div class="d-flex align-items-center w-100">
+            <p class="mb-0">{{ message.content }}</p>
+            <button
+              style="margin-left: auto"
+              *ngIf="orders[message.id]"
+              type="button"
+              color="secondary"
+              matSuffix
+              mat-icon-button
+              aria-label="Edit order"
+              (click)="
+                openOrderDialog({
+                  action: CrudDialogAction.UPDATE,
+                  order: orders[message.id],
+                  prevMessageId: message.id,
+                  conversation: conversation
+                })
+              "
+            >
+              <mat-icon>edit</mat-icon>
+            </button>
+          </div>
         </mat-card-content>
       </mat-card>
     </mat-list-item>
@@ -29,6 +50,22 @@
       class="w-100"
       subscriptSizing="dynamic"
     >
+      <button
+        *ngIf="user.type === UserType.BUSINESS"
+        type="button"
+        color="primary"
+        matSuffix
+        mat-icon-button
+        aria-label="Create order"
+        (click)="
+          openOrderDialog({
+            action: CrudDialogAction.CREATE,
+            conversation: conversation
+          })
+        "
+      >
+        <mat-icon>add</mat-icon>
+      </button>
       <input matInput formControlName="message" placeholder="Enter a message" />
       <button
         type="submit"

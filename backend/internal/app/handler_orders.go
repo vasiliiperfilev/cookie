@@ -128,13 +128,15 @@ func (a *Application) handlePatchOrder(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	// if no permission to accept return 403
-	// if not in conversation return 403
+	// TODO: if no permission to accept return 403
+	// TODO: if not in conversation return 403
 	if dto.Items != nil {
 		order.Items = dto.Items
+		// TODO: change status to supplier/client chages
 	} else {
 		order.StateId = dto.StateId
 	}
+	// TODO: add new message
 	updatedOrder, err := a.models.Order.Update(order)
 	if err != nil {
 		a.serverErrorResponse(w, r, err)

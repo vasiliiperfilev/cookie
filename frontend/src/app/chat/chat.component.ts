@@ -7,11 +7,25 @@ import {
   ViewChild,
   ViewChildren,
 } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { Conversation, Message, User } from '@app/_models';
-import { ConversationsService, UserService } from '@app/_services';
+import { FormControl, FormGroup } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { Conversation, Message, Order, User, UserType } from '@app/_models';
+import {
+  ConversationsService,
+  OrdersService,
+  UserService,
+} from '@app/_services';
 import { ChatService } from '@app/_services/chat.service';
 import { HistoryService } from '@app/_services/history.service';
+import { CrudDialogAction } from '@app/catalog/catalog.component';
+import { OrderDialogComponent } from './order-dialog/order-dialog.component';
+
+export interface OrderDialogData {
+  action: CrudDialogAction;
+  order?: Order;
+  prevMessageId?: number;
+  conversation: Conversation;
+}
 
 @Component({
   selector: 'app-chat',
@@ -22,6 +36,14 @@ export class ChatComponent implements OnInit {
   private _conversation!: Conversation;
   get conversation(): Conversation {
     return this._conversation;
+  }
+
+  public get CrudDialogAction() {
+    return CrudDialogAction;
+  }
+
+  public get UserType() {
+    return UserType;
   }
 
   @Input({ required: true })
@@ -36,6 +58,7 @@ export class ChatComponent implements OnInit {
   @ViewChildren('messages') messagesEl!: QueryList<any>;
   messages: Message[] = [];
   user: User;
+  orders: Record<number, Order> = {};
   form = new FormGroup({
     message: new FormControl(''),
   });
@@ -44,9 +67,18 @@ export class ChatComponent implements OnInit {
     private historyService: HistoryService,
     private chatService: ChatService,
     userService: UserService,
-    private conversationService: ConversationsService
+    private conversationService: ConversationsService,
+    public dialog: MatDialog,
+    private orderService: OrdersService
   ) {
     this.user = userService.userValue!;
+    orderService.getAll().subscribe((os) => {
+      const orders: Record<number, Order> = os.reduce((acc, o) => {
+        acc[o.messageId] = o;
+        return acc;
+      }, {} as Record<number, Order>);
+      this.orders = orders;
+    });
   }
 
   ngOnInit(): void {
@@ -87,4 +119,33 @@ export class ChatComponent implements OnInit {
       console.log(err);
     }
   };
+
+  openOrderDialog(data: OrderDialogData) {
+    const dialogRef = this.dialog.open(OrderDialogComponent, {
+      width: '500px',
+      data,
+    });
+    dialogRef.afterClosed().subscribe((result: OrderDialogData) => {
+      if (result && result.order) {
+        if (result.action == CrudDialogAction.CREATE) {
+          this.attachOrderToMessage(result.order);
+        } else if (result.action == CrudDialogAction.UPDATE) {
+          this.attachOrderToMessage(result.order, result.prevMessageId);
+        }
+      }
+    });
+  }
+
+  attachOrderToMessage(order: Order, prevMessageId?: number) {
+    // remove previous attachment, attach to new message
+    if (prevMessageId) {
+      delete this.orders[prevMessageId];
+    }
+    this.orders[order.messageId] = order;
+    this.historyService
+      .getMessagesByConversationId(this.conversation.id)
+      .subscribe({
+        error: (err) => console.log(err),
+      });
+  }
 }

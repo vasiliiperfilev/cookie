@@ -4,5 +4,6 @@ export * from './errors';
 export * from './event';
 export * from './item';
 export * from './message';
+export * from './order';
 export * from './token';
 export * from './user';
