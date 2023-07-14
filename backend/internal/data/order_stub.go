@@ -26,14 +26,26 @@ func NewStubOrderModel(orders []Order, item *StubItemModel, conversation *StubCo
 	}
 }
 
-func (s *StubOrderModel) Insert(order Order) (Order, error) {
-	for _, item := range order.Items {
+func (s *StubOrderModel) Insert(dto PostOrderDto) (Order, error) {
+	for _, item := range dto.Items {
 		_, err := s.item.GetById(item.ItemId)
 		if err != nil {
 			return Order{}, ErrUnprocessableEntity
 		}
 	}
+	msg := Message{
+		ConversationId: dto.ConversationId,
+		SenderId:       dto.ClientId,
+		Content:        "Order created",
+	}
+	s.message.Insert(&msg)
+
 	s.idCount++
+	order := Order{
+		MessageId: msg.Id,
+		Items:     dto.Items,
+		StateId:   OrderStateCreated,
+	}
 	order.Id = s.idCount
 	s.orders[order.Id] = order
 	return order, nil

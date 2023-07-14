@@ -36,8 +36,7 @@ func main() {
 	defer db.Close()
 	logger.Printf("database connection pool established")
 	models := data.NewModels(db)
-	repositories := data.NewRepositories(db, models)
-	app := app.New(cfg, logger, models, repositories)
+	app := app.New(cfg, logger, models)
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Port),

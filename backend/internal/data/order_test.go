@@ -28,8 +28,6 @@ func TestOrderModelIntegration(t *testing.T) {
 	tester.AssertNoError(t, err)
 	t.Run("it inserts Order and retrieves it", func(t *testing.T) {
 		orderModel := data.NewPsqlOrderModel(db)
-		messageModel := data.NewPsqlMessageModel(db)
-		repository := data.NewPsqlOrderRepository(db, orderModel, messageModel)
 		dto := data.PostOrderDto{
 			ConversationId: 1,
 			ClientId:       2,
@@ -44,7 +42,7 @@ func TestOrderModelIntegration(t *testing.T) {
 				},
 			},
 		}
-		want, err := repository.Insert(dto)
+		want, err := orderModel.Insert(dto)
 		tester.AssertNoError(t, err)
 		got, err := orderModel.GetById(want.Id)
 		tester.AssertNoError(t, err)
@@ -53,8 +51,6 @@ func TestOrderModelIntegration(t *testing.T) {
 
 	t.Run("it retrieves orders by user id", func(t *testing.T) {
 		orderModel := data.NewPsqlOrderModel(db)
-		messageModel := data.NewPsqlMessageModel(db)
-		repository := data.NewPsqlOrderRepository(db, orderModel, messageModel)
 		dto := data.PostOrderDto{
 			ConversationId: 2,
 			ClientId:       4,
@@ -70,9 +66,9 @@ func TestOrderModelIntegration(t *testing.T) {
 			},
 		}
 		// insert 2 orders
-		want1, err := repository.Insert(dto)
+		want1, err := orderModel.Insert(dto)
 		tester.AssertNoError(t, err)
-		want2, err := repository.Insert(dto)
+		want2, err := orderModel.Insert(dto)
 		tester.AssertNoError(t, err)
 		want := []data.Order{want1, want2}
 		got, err := orderModel.GetAllByUserId(4)
@@ -84,8 +80,6 @@ func TestOrderModelIntegration(t *testing.T) {
 
 	t.Run("it updates order", func(t *testing.T) {
 		orderModel := data.NewPsqlOrderModel(db)
-		messageModel := data.NewPsqlMessageModel(db)
-		repository := data.NewPsqlOrderRepository(db, orderModel, messageModel)
 		dto := data.PostOrderDto{
 			ConversationId: 1,
 			ClientId:       2,
@@ -100,7 +94,7 @@ func TestOrderModelIntegration(t *testing.T) {
 				},
 			},
 		}
-		order, err := repository.Insert(dto)
+		order, err := orderModel.Insert(dto)
 		tester.AssertNoError(t, err)
 		order.Items = []data.ItemQuantity{
 			{

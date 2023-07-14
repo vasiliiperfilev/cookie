@@ -24,7 +24,7 @@ func TestPostConversation(t *testing.T) {
 	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{})
 	models := data.Models{User: userModel, Conversation: conversationModel, Message: messageModel}
 	t.Run("it POST conversation", func(t *testing.T) {
-		server := app.New(cfg, logger, models, data.Repositories{})
+		server := app.New(cfg, logger, models)
 		dto := data.PostConversationDto{
 			UserIds: []int64{1, 2},
 		}
@@ -48,7 +48,7 @@ func TestPostConversation(t *testing.T) {
 	})
 
 	t.Run("it POST and GET same conversation by any of ids", func(t *testing.T) {
-		server := app.New(cfg, logger, models, data.Repositories{})
+		server := app.New(cfg, logger, models)
 		userIds := []int64{3, 4}
 		userInput := data.PostConversationDto{
 			UserIds: userIds,
@@ -82,7 +82,7 @@ func TestPostConversation(t *testing.T) {
 	})
 
 	t.Run("it don't allow POST same conversation", func(t *testing.T) {
-		server := app.New(cfg, logger, models, data.Repositories{})
+		server := app.New(cfg, logger, models)
 		userIds := []int64{3, 4}
 		userInput := data.PostConversationDto{
 			UserIds: userIds,
@@ -98,7 +98,7 @@ func TestPostConversation(t *testing.T) {
 	})
 
 	t.Run("can't PUT", func(t *testing.T) {
-		server := app.New(cfg, logger, models, data.Repositories{})
+		server := app.New(cfg, logger, models)
 		request, err := http.NewRequest(http.MethodPut, "/v1/conversations", nil)
 		tester.AssertNoError(t, err)
 		response := httptest.NewRecorder()

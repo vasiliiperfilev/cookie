@@ -24,7 +24,7 @@ func TestItemPost(t *testing.T) {
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	itemModel := data.NewStubItemModel([]data.Item{})
 	models := data.Models{User: data.NewStubUserModel(generateUsers(4)), Item: itemModel}
-	server := app.New(cfg, logger, models, data.Repositories{})
+	server := app.New(cfg, logger, models)
 
 	t.Run("it POST item with correct values", func(t *testing.T) {
 		itemId := int64(1)
@@ -133,7 +133,7 @@ func TestItemGet(t *testing.T) {
 		item1,
 	})
 	models := data.Models{User: data.NewStubUserModel(generateUsers(4)), Item: itemModel}
-	server := app.New(cfg, logger, models, data.Repositories{})
+	server := app.New(cfg, logger, models)
 
 	t.Run("it GET item if exists", func(t *testing.T) {
 		request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/items/%v", item1.Id), nil)
@@ -191,7 +191,7 @@ func TestItemGetAll(t *testing.T) {
 		item1,
 	})
 	models := data.Models{User: data.NewStubUserModel(generateUsers(4)), Item: itemModel}
-	server := app.New(cfg, logger, models, data.Repositories{})
+	server := app.New(cfg, logger, models)
 
 	t.Run("it GET all items of supplier_id", func(t *testing.T) {
 		request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v1/items?supplierId=%v", item1.SupplierId), nil)
@@ -234,7 +234,7 @@ func TestItemPut(t *testing.T) {
 		item1,
 	})
 	models := data.Models{User: data.NewStubUserModel(generateUsers(4)), Item: itemModel}
-	server := app.New(cfg, logger, models, data.Repositories{})
+	server := app.New(cfg, logger, models)
 
 	t.Run("it PUT changed item if requested by owner", func(t *testing.T) {
 		dto := data.PostItemDto{
@@ -358,7 +358,7 @@ func TestItemDelete(t *testing.T) {
 		item1, item2,
 	})
 	models := data.Models{User: data.NewStubUserModel(generateUsers(4)), Item: itemModel}
-	server := app.New(cfg, logger, models, data.Repositories{})
+	server := app.New(cfg, logger, models)
 
 	t.Run("it DELETE item if requested by owner", func(t *testing.T) {
 		request, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("/v1/items/%v", item1.Id), nil)

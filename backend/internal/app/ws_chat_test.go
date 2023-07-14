@@ -178,7 +178,7 @@ func TestChat(t *testing.T) {
 		conversationModel := data.NewStubConversationModel(generateConversation(2))
 		messageModel := data.NewStubMessageModel(generateConversation(2), []data.Message{})
 		models := data.Models{Message: messageModel, User: userModel, Conversation: conversationModel}
-		appServer := app.New(cfg, logger, models, data.Repositories{})
+		appServer := app.New(cfg, logger, models)
 		server := httptest.NewServer(appServer)
 		conns := []*websocket.Conn{}
 		for i := 1; i <= 3; i++ {
@@ -306,7 +306,7 @@ func createServer(numUsers int) (*data.StubMessageModel, *app.Application) {
 	messageModel := data.NewStubMessageModel(generateConversation(numUsers), []data.Message{})
 	userModel := data.NewStubUserModel(generateUsers(numUsers))
 	models := data.Models{Message: messageModel, User: userModel, Conversation: conversationModel}
-	appServer := app.New(cfg, logger, models, data.Repositories{})
+	appServer := app.New(cfg, logger, models)
 	return messageModel, appServer
 }
 

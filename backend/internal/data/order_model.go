@@ -12,7 +12,7 @@ import (
 )
 
 type OrderModel interface {
-	Insert(order Order) (Order, error)
+	Insert(dto PostOrderDto) (Order, error)
 	GetById(id int64) (Order, error)
 	GetAllByUserId(id int64) ([]Order, error)
 	Update(order Order) (Order, error)
@@ -26,62 +26,49 @@ func NewPsqlOrderModel(db *sql.DB) *PsqlOrderModel {
 	return &PsqlOrderModel{db: db}
 }
 
-func (m PsqlOrderModel) Insert(order Order) (Order, error) {
-	query := `
-    INSERT INTO orders(message_id)
-    VALUES ($1)
-    RETURNING order_id, created_at, updated_at
-	`
+func (m PsqlOrderModel) Insert(dto PostOrderDto) (Order, error) {
+	// ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	// defer cancel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
+	tx, err := m.db.Begin()
+	if err != nil {
+		return Order{}, err
+	}
+	defer tx.Rollback()
 
-	err := m.db.QueryRowContext(ctx, query, order.MessageId).Scan(&order.Id, &order.CreatedAt, &order.UpdatedAt)
+	message := Message{
+		ConversationId: dto.ConversationId,
+		Content:        "Order created",
+		SenderId:       dto.ClientId,
+	}
+	err = insertMessage(&message, tx)
 	if err != nil {
 		return Order{}, err
 	}
 
-	query = `
-    INSERT INTO orders_states(order_id, state_id)
-    VALUES ($1, $2)
-	`
-	args := []any{order.Id, order.StateId}
-
-	rows, err := m.db.QueryContext(ctx, query, args...)
-	if err != nil {
-		return Order{}, err
+	order := Order{
+		Items:     dto.Items,
+		StateId:   OrderStateCreated,
+		MessageId: message.Id,
 	}
-	defer rows.Close()
 
-	txn, err := m.db.Begin()
-	if err != nil {
-		return Order{}, err
-	}
-	defer txn.Rollback()
-
-	stmt, err := txn.Prepare(pq.CopyIn("orders_items", "order_id", "item_id", "quantity"))
+	err = insertOrder(&order, tx)
 	if err != nil {
 		return Order{}, err
 	}
 
-	for _, iq := range order.Items {
-		_, err = stmt.Exec(order.Id, iq.ItemId, iq.Quantity)
-		if err != nil {
-			return Order{}, err
-		}
+	rows, err := insertOrderState(order, tx)
+	if err != nil {
+		return Order{}, err
 	}
+	rows.Close()
 
-	_, err = stmt.Exec()
+	err = insertOrderItems(order, tx)
 	if err != nil {
 		return Order{}, err
 	}
 
-	err = stmt.Close()
-	if err != nil {
-		return Order{}, err
-	}
-
-	err = txn.Commit()
+	err = tx.Commit()
 	if err != nil {
 		return Order{}, err
 	}
@@ -146,7 +133,7 @@ func (m PsqlOrderModel) GetAllByUserId(id int64) ([]Order, error) {
 	}
 	query := `
 		SELECT o.order_id, o.message_id, o.created_at, o.updated_at, os.state_id, json_agg(json_build_object(
-			'item_id', oi.item_id, 
+			'itemId', oi.item_id, 
 			'quantity', oi.quantity
 		)) as items
 		FROM orders as o
@@ -297,4 +284,51 @@ func (m PsqlOrderModel) Update(order Order) (Order, error) {
 	}
 
 	return order, nil
+}
+
+func insertOrderItems(order Order, tx *sql.Tx) error {
+	stmt, err := tx.Prepare(pq.CopyIn("orders_items", "order_id", "item_id", "quantity"))
+	if err != nil {
+		return err
+	}
+
+	for _, iq := range order.Items {
+		_, err = stmt.Exec(order.Id, iq.ItemId, iq.Quantity)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = stmt.Exec()
+	if err != nil {
+		return err
+	}
+
+	err = stmt.Close()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func insertOrderState(order Order, tx *sql.Tx) (*sql.Rows, error) {
+	query := `
+    INSERT INTO orders_states(order_id, state_id)
+    VALUES ($1, $2)
+	`
+	args := []any{order.Id, order.StateId}
+
+	rows, err := tx.Query(query, args...)
+	return rows, err
+}
+
+func insertOrder(order *Order, tx *sql.Tx) error {
+	query := `
+    INSERT INTO orders(message_id)
+    VALUES ($1)
+    RETURNING order_id, created_at, updated_at
+	`
+
+	err := tx.QueryRow(query, order.MessageId).Scan(&order.Id, &order.CreatedAt, &order.UpdatedAt)
+	return err
 }

@@ -19,7 +19,7 @@ func TestHealthcheckHandler(t *testing.T) {
 	cfg := app.Config{Port: 4000, Env: "development"}
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	models := data.Models{User: data.NewStubUserModel([]data.User{})}
-	server := app.New(cfg, logger, models, data.Repositories{})
+	server := app.New(cfg, logger, models)
 	t.Run("it returns health status", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/v1/healthcheck", nil)
 		response := httptest.NewRecorder()

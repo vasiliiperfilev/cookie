@@ -22,6 +22,25 @@ func NewPsqlMessageModel(db *sql.DB) *PsqlMessageModel {
 }
 
 func (m PsqlMessageModel) Insert(msg *Message) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	tx, err := m.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	err = insertMessage(msg, tx)
+	if err != nil {
+		return err
+	}
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func insertMessage(msg *Message, tx *sql.Tx) error {
 	query := `
         INSERT INTO messages(sender_id, prev_message_id, conversation_id, content)
         VALUES ($1, $2, $3, $4)
@@ -29,10 +48,7 @@ func (m PsqlMessageModel) Insert(msg *Message) error {
 
 	args := []any{msg.SenderId, msg.PrevMessageId, msg.ConversationId, msg.Content}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	err := m.db.QueryRowContext(ctx, query, args...).Scan(&msg.Id, &msg.CreatedAt)
+	err := tx.QueryRow(query, args...).Scan(&msg.Id, &msg.CreatedAt)
 	if err != nil {
 		return err
 	}

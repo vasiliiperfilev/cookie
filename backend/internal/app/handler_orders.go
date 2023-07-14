@@ -27,7 +27,7 @@ func (a *Application) handlePostOrder(w http.ResponseWriter, r *http.Request) {
 		a.failedValidationResponse(w, r, v.Errors)
 		return
 	}
-	order, err := a.repositories.Order.Insert(dto)
+	order, err := a.models.Order.Insert(dto)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrUnprocessableEntity):

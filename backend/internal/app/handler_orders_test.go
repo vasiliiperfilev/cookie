@@ -45,9 +45,7 @@ func TestOrderPost(t *testing.T) {
 		Message:      messageModel,
 		Order:        orderModel,
 	}
-	orderRepository := data.NewStubOrderRepository(orderModel, messageModel)
-	repositories := data.Repositories{Order: orderRepository}
-	server := app.New(cfg, logger, models, repositories)
+	server := app.New(cfg, logger, models)
 
 	t.Run("it POST order with correct values", func(t *testing.T) {
 		clientId := int64(1)
@@ -162,9 +160,7 @@ func TestOrderGet(t *testing.T) {
 		Message:      messageModel,
 		Order:        orderModel,
 	}
-	orderRepository := data.NewStubOrderRepository(orderModel, messageModel)
-	repositories := data.Repositories{Order: orderRepository}
-	server := app.New(cfg, logger, models, repositories)
+	server := app.New(cfg, logger, models)
 
 	t.Run("it GET order", func(t *testing.T) {
 		dto := data.PostOrderDto{
@@ -180,7 +176,7 @@ func TestOrderGet(t *testing.T) {
 				},
 			},
 		}
-		want, err := orderRepository.Insert(dto)
+		want, err := orderModel.Insert(dto)
 		tester.AssertNoError(t, err)
 
 		request := createGetOrderRequest(t, 1, 1)
@@ -242,9 +238,7 @@ func TestOrderGetAll(t *testing.T) {
 		Message:      messageModel,
 		Order:        orderModel,
 	}
-	orderRepository := data.NewStubOrderRepository(orderModel, messageModel)
-	repositories := data.Repositories{Order: orderRepository}
-	server := app.New(cfg, logger, models, repositories)
+	server := app.New(cfg, logger, models)
 
 	t.Run("it GET all orders of own id", func(t *testing.T) {
 		dto := data.PostOrderDto{
@@ -260,9 +254,9 @@ func TestOrderGetAll(t *testing.T) {
 				},
 			},
 		}
-		order1, err := orderRepository.Insert(dto)
+		order1, err := orderModel.Insert(dto)
 		tester.AssertNoError(t, err)
-		order2, err := orderRepository.Insert(dto)
+		order2, err := orderModel.Insert(dto)
 		tester.AssertNoError(t, err)
 		want := []data.Order{order1, order2}
 
@@ -333,9 +327,7 @@ func TestOrderPatch(t *testing.T) {
 		Message:      messageModel,
 		Order:        orderModel,
 	}
-	orderRepository := data.NewStubOrderRepository(orderModel, messageModel)
-	repositories := data.Repositories{Order: orderRepository}
-	server := app.New(cfg, logger, models, repositories)
+	server := app.New(cfg, logger, models)
 
 	// Order states with owner:
 	// Created - 1 (client)
