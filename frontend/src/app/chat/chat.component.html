@@ -30,7 +30,10 @@
               aria-label="Edit order"
               (click)="
                 openOrderDialog({
-                  action: CrudDialogAction.UPDATE,
+                  action:
+                    user.type === UserType.BUSINESS
+                      ? CrudDialogAction.CLIENT_UPDATE
+                      : CrudDialogAction.SUPPLIER_UPDATE,
                   order: orders[message.id],
                   prevMessageId: message.id,
                   conversation: conversation

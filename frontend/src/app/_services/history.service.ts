@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Message } from '@app/_models/message';
 import { environment } from '@environments/environment';
 import { BehaviorSubject, Observable, map } from 'rxjs';
-import { Message } from '@app/_models/message';
 import { ConversationsService } from './conversations.service';
 
 @Injectable({
@@ -39,6 +39,16 @@ export class HistoryService {
       );
   }
 
+  getMessagesById(id: number) {
+    return this.http
+      .get<Message>(`${environment.apiUrl}/v1/messages/${id}`)
+      .pipe(
+        map((msg) => {
+          this.addNextMessage(msg);
+        })
+      );
+  }
+
   pushToLocalHistory(msg: Message) {
     const convExists =
       this.conversationService.conversationsValue[msg.conversationId];
@@ -67,7 +77,12 @@ export class HistoryService {
 
   private addNextMessage(msg: Message) {
     const msgs = { ...this.messagesValue };
-    msgs[msg.conversationId].push(msg);
+    const index = msgs[msg.conversationId].findIndex((m) => m.id === msg.id);
+    if (index >= 0) {
+      msgs[msg.conversationId][index] = msg;
+    } else {
+      msgs[msg.conversationId].push(msg);
+    }
     this.messagesSubject.next(msgs);
   }
 }

@@ -9,6 +9,8 @@ export enum CrudDialogAction {
   CREATE = 'Create',
   UPDATE = 'Update',
   DELETE = 'Delete',
+  SUPPLIER_UPDATE = 'Supplier Update',
+  CLIENT_UPDATE = 'Client Update',
 }
 export interface ItemDialogData {
   action: CrudDialogAction;

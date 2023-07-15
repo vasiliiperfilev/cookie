@@ -37,6 +37,8 @@ func (h *Hub) run() {
 			switch event.Type {
 			case EventMessage:
 				h.handleMessageEvent(event)
+			case EventOrder:
+				h.handleOrderEvent(event)
 			default:
 				h.app.logger.Printf("Unsupported websocket event %v, payload %v", event.Type, string(event.Payload))
 			}
@@ -85,6 +87,40 @@ func (h *Hub) handleMessageEvent(event WsEvent) {
 		if slices.Contains(conversation.UserIds, client.User.Id) {
 			client.Conversations[dto.ConversationId] = conversation
 			client.messages <- msgEvt
+		}
+	}
+}
+
+func (h *Hub) handleOrderEvent(event WsEvent) {
+	var order data.Order
+	err := readJson(bytes.NewReader(event.Payload), &order)
+	if err != nil {
+		h.errors <- h.createErrorMessage(event.Sender, PayloadErrorMessage)
+		return
+	}
+
+	msg, err := h.app.models.Message.GetById(order.MessageId)
+	if err != nil {
+		h.errors <- h.createErrorMessage(event.Sender, ServerErrorMessage)
+		return
+	}
+
+	payload, _ := json.Marshal(order)
+	orderEvent := WsEvent{
+		Type:    EventOrder,
+		Payload: payload,
+	}
+
+	conversation, err := h.getConversation(event, msg)
+	if err != nil {
+		h.errors <- h.createErrorMessage(event.Sender, PayloadErrorMessage)
+		return
+	}
+
+	for client := range h.clients {
+		if slices.Contains(conversation.UserIds, client.User.Id) {
+			client.Conversations[msg.ConversationId] = conversation
+			client.messages <- orderEvent
 		}
 	}
 }

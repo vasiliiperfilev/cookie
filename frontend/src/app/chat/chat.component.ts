@@ -72,12 +72,9 @@ export class ChatComponent implements OnInit {
     private orderService: OrdersService
   ) {
     this.user = userService.userValue!;
-    orderService.getAll().subscribe((os) => {
-      const orders: Record<number, Order> = os.reduce((acc, o) => {
-        acc[o.messageId] = o;
-        return acc;
-      }, {} as Record<number, Order>);
-      this.orders = orders;
+    orderService.orders.subscribe((orders) => (this.orders = orders));
+    orderService.getAll().subscribe({
+      error: (e) => console.log(e),
     });
   }
 
@@ -127,25 +124,9 @@ export class ChatComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe((result: OrderDialogData) => {
       if (result && result.order) {
-        if (result.action == CrudDialogAction.CREATE) {
-          this.attachOrderToMessage(result.order);
-        } else if (result.action == CrudDialogAction.UPDATE) {
-          this.attachOrderToMessage(result.order, result.prevMessageId);
-        }
+        this.orders[result.order.messageId] = result.order;
+        this.chatService.sendOrder(result.order);
       }
     });
-  }
-
-  attachOrderToMessage(order: Order, prevMessageId?: number) {
-    // remove previous attachment, attach to new message
-    if (prevMessageId) {
-      delete this.orders[prevMessageId];
-    }
-    this.orders[order.messageId] = order;
-    this.historyService
-      .getMessagesByConversationId(this.conversation.id)
-      .subscribe({
-        error: (err) => console.log(err),
-      });
   }
 }

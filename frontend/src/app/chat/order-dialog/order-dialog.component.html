@@ -1,50 +1,126 @@
-<h1 mat-dialog-title>{{ data.action }} Order</h1>
+<h1
+  mat-dialog-title
+  *ngIf="
+    data.order?.stateId !== OrderState.OrderStateDeclined &&
+    data.order?.stateId !== OrderState.OrderStateAccepted
+  "
+>
+  {{ data.action }} Order
+</h1>
+<h1
+  mat-dialog-title
+  *ngIf="data.order?.stateId === OrderState.OrderStateDeclined"
+>
+  Order was canceled
+</h1>
+<h1
+  mat-dialog-title
+  *ngIf="data.order?.stateId === OrderState.OrderStateAccepted"
+>
+  Order was accepted
+</h1>
 <div mat-dialog-content>
-  <form (ngSubmit)="onSubmit()">
-    <table #table mat-table [dataSource]="items" class="mat-elevation-z8">
-      <!-- Name Column -->
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef>Name</th>
-        <td mat-cell *matCellDef="let item">{{ item.name }}</td>
-      </ng-container>
+  <table #table mat-table [dataSource]="items" class="mat-elevation-z8">
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let item">{{ item.name }}</td>
+    </ng-container>
 
-      <!-- Size Column -->
-      <ng-container matColumnDef="size">
-        <th mat-header-cell *matHeaderCellDef>Size</th>
-        <td mat-cell *matCellDef="let item">{{ item.size }}</td>
-      </ng-container>
+    <!-- Size Column -->
+    <ng-container matColumnDef="size">
+      <th mat-header-cell *matHeaderCellDef>Size</th>
+      <td mat-cell *matCellDef="let item">{{ item.size }}</td>
+    </ng-container>
 
-      <!-- Unit Column -->
-      <ng-container matColumnDef="unit">
-        <th mat-header-cell *matHeaderCellDef>Unit</th>
-        <td mat-cell *matCellDef="let item">{{ item.unit }}</td>
-      </ng-container>
+    <!-- Unit Column -->
+    <ng-container matColumnDef="unit">
+      <th mat-header-cell *matHeaderCellDef>Unit</th>
+      <td mat-cell *matCellDef="let item">{{ item.unit }}</td>
+    </ng-container>
 
-      <!-- Quantity Column -->
-      <ng-container matColumnDef="quantity">
-        <th mat-header-cell *matHeaderCellDef>Quantity</th>
-        <td mat-cell *matCellDef="let item">
-          <mat-form-field>
-            <mat-label>Size</mat-label>
-            <input
-              type="number"
-              [ngModelOptions]="{ standalone: true }"
-              matInput
-              required
-              [(ngModel)]="orderItems[item.id]"
-            />
-          </mat-form-field>
-        </td>
-      </ng-container>
+    <!-- Edit Quantity Column -->
+    <ng-container matColumnDef="editQuantity">
+      <th mat-header-cell *matHeaderCellDef>Quantity</th>
+      <td mat-cell *matCellDef="let item">
+        <mat-form-field>
+          <mat-label>Size</mat-label>
+          <input
+            type="number"
+            [ngModelOptions]="{ standalone: true }"
+            matInput
+            required
+            [(ngModel)]="orderItems[item.id]"
+          />
+        </mat-form-field>
+      </td>
+    </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-    </table>
-    <div mat-dialog-actions>
-      <button type="submit" cdkFocusInitial mat-button color="primary">
-        {{ data.action }}
-      </button>
-      <button type="button" mat-button (click)="onCancel()">Cancel</button>
-    </div>
-  </form>
+    <!-- Quantity Column -->
+    <ng-container matColumnDef="quantity">
+      <th mat-header-cell *matHeaderCellDef>Quantity</th>
+      <td mat-cell *matCellDef="let item">
+        {{ orderItems[item.id] }}
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+  <div mat-dialog-actions *ngIf="data.action === CrudDialogAction.CREATE">
+    <button
+      type="button"
+      cdkFocusInitial
+      mat-button
+      color="primary"
+      (click)="createOrder()"
+    >
+      Create order
+    </button>
+    <button type="button" mat-button (click)="onCancel()">Close</button>
+  </div>
+  <div
+    mat-dialog-actions
+    *ngIf="
+      data.action === CrudDialogAction.CLIENT_UPDATE &&
+      data.order?.stateId !== OrderState.OrderStateDeclined &&
+      data.order?.stateId !== OrderState.OrderStateAccepted
+    "
+  >
+    <button
+      type="button"
+      cdkFocusInitial
+      mat-button
+      color="primary"
+      (click)="updateOrderState(OrderState.OrderStateDeclined)"
+    >
+      Cancel order
+    </button>
+    <button type="button" mat-button (click)="onCancel()">Close</button>
+  </div>
+  <div
+    mat-dialog-actions
+    *ngIf="
+      data.action === CrudDialogAction.SUPPLIER_UPDATE &&
+      data.order?.stateId !== OrderState.OrderStateDeclined &&
+      data.order?.stateId !== OrderState.OrderStateAccepted
+    "
+  >
+    <button
+      type="button"
+      cdkFocusInitial
+      mat-button
+      color="primary"
+      (click)="updateOrderState(OrderState.OrderStateAccepted)"
+    >
+      Accept order
+    </button>
+    <button
+      type="button"
+      mat-button
+      (click)="updateOrderState(OrderState.OrderStateDeclined)"
+    >
+      Decline order
+    </button>
+  </div>
 </div>

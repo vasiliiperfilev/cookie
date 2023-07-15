@@ -1,8 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, Inject, Optional } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { Item, UserType } from '@app/_models';
-import { AlertService, ItemsService, OrdersService } from '@app/_services';
+import { Item, OrderState, User, UserType } from '@app/_models';
+import {
+  AlertService,
+  ItemsService,
+  OrdersService,
+  UserService,
+} from '@app/_services';
 import { CrudDialogAction } from '@app/catalog/catalog.component';
 import { first } from 'rxjs';
 import { OrderDialogData } from '../chat.component';
@@ -14,12 +19,21 @@ import { OrderDialogData } from '../chat.component';
 })
 export class OrderDialogComponent {
   items: Item[] = [];
+  user: User;
   orderItems: { [x in number]: number } = {};
   displayedColumns = ['name', 'size', 'unit', 'quantity'];
+  public get CrudDialogAction() {
+    return CrudDialogAction;
+  }
+  public get OrderState() {
+    return OrderState;
+  }
+
   constructor(
     private alertService: AlertService,
     private orderService: OrdersService,
     private itemsService: ItemsService,
+    private userService: UserService,
     public dialogRef: MatDialogRef<OrderDialogComponent>,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: OrderDialogData
   ) {
@@ -35,36 +49,24 @@ export class OrderDialogComponent {
         order.items.map((v) => (this.orderItems[v.itemId] = v.quantity));
       });
     }
+    this.user = userService.userValue!;
+    this.displayedColumns = [
+      'name',
+      'size',
+      'unit',
+      data.action === CrudDialogAction.CREATE ? 'editQuantity' : 'quantity',
+    ];
   }
 
-  onSubmit() {
-    this.alertService.clear();
-    // stop here if form is invalid
-    if (Object.values(this.orderItems).length === 0) {
-      return;
-    }
-
-    switch (this.data.action) {
-      case CrudDialogAction.CREATE: {
-        this.createItem();
-        break;
-      }
-      case CrudDialogAction.UPDATE: {
-        this.updateOrder();
-        break;
-      }
-    }
-  }
-
-  private updateOrder() {
+  updateOrderState(state: OrderState) {
     this.orderService
       .update(this.data.order!.id, {
-        items: this.toItemsArray(),
+        stateId: state,
       })
       .pipe(first())
       .subscribe({
         next: (order) => {
-          this.alertService.success('Item updated!');
+          this.alertService.success('Order state updated!');
           this.dialogRef.close({ action: CrudDialogAction.UPDATE, order });
         },
         error: (error: HttpErrorResponse) => {
@@ -74,7 +76,7 @@ export class OrderDialogComponent {
       });
   }
 
-  private createItem() {
+  createOrder() {
     this.orderService
       .create({
         conversationId: this.data.conversation.id,

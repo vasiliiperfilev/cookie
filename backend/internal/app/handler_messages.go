@@ -51,3 +51,31 @@ func (a *Application) handleGetMessages(w http.ResponseWriter, r *http.Request) 
 
 	writeJsonResponse(w, http.StatusOK, messages, nil)
 }
+
+func (a *Application) handleGetMessage(w http.ResponseWriter, r *http.Request) {
+	_, err := a.AuthenticateHttpRequest(w, r)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrUnathorized):
+			a.invalidAuthenticationTokenResponse(w, r)
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	messageId, _ := strconv.ParseInt(getField(r, 0), 10, 64)
+	msg, err := a.models.Message.GetById(messageId)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	writeJsonResponse(w, http.StatusOK, msg, nil)
+}
