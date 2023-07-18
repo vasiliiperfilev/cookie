@@ -26,6 +26,17 @@
         </mat-list-item>
       </a>
       <a
+        *ngIf="user?.type === UserType.SUPPLIER"
+        mat-flat-button
+        [routerLink]="['/orders']"
+        class="w-100 justify-content-start"
+      >
+        <mat-list-item>
+          <mat-icon matListItemIcon>shopping_basket</mat-icon>
+          <div matListItemTitle>Orders</div>
+        </mat-list-item>
+      </a>
+      <a
         mat-flat-button
         [routerLink]="['/login']"
         class="w-100 justify-content-start"
