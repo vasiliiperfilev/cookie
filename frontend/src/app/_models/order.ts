@@ -1,3 +1,5 @@
+import { User } from './user';
+
 export interface Order {
   id: number;
   messageId: number;
@@ -8,6 +10,7 @@ export interface Order {
     quantity: number;
   }[];
   stateId: OrderState;
+  client?: User;
 }
 
 export enum OrderState {

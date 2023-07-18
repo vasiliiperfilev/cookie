@@ -9,6 +9,7 @@ export enum CrudDialogAction {
   CREATE = 'Create',
   UPDATE = 'Update',
   DELETE = 'Delete',
+  VIEW = 'View',
   SUPPLIER_UPDATE = 'Supplier Update',
   CLIENT_UPDATE = 'Client Update',
 }

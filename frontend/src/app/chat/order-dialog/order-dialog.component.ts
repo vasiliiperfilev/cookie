@@ -37,7 +37,7 @@ export class OrderDialogComponent {
     public dialogRef: MatDialogRef<OrderDialogComponent>,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: OrderDialogData
   ) {
-    const supplier = data.conversation.users.find(
+    const supplier = data.conversation?.users.find(
       (u) => u.type === UserType.SUPPLIER
     );
     this.itemsService.getAllBySupplierId(supplier!.id).subscribe((items) => {
@@ -79,7 +79,7 @@ export class OrderDialogComponent {
   createOrder() {
     this.orderService
       .create({
-        conversationId: this.data.conversation.id,
+        conversationId: this.data.conversation!.id,
         items: this.toItemsArray(),
       })
       .pipe(first())

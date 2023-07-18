@@ -1,0 +1,54 @@
+<h1
+  mat-dialog-title
+  *ngIf="
+    data.stateId !== OrderState.OrderStateDeclined &&
+    data.stateId !== OrderState.OrderStateAccepted &&
+    data.stateId !== OrderState.OrderStateFulfilled
+  "
+>
+  Order {{ data.id }}
+</h1>
+<h1 mat-dialog-title *ngIf="data.stateId === OrderState.OrderStateDeclined">
+  Order {{ data.id }} was canceled
+</h1>
+<h1 mat-dialog-title *ngIf="data.stateId === OrderState.OrderStateAccepted">
+  Order {{ data.id }} was accepted
+</h1>
+<h1 mat-dialog-title *ngIf="data.stateId === OrderState.OrderStateFulfilled">
+  Order {{ data.id }} was fullfilled
+</h1>
+<div mat-dialog-content>
+  <table #table mat-table [dataSource]="items" class="mat-elevation-z8">
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let orderItem">{{ orderItem.item.name }}</td>
+    </ng-container>
+
+    <!-- Size Column -->
+    <ng-container matColumnDef="size">
+      <th mat-header-cell *matHeaderCellDef>Size</th>
+      <td mat-cell *matCellDef="let orderItem">{{ orderItem.item.size }}</td>
+    </ng-container>
+
+    <!-- Unit Column -->
+    <ng-container matColumnDef="unit">
+      <th mat-header-cell *matHeaderCellDef>Unit</th>
+      <td mat-cell *matCellDef="let orderItem">{{ orderItem.item.unit }}</td>
+    </ng-container>
+
+    <!-- Quantity Column -->
+    <ng-container matColumnDef="quantity">
+      <th mat-header-cell *matHeaderCellDef>Quantity</th>
+      <td mat-cell *matCellDef="let orderItem">
+        {{ orderItem.quantity }}
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+  <div mat-dialog-actions>
+    <button type="button" mat-button (click)="onCancel()">Close</button>
+  </div>
+</div>

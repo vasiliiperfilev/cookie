@@ -15,6 +15,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { CatalogModule } from './catalog/catalog.module';
 import { ChatModule } from './chat/chat.module';
+import { OrderListModule } from './orders_list/order_list.module';
 @NgModule({
   imports: [
     BrowserModule,
@@ -26,6 +27,7 @@ import { ChatModule } from './chat/chat.module';
     MatGridListModule,
     MatTableModule,
     CatalogModule,
+    OrderListModule,
     MatSidenavModule,
     MatListModule,
     MatIconModule,

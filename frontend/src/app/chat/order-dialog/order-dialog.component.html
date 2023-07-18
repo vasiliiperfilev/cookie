@@ -2,22 +2,29 @@
   mat-dialog-title
   *ngIf="
     data.order?.stateId !== OrderState.OrderStateDeclined &&
-    data.order?.stateId !== OrderState.OrderStateAccepted
+    data.order?.stateId !== OrderState.OrderStateAccepted &&
+    data.order?.stateId !== OrderState.OrderStateFulfilled
   "
 >
-  {{ data.action }} Order
+  {{ data.action }} Order {{ data.order?.id }}
 </h1>
 <h1
   mat-dialog-title
   *ngIf="data.order?.stateId === OrderState.OrderStateDeclined"
 >
-  Order was canceled
+  Order {{ data.order?.id }} was canceled
 </h1>
 <h1
   mat-dialog-title
   *ngIf="data.order?.stateId === OrderState.OrderStateAccepted"
 >
-  Order was accepted
+  Order {{ data.order?.id }} was accepted
+</h1>
+<h1
+  mat-dialog-title
+  *ngIf="data.order?.stateId === OrderState.OrderStateFulfilled"
+>
+  Order {{ data.order?.id }} was fullfilled
 </h1>
 <div mat-dialog-content>
   <table #table mat-table [dataSource]="items" class="mat-elevation-z8">
@@ -84,7 +91,8 @@
     *ngIf="
       data.action === CrudDialogAction.CLIENT_UPDATE &&
       data.order?.stateId !== OrderState.OrderStateDeclined &&
-      data.order?.stateId !== OrderState.OrderStateAccepted
+      data.order?.stateId !== OrderState.OrderStateAccepted &&
+      data.order?.stateId !== OrderState.OrderStateFulfilled
     "
   >
     <button
@@ -103,7 +111,8 @@
     *ngIf="
       data.action === CrudDialogAction.SUPPLIER_UPDATE &&
       data.order?.stateId !== OrderState.OrderStateDeclined &&
-      data.order?.stateId !== OrderState.OrderStateAccepted
+      data.order?.stateId !== OrderState.OrderStateAccepted &&
+      data.order?.stateId !== OrderState.OrderStateFulfilled
     "
   >
     <button
