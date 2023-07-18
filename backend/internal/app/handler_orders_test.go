@@ -164,6 +164,7 @@ func TestOrderGet(t *testing.T) {
 
 	t.Run("it GET order", func(t *testing.T) {
 		dto := data.PostOrderDto{
+			ClientId:       1,
 			ConversationId: 1,
 			Items: []data.ItemQuantity{
 				{
@@ -242,6 +243,7 @@ func TestOrderGetAll(t *testing.T) {
 
 	t.Run("it GET all orders of own id", func(t *testing.T) {
 		dto := data.PostOrderDto{
+			ClientId:       1,
 			ConversationId: 1,
 			Items: []data.ItemQuantity{
 				{
@@ -473,13 +475,6 @@ func createGetAllOrdersRequest(t *testing.T, clientId int64) *http.Request {
 
 func parseOrderResponse(t *testing.T, response *httptest.ResponseRecorder) data.Order {
 	var got data.Order
-	err := json.NewDecoder(response.Body).Decode(&got)
-	tester.AssertNoError(t, err)
-	return got
-}
-
-func parseAllOrdersResponse(t *testing.T, response *httptest.ResponseRecorder) []data.Order {
-	var got []data.Order
 	err := json.NewDecoder(response.Body).Decode(&got)
 	tester.AssertNoError(t, err)
 	return got

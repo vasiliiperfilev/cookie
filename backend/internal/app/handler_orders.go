@@ -38,6 +38,27 @@ func (a *Application) handlePostOrder(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	msg, err := a.models.Message.GetById(order.MessageId)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	client, err := a.models.User.GetById(msg.SenderId)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	order.Client = client
 	writeJsonResponse(w, http.StatusCreated, order, nil)
 }
 
@@ -63,6 +84,27 @@ func (a *Application) handleGetOrder(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	msg, err := a.models.Message.GetById(order.MessageId)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	client, err := a.models.User.GetById(msg.SenderId)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	order.Client = client
 	writeJsonResponse(w, http.StatusOK, order, nil)
 }
 
@@ -91,6 +133,30 @@ func (a *Application) handleGetAllOrders(w http.ResponseWriter, r *http.Request)
 			a.serverErrorResponse(w, r, err)
 		}
 		return
+	}
+	for i, order := range orders {
+		msg, err := a.models.Message.GetById(order.MessageId)
+		if err != nil {
+			switch {
+			case errors.Is(err, data.ErrRecordNotFound):
+				a.notFoundResponse(w, r)
+			default:
+				a.serverErrorResponse(w, r, err)
+			}
+			return
+		}
+		client, err := a.models.User.GetById(msg.SenderId)
+		if err != nil {
+			switch {
+			case errors.Is(err, data.ErrRecordNotFound):
+				a.notFoundResponse(w, r)
+			default:
+				a.serverErrorResponse(w, r, err)
+			}
+			return
+		}
+		order.Client = client
+		orders[i] = order
 	}
 	writeJsonResponse(w, http.StatusOK, orders, nil)
 }
@@ -136,11 +202,32 @@ func (a *Application) handlePatchOrder(w http.ResponseWriter, r *http.Request) {
 	} else {
 		order.StateId = dto.StateId
 	}
-	// TODO: add new message
+	// TODO: update message message
 	updatedOrder, err := a.models.Order.Update(order)
 	if err != nil {
 		a.serverErrorResponse(w, r, err)
 		return
 	}
+	msg, err := a.models.Message.GetById(order.MessageId)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	client, err := a.models.User.GetById(msg.SenderId)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	updatedOrder.Client = client
 	writeJsonResponse(w, http.StatusOK, updatedOrder, nil)
 }

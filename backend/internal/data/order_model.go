@@ -195,6 +195,7 @@ func (m PsqlOrderModel) GetAllByUserId(id int64) ([]Order, error) {
 }
 
 func (m PsqlOrderModel) Update(order Order) (Order, error) {
+	// message for update and transactions and stuff
 	if order.Id < 1 {
 		return Order{}, ErrRecordNotFound
 	}

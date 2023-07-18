@@ -32,6 +32,7 @@ type Order struct {
 	UpdatedAt time.Time      `json:"updatedAt"`
 	Items     []ItemQuantity `json:"items"`
 	StateId   int            `json:"stateId"`
+	Client    User           `json:"client"`
 }
 
 type PostOrderDto struct {
