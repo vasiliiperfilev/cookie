@@ -1,3 +1,4 @@
+import { environment } from '@environments/environment';
 import { Message } from './message';
 import { User } from './user';
 
@@ -18,6 +19,16 @@ export class Conversation {
       return user?.name ?? null;
     }
     return null;
+  }
+
+  getImageUrl(userId: number) {
+    if (this.users.length == 2) {
+      const user = this.users.find((user) => user.id !== userId);
+      if (user) {
+        return `${environment.apiUrl}/v1/images/${user.imageId}`;
+      }
+    }
+    return undefined;
   }
 }
 

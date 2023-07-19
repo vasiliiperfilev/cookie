@@ -27,7 +27,10 @@
     class="border-bottom"
   >
     <div matListItemAvatar>
-      <avatar [fallback]="conversation.value.getName(user.id) || 'EM'" />
+      <avatar
+        [fallback]="conversation.value.getName(user.id) || 'EM'"
+        [imageUrl]="conversation.value.getImageUrl(user.id)"
+      />
     </div>
     <div matListItemLine class="d-flex align-items-center">
       <span> {{ conversation.value.getName(user.id) }}</span>

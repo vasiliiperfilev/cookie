@@ -1,6 +1,9 @@
 <div class="container">
   <mat-toolbar color="secondary" class="d-flex gap-1">
-    <avatar [fallback]="conversation.getName(user.id) || 'EM'" />
+    <avatar
+      [fallback]="conversation.getName(user.id) || 'EM'"
+      [imageUrl]="conversation.getImageUrl(user.id)"
+    />
     <span>{{ conversation.getName(user.id) }}</span>
   </mat-toolbar>
   <mat-list class="chat" #chat>

@@ -1,19 +1,17 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
 import {
   AbstractControl,
-  FormBuilder,
   FormControl,
   FormGroup,
   ValidationErrors,
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { first } from 'rxjs/operators';
-
-import { AlertService, UserService } from '@app/_services';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormErrors, PostUserDto, UserType } from '@app/_models';
-import { HttpErrorResponse } from '@angular/common/http';
+import { AlertService, UserService } from '@app/_services';
+import { first } from 'rxjs/operators';
 
 export const passwordMatchingValidatior: ValidatorFn = (
   control: AbstractControl
@@ -33,6 +31,7 @@ export class RegisterComponent {
   loading = false;
   submitted = false;
   serverError: FormErrors<PostUserDto> | null = null;
+  profileImage: File | null = null;
   form = new FormGroup(
     {
       email: new FormControl('', [Validators.required, Validators.email]),
@@ -45,7 +44,7 @@ export class RegisterComponent {
       name: new FormControl('', [Validators.required]),
       confirmPassword: new FormControl('', [Validators.required]),
       type: new FormControl(1, [Validators.required]),
-      imageId: new FormControl('test', [Validators.required]),
+      image: new FormControl(null, [Validators.required]),
     },
     { validators: passwordMatchingValidatior }
   );
@@ -85,7 +84,7 @@ export class RegisterComponent {
         name: this.form.value.name!,
         password: this.form.value.password!,
         type: this.form.value.type!,
-        imageId: this.form.value.imageId!,
+        image: this.profileImage!,
       })
       .pipe(first())
       .subscribe({
@@ -113,5 +112,12 @@ export class RegisterComponent {
         return { match_error: 'Value does not match' };
       return null;
     };
+  }
+
+  onFileSelect(event: any) {
+    if (event.target.files.length > 0) {
+      const file = event.target.files[0];
+      this.profileImage = file;
+    }
   }
 }

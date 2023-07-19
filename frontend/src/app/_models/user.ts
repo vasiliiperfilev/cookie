@@ -4,7 +4,7 @@ export interface User {
   name: string;
   password?: string;
   type?: UserType;
-  imageId?: string;
+  imageId: string;
 }
 
 export enum UserType {
@@ -17,5 +17,6 @@ export interface PostUserDto {
   name: string;
   password: string;
   type: number;
-  imageId: string;
+  image?: File;
+  imageId?: string;
 }

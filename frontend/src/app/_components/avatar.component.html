@@ -1,4 +1,4 @@
 <div class="avatar">
-  <img *ngIf="imageUrl" src="{{ imageUrl }}" />
+  <img *ngIf="imageUrl" src="{{ imageUrl }}" class="resize_fit_center" />
   <span *ngIf="!imageUrl">{{ getInitials() }}</span>
 </div>

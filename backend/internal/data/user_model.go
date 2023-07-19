@@ -53,7 +53,7 @@ func (m PsqlUserModel) Insert(user *User) error {
 
 func (m PsqlUserModel) GetByEmail(email string) (User, error) {
 	query := `
-        SELECT user_id, created_at, email, name, password_hash, user_type_id, version
+        SELECT user_id, created_at, email, name, password_hash, user_type_id, version, image_id
         FROM users
         WHERE email = $1`
 
@@ -70,6 +70,7 @@ func (m PsqlUserModel) GetByEmail(email string) (User, error) {
 		&user.Password.hash,
 		&user.Type,
 		&user.Version,
+		&user.ImageId,
 	)
 
 	if err != nil {
@@ -86,7 +87,7 @@ func (m PsqlUserModel) GetByEmail(email string) (User, error) {
 
 func (m PsqlUserModel) GetById(id int64) (User, error) {
 	query := `
-        SELECT user_id, created_at, email, name, password_hash, user_type_id, version
+        SELECT user_id, created_at, email, name, password_hash, user_type_id, version, image_id
         FROM users
         WHERE user_id = $1`
 
@@ -103,6 +104,7 @@ func (m PsqlUserModel) GetById(id int64) (User, error) {
 		&user.Password.hash,
 		&user.Type,
 		&user.Version,
+		&user.ImageId,
 	)
 
 	if err != nil {
@@ -206,7 +208,7 @@ func (m PsqlUserModel) GetForToken(tokenScope, tokenPlaintext string) (User, err
 
 func (m PsqlUserModel) GetAllBySearch(query string) ([]User, error) {
 	q := `
-        SELECT user_id, created_at, email, name, user_type_id
+        SELECT user_id, created_at, email, name, user_type_id, image_id
         FROM users
         WHERE (to_tsvector('simple', name) @@ plainto_tsquery('simple', $1) OR $1 = '') `
 
@@ -228,7 +230,7 @@ func (m PsqlUserModel) GetAllBySearch(query string) ([]User, error) {
 
 	for rows.Next() {
 		user := User{}
-		if err := rows.Scan(&user.Id, &user.CreatedAt, &user.Email, &user.Name, &user.Type); err != nil {
+		if err := rows.Scan(&user.Id, &user.CreatedAt, &user.Email, &user.Name, &user.Type, &user.ImageId); err != nil {
 			return nil, err
 		}
 		users = append(users, user)

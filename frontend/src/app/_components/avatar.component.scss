@@ -10,4 +10,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
+}
+
+.resize_fit_center {
+  max-width: 200%;
+  max-height: 200%;
+  vertical-align: middle;
 }

@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 
 import { PostUserDto, User } from '@app/_models';
 import { Token } from '@app/_models/token';
@@ -61,7 +61,17 @@ export class UserService {
   }
 
   register(user: PostUserDto) {
-    return this.http.post(`${environment.apiUrl}/v1/users`, user);
+    const formData = new FormData();
+    formData.append('image', user.image!);
+    return this.http
+      .post<{ imageId: string }>(`${environment.apiUrl}/v1/images`, formData)
+      .pipe(
+        switchMap((res) => {
+          user.imageId = res.imageId;
+          delete user['image'];
+          return this.http.post<User>(`${environment.apiUrl}/v1/users`, user);
+        })
+      );
   }
 
   getById(id: number) {
