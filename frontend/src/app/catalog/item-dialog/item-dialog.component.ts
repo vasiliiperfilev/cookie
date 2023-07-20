@@ -14,6 +14,8 @@ import { CrudDialogAction, ItemDialogData } from '../catalog.component';
   styleUrls: ['./item-dialog.component.scss'],
 })
 export class CreateItemDialogComponent {
+  image: File | undefined = undefined;
+  submited = false;
   constructor(
     private alertService: AlertService,
     private itemService: ItemsService,
@@ -34,9 +36,15 @@ export class CreateItemDialogComponent {
       nonNullable: true,
       validators: [Validators.required],
     }),
-    imageUrl: new FormControl('test', {
+    image: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required],
+      validators:
+        this.data.action === CrudDialogAction.CREATE
+          ? [Validators.required]
+          : [],
+    }),
+    imageId: new FormControl('', {
+      nonNullable: true,
     }),
   });
 
@@ -57,6 +65,7 @@ export class CreateItemDialogComponent {
   }
 
   onSubmit() {
+    this.submited = true;
     this.alertService.clear();
     // stop here if form is invalid
     if (this.form.invalid) {
@@ -104,7 +113,8 @@ export class CreateItemDialogComponent {
         unit: this.form.value.unit!,
         size: this.form.value.size!,
         name: this.form.value.name!,
-        imageUrl: this.form.value.imageUrl!,
+        image: this.image,
+        imageId: this.data.item!.imageId,
       })
       .pipe(first())
       .subscribe({
@@ -126,7 +136,7 @@ export class CreateItemDialogComponent {
         unit: this.form.value.unit!,
         size: this.form.value.size!,
         name: this.form.value.name!,
-        imageUrl: this.form.value.imageUrl!,
+        image: this.image!,
       })
       .pipe(first())
       .subscribe({
@@ -154,6 +164,13 @@ export class CreateItemDialogComponent {
           serverError: e.errors[field as keyof PostItemDto],
         });
       }
+    }
+  }
+
+  onFileSelect(event: any) {
+    if (event.target.files.length > 0) {
+      const file = event.target.files[0];
+      this.image = file;
     }
   }
 }

@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Item, PostItemDto } from '@app/_models';
 import { environment } from '@environments/environment';
+import { switchMap } from 'rxjs';
 import { UserService } from './user.service';
 
 @Injectable({
@@ -27,10 +28,37 @@ export class ItemsService {
   }
 
   create(dto: PostItemDto) {
-    return this.http.post<Item>(`${environment.apiUrl}/v1/items`, dto);
+    const formData = new FormData();
+    formData.append('image', dto.image!);
+    return this.http
+      .post<{ imageId: string }>(`${environment.apiUrl}/v1/images`, formData)
+      .pipe(
+        switchMap((res) => {
+          dto.imageId = res.imageId;
+          delete dto['image'];
+          return this.http.post<Item>(`${environment.apiUrl}/v1/items`, dto);
+        })
+      );
   }
 
-  update(id: number, dto: PostItemDto) {
+  update(id: number, dto: Partial<PostItemDto>) {
+    if (dto.image) {
+      const formData = new FormData();
+      formData.append('image', dto.image!);
+      return this.http
+        .post<{ imageId: string }>(`${environment.apiUrl}/v1/images`, formData)
+        .pipe(
+          switchMap((res) => {
+            dto.imageId = res.imageId;
+            delete dto['image'];
+            return this.http.put<Item>(
+              `${environment.apiUrl}/v1/items/${id}`,
+              dto
+            );
+          })
+        );
+    }
+    delete dto['image'];
     return this.http.put<Item>(`${environment.apiUrl}/v1/items/${id}`, dto);
   }
 

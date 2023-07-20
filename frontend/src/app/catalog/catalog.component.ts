@@ -3,6 +3,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatTable } from '@angular/material/table';
 import { Item } from '@app/_models';
 import { ItemsService } from '@app/_services/items.service';
+import { environment } from '@environments/environment';
 import { CreateItemDialogComponent } from './item-dialog/item-dialog.component';
 
 export enum CrudDialogAction {
@@ -27,7 +28,7 @@ export class CatalogComponent implements OnInit {
   @ViewChild('table') table: MatTable<any> | undefined;
   items: Item[] = [];
   selectedUnit: string | undefined;
-  displayedColumns = ['name', 'size', 'unit', 'action'];
+  displayedColumns = ['image', 'name', 'size', 'unit', 'action'];
   public get CrudDialogAction() {
     return CrudDialogAction;
   }
@@ -76,5 +77,9 @@ export class CatalogComponent implements OnInit {
     this.items = this.items.filter((val) => {
       return val.id != item.id;
     });
+  }
+
+  getImageUrl(item: Item) {
+    return `${environment.apiUrl}/v1/images/${item.imageId}`;
   }
 }

@@ -119,7 +119,7 @@ export class ChatComponent implements OnInit {
 
   openOrderDialog(data: OrderDialogData) {
     const dialogRef = this.dialog.open(OrderDialogComponent, {
-      width: '500px',
+      width: '600px',
       data,
     });
     dialogRef.afterClosed().subscribe((result: OrderDialogData) => {

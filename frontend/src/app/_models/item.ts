@@ -4,12 +4,13 @@ export interface Item {
   unit: string;
   size: number;
   name: string;
-  imageUrl: string;
+  imageId: string;
 }
 
 export interface PostItemDto {
   unit: string;
   size: number;
   name: string;
-  imageUrl: string;
+  image?: File;
+  imageId?: string;
 }

@@ -9,8 +9,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
-import { OrderListComponent } from './order_list.component';
+import { AvatarComponent } from '@app/_components/avatar.component';
 import { OrderViewComponent } from './order-view/order-view.component';
+import { OrderListComponent } from './order_list.component';
 
 @NgModule({
   declarations: [OrderListComponent, OrderViewComponent],
@@ -26,6 +27,7 @@ import { OrderViewComponent } from './order-view/order-view.component';
     MatTableModule,
     MatIconModule,
     MatButtonModule,
+    AvatarComponent,
   ],
 })
 export class OrderListModule {}

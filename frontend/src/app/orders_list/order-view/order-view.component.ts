@@ -2,6 +2,7 @@ import { Component, Inject, Optional } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Item, Order, OrderState } from '@app/_models';
 import { ItemsService, UserService } from '@app/_services';
+import { environment } from '@environments/environment';
 
 interface OrderItem {
   item: Item;
@@ -15,7 +16,7 @@ interface OrderItem {
 })
 export class OrderViewComponent {
   items: OrderItem[] = [];
-  displayedColumns = ['name', 'size', 'unit', 'quantity'];
+  displayedColumns = ['image', 'name', 'size', 'unit', 'quantity'];
   public get OrderState() {
     return OrderState;
   }
@@ -38,5 +39,9 @@ export class OrderViewComponent {
 
   onCancel(): void {
     this.dialogRef.close({});
+  }
+
+  getImageUrl(item: Item) {
+    return `${environment.apiUrl}/v1/images/${item.imageId}`;
   }
 }

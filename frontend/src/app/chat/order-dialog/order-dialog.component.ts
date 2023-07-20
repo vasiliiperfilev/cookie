@@ -9,6 +9,7 @@ import {
   UserService,
 } from '@app/_services';
 import { CrudDialogAction } from '@app/catalog/catalog.component';
+import { environment } from '@environments/environment';
 import { first } from 'rxjs';
 import { OrderDialogData } from '../chat.component';
 
@@ -21,7 +22,7 @@ export class OrderDialogComponent {
   items: Item[] = [];
   user: User;
   orderItems: { [x in number]: number } = {};
-  displayedColumns = ['name', 'size', 'unit', 'quantity'];
+  displayedColumns = ['image', 'name', 'size', 'unit', 'quantity'];
   public get CrudDialogAction() {
     return CrudDialogAction;
   }
@@ -51,6 +52,7 @@ export class OrderDialogComponent {
     }
     this.user = userService.userValue!;
     this.displayedColumns = [
+      'image',
       'name',
       'size',
       'unit',
@@ -111,5 +113,9 @@ export class OrderDialogComponent {
       });
     });
     return result;
+  }
+
+  getImageUrl(item: Item) {
+    return `${environment.apiUrl}/v1/images/${item.imageId}`;
   }
 }

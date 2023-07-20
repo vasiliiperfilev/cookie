@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
+import { AvatarComponent } from '@app/_components/avatar.component';
 import { CatalogComponent } from './catalog.component';
 import { CreateItemDialogComponent } from './item-dialog/item-dialog.component';
 
@@ -26,6 +27,7 @@ import { CreateItemDialogComponent } from './item-dialog/item-dialog.component';
     MatTableModule,
     MatIconModule,
     MatButtonModule,
+    AvatarComponent,
   ],
 })
 export class CatalogModule {}
