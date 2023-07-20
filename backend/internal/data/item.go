@@ -8,14 +8,14 @@ type Item struct {
 	Unit       string  `json:"unit"`
 	Size       float32 `json:"size"`
 	Name       string  `json:"name"`
-	ImageUrl   string  `json:"imageUrl"`
+	ImageId    string  `json:"imageId"`
 }
 
 type PostItemDto struct {
-	Unit     string  `json:"unit"`
-	Size     float32 `json:"size"`
-	Name     string  `json:"name"`
-	ImageUrl string  `json:"imageUrl"`
+	Unit    string  `json:"unit"`
+	Size    float32 `json:"size"`
+	Name    string  `json:"name"`
+	ImageId string  `json:"imageId"`
 }
 
 func ValidatePostItemInput(v *validator.Validator, input PostItemDto) {

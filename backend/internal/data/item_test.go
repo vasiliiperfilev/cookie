@@ -32,14 +32,14 @@ func TestItemModelIntegration(t *testing.T) {
 			Unit:       "l",
 			Size:       1,
 			Name:       "Milk",
-			ImageUrl:   "test",
+			ImageId:    "test",
 		},
 		{
 			SupplierId: supplierId,
 			Unit:       "kg",
 			Size:       1,
 			Name:       "Apples",
-			ImageUrl:   "test",
+			ImageId:    "test",
 		},
 	}
 	t.Run("it inserts Item and retrieves it", func(t *testing.T) {
@@ -74,7 +74,7 @@ func TestItemModelIntegration(t *testing.T) {
 		want.Unit = "l"
 		want.Name = "Juice"
 		want.Size = 2
-		want.ImageUrl = "test 2"
+		want.ImageId = "test 2"
 		got, err := model.Update(want)
 		tester.AssertNoError(t, err)
 		tester.AssertValue(t, got, want, "Expected same items array")

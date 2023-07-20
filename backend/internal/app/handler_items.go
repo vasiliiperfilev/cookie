@@ -35,7 +35,7 @@ func (a *Application) handlePostItem(w http.ResponseWriter, r *http.Request) {
 		Unit:       dto.Unit,
 		Size:       dto.Size,
 		Name:       dto.Name,
-		ImageUrl:   dto.ImageUrl,
+		ImageId:    dto.ImageId,
 	}
 	err = a.models.Item.Insert(&item)
 	if err != nil {
@@ -139,7 +139,7 @@ func (a *Application) handlePutItem(w http.ResponseWriter, r *http.Request) {
 	item.Unit = dto.Unit
 	item.Size = dto.Size
 	item.Name = dto.Name
-	item.ImageUrl = dto.ImageUrl
+	item.ImageId = dto.ImageId
 	updatedItem, err := a.models.Item.Update(item)
 	if err != nil {
 		a.serverErrorResponse(w, r, err)

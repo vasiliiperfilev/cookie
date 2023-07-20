@@ -51,17 +51,17 @@ func TestIntegrationPostItems(t *testing.T) {
 		userToken := mustLoginUser(t, server, loginInput)
 		// post item
 		dto := data.PostItemDto{
-			Unit:     "l",
-			Size:     1,
-			Name:     "milk",
-			ImageUrl: "test",
+			Unit:    "l",
+			Size:    1,
+			Name:    "milk",
+			ImageId: "test",
 		}
 		want := data.Item{
 			SupplierId: user.Id,
 			Unit:       dto.Unit,
 			Size:       dto.Size,
 			Name:       dto.Name,
-			ImageUrl:   dto.ImageUrl,
+			ImageId:    dto.ImageId,
 		}
 		// assert item
 		got := postItem(t, server, userToken.Token.Plaintext, dto)
@@ -77,11 +77,11 @@ func TestIntegrationPostItems(t *testing.T) {
 		dto.Unit = "l"
 		dto.Name = "Juice"
 		dto.Size = 2
-		dto.ImageUrl = "test 2"
+		dto.ImageId = "test 2"
 		want.Unit = "l"
 		want.Name = "Juice"
 		want.Size = 2
-		want.ImageUrl = "test 2"
+		want.ImageId = "test 2"
 		request := putItemRequest(t, userToken.Token.Plaintext, dto, want.Id)
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)

@@ -30,10 +30,10 @@ func TestItemPost(t *testing.T) {
 		itemId := int64(1)
 		supplierId := int64(2)
 		dto := data.PostItemDto{
-			Unit:     "l",
-			Size:     1,
-			Name:     "milk",
-			ImageUrl: "test",
+			Unit:    "l",
+			Size:    1,
+			Name:    "milk",
+			ImageId: "test",
 		}
 		want := data.Item{
 			Id:         itemId,
@@ -41,7 +41,7 @@ func TestItemPost(t *testing.T) {
 			Unit:       dto.Unit,
 			Size:       dto.Size,
 			Name:       dto.Name,
-			ImageUrl:   dto.ImageUrl,
+			ImageId:    dto.ImageId,
 		}
 		request := createPostItemRequest(t, dto, supplierId)
 		response := httptest.NewRecorder()
@@ -55,10 +55,10 @@ func TestItemPost(t *testing.T) {
 
 	t.Run("can't POST unathorized", func(t *testing.T) {
 		dto := data.PostItemDto{
-			Unit:     "l",
-			Size:     1,
-			Name:     "milk",
-			ImageUrl: "test",
+			Unit:    "l",
+			Size:    1,
+			Name:    "milk",
+			ImageId: "test",
 		}
 		requestBody := new(bytes.Buffer)
 		json.NewEncoder(requestBody).Encode(dto)
@@ -86,10 +86,10 @@ func TestItemPost(t *testing.T) {
 		// not an actual supplier
 		supplierId := int64(1)
 		dto := data.PostItemDto{
-			Unit:     "l",
-			Size:     1,
-			Name:     "milk",
-			ImageUrl: "test",
+			Unit:    "l",
+			Size:    1,
+			Name:    "milk",
+			ImageId: "test",
 		}
 		request := createPostItemRequest(t, dto, supplierId)
 		response := httptest.NewRecorder()
@@ -101,10 +101,10 @@ func TestItemPost(t *testing.T) {
 	t.Run("can't POST item with empty name, empty unit, size < 0", func(t *testing.T) {
 		supplierId := int64(2)
 		dto := data.PostItemDto{
-			Unit:     "",
-			Size:     -1,
-			Name:     "",
-			ImageUrl: "",
+			Unit:    "",
+			Size:    -1,
+			Name:    "",
+			ImageId: "",
 		}
 		want := []string{
 			"unit", "size", "name", "imageUrl",
@@ -128,7 +128,7 @@ func TestItemPost(t *testing.T) {
 func TestItemGet(t *testing.T) {
 	cfg := app.Config{Port: 4000, Env: "development"}
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	item1 := data.Item{Id: 1, SupplierId: 2, Name: "Milk", Unit: "l", Size: 1, ImageUrl: "test"}
+	item1 := data.Item{Id: 1, SupplierId: 2, Name: "Milk", Unit: "l", Size: 1, ImageId: "test"}
 	itemModel := data.NewStubItemModel([]data.Item{
 		item1,
 	})
@@ -186,7 +186,7 @@ func TestItemGet(t *testing.T) {
 func TestItemGetAll(t *testing.T) {
 	cfg := app.Config{Port: 4000, Env: "development"}
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	item1 := data.Item{Id: 1, SupplierId: 2, Name: "Milk", Unit: "l", Size: 1, ImageUrl: "test"}
+	item1 := data.Item{Id: 1, SupplierId: 2, Name: "Milk", Unit: "l", Size: 1, ImageId: "test"}
 	itemModel := data.NewStubItemModel([]data.Item{
 		item1,
 	})
@@ -229,7 +229,7 @@ func TestItemGetAll(t *testing.T) {
 func TestItemPut(t *testing.T) {
 	cfg := app.Config{Port: 4000, Env: "development"}
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	item1 := data.Item{Id: 1, SupplierId: 2, Name: "Milk", Unit: "l", Size: 1, ImageUrl: "test"}
+	item1 := data.Item{Id: 1, SupplierId: 2, Name: "Milk", Unit: "l", Size: 1, ImageId: "test"}
 	itemModel := data.NewStubItemModel([]data.Item{
 		item1,
 	})
@@ -238,10 +238,10 @@ func TestItemPut(t *testing.T) {
 
 	t.Run("it PUT changed item if requested by owner", func(t *testing.T) {
 		dto := data.PostItemDto{
-			Unit:     "kg",
-			Size:     2,
-			Name:     "Potato",
-			ImageUrl: "New url",
+			Unit:    "kg",
+			Size:    2,
+			Name:    "Potato",
+			ImageId: "New url",
 		}
 		want := data.Item{
 			Id:         item1.Id,
@@ -249,7 +249,7 @@ func TestItemPut(t *testing.T) {
 			Unit:       dto.Unit,
 			Size:       dto.Size,
 			Name:       dto.Name,
-			ImageUrl:   dto.ImageUrl,
+			ImageId:    dto.ImageId,
 		}
 		requestBody := new(bytes.Buffer)
 		json.NewEncoder(requestBody).Encode(dto)
@@ -267,10 +267,10 @@ func TestItemPut(t *testing.T) {
 
 	t.Run("it return 403 if PUT requested not by owner", func(t *testing.T) {
 		dto := data.PostItemDto{
-			Unit:     "kg",
-			Size:     2,
-			Name:     "Potato",
-			ImageUrl: "New url",
+			Unit:    "kg",
+			Size:    2,
+			Name:    "Potato",
+			ImageId: "New url",
 		}
 		requestBody := new(bytes.Buffer)
 		json.NewEncoder(requestBody).Encode(dto)
@@ -285,10 +285,10 @@ func TestItemPut(t *testing.T) {
 
 	t.Run("it return 401 if PUT not authed", func(t *testing.T) {
 		dto := data.PostItemDto{
-			Unit:     "kg",
-			Size:     2,
-			Name:     "Potato",
-			ImageUrl: "New url",
+			Unit:    "kg",
+			Size:    2,
+			Name:    "Potato",
+			ImageId: "New url",
 		}
 		requestBody := new(bytes.Buffer)
 		json.NewEncoder(requestBody).Encode(dto)
@@ -302,10 +302,10 @@ func TestItemPut(t *testing.T) {
 
 	t.Run("it return 404 if PUT item was not found", func(t *testing.T) {
 		dto := data.PostItemDto{
-			Unit:     "kg",
-			Size:     2,
-			Name:     "Potato",
-			ImageUrl: "New url",
+			Unit:    "kg",
+			Size:    2,
+			Name:    "Potato",
+			ImageId: "New url",
 		}
 		requestBody := new(bytes.Buffer)
 		json.NewEncoder(requestBody).Encode(dto)
@@ -320,10 +320,10 @@ func TestItemPut(t *testing.T) {
 
 	t.Run("it return 422 if PUT empty name, empty unit, size < 0", func(t *testing.T) {
 		dto := data.PostItemDto{
-			Unit:     "",
-			Size:     2,
-			Name:     "",
-			ImageUrl: "",
+			Unit:    "",
+			Size:    2,
+			Name:    "",
+			ImageId: "",
 		}
 		requestBody := new(bytes.Buffer)
 		json.NewEncoder(requestBody).Encode(dto)
@@ -352,8 +352,8 @@ func TestItemPut(t *testing.T) {
 func TestItemDelete(t *testing.T) {
 	cfg := app.Config{Port: 4000, Env: "development"}
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	item1 := data.Item{Id: 1, SupplierId: 2, Name: "Milk", Unit: "l", Size: 1, ImageUrl: "test"}
-	item2 := data.Item{Id: 2, SupplierId: 2, Name: "Juice", Unit: "l", Size: 2, ImageUrl: "test"}
+	item1 := data.Item{Id: 1, SupplierId: 2, Name: "Milk", Unit: "l", Size: 1, ImageId: "test"}
+	item2 := data.Item{Id: 2, SupplierId: 2, Name: "Juice", Unit: "l", Size: 2, ImageId: "test"}
 	itemModel := data.NewStubItemModel([]data.Item{
 		item1, item2,
 	})

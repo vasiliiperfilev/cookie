@@ -43,7 +43,7 @@ func (m PsqlItemModel) Insert(item *Item) error {
 	if !ok {
 		return ErrUnprocessableEntity
 	}
-	args := []any{item.SupplierId, unitId, item.Size, item.Name, item.ImageUrl}
+	args := []any{item.SupplierId, unitId, item.Size, item.Name, item.ImageId}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -78,7 +78,7 @@ func (m PsqlItemModel) GetById(id int64) (Item, error) {
 		&unitId,
 		&item.Size,
 		&item.Name,
-		&item.ImageUrl,
+		&item.ImageId,
 	)
 
 	if err != nil {
@@ -129,7 +129,7 @@ func (m PsqlItemModel) GetAllBySupplierId(id int64) ([]Item, error) {
 			&unitId,
 			&item.Size,
 			&item.Name,
-			&item.ImageUrl,
+			&item.ImageId,
 		); err != nil {
 			return nil, err
 		}
@@ -157,7 +157,7 @@ func (m PsqlItemModel) Update(item Item) (Item, error) {
 		return Item{}, ErrUnprocessableEntity
 	}
 
-	args := []any{unitId, item.Size, item.Name, item.ImageUrl, item.Id}
+	args := []any{unitId, item.Size, item.Name, item.ImageId, item.Id}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
