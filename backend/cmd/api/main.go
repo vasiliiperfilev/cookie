@@ -21,7 +21,7 @@ func main() {
 	flag.IntVar(&cfg.Port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.Env, "env", "development", "Environment (development|staging|production)")
 	// db flags
-	flag.StringVar(&dbCfg.Dsn, "db-dsn", os.Getenv("GREENLIGHT_DB_DSN"), "PostgreSQL DSN")
+	flag.StringVar(&dbCfg.Dsn, "db-dsn", os.Getenv("COOKIE_DB_DSN"), "PostgreSQL DSN")
 	flag.IntVar(&dbCfg.MaxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&dbCfg.MaxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.StringVar(&dbCfg.MaxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
