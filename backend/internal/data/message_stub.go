@@ -5,63 +5,67 @@ import (
 )
 
 type StubMessageModel struct {
-	mu            sync.Mutex
-	conversations storage
+	mu           sync.Mutex
+	conversation *StubConversationModel
+	// Maps conversation id to array of message ids
+	conversationMessages map[int64][]int64
+	messages             map[int64]Message
+	IdCount              int64
 }
 
-type storage map[int64]struct {
-	UserIds  []int64
-	Messages []Message
-	IdCount  int64
-}
-
-func NewStubMessageModel(conversations []Conversation, messages []Message) *StubMessageModel {
-	msgStorage := storage{}
-	for _, conversation := range conversations {
-		msgStorage[conversation.Id] = struct {
-			UserIds  []int64
-			Messages []Message
-			IdCount  int64
-		}{
-			UserIds:  conversation.UserIds,
-			Messages: []Message{{Id: 0, SenderId: 0, ConversationId: conversation.Id, PrevMessageId: 0}},
-			IdCount:  int64(0),
-		}
+func NewStubMessageModel(conversation *StubConversationModel, messages []Message) *StubMessageModel {
+	model := &StubMessageModel{
+		conversation:         conversation,
+		conversationMessages: map[int64][]int64{},
+		messages:             map[int64]Message{},
 	}
-	for _, message := range messages {
-		if entry, ok := msgStorage[message.ConversationId]; ok {
-			entry.IdCount++
-			message.Id = entry.IdCount
-			entry.Messages = append(entry.Messages, message)
-			msgStorage[message.ConversationId] = entry
-		}
+	for _, msg := range messages {
+		model.Insert(&msg)
 	}
-
-	return &StubMessageModel{conversations: msgStorage}
+	return model
 }
 
 func (s *StubMessageModel) Insert(msg *Message) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if entry, ok := s.conversations[msg.ConversationId]; !ok {
+	conversation, err := s.conversation.GetById(msg.ConversationId)
+	if err != nil {
 		return ErrRecordNotFound
-	} else {
-		entry.IdCount++
-		msg.Id = entry.IdCount
-		entry.Messages = append(entry.Messages, *msg)
-		s.conversations[msg.ConversationId] = entry
-		return nil
 	}
+	s.insertMessage(msg)
+	s.updateReadMessage(conversation, msg)
+	s.conversation.Update(conversation)
+	return nil
+}
+
+func (s *StubMessageModel) updateReadMessage(conversation Conversation, msg *Message) {
+	for i, readMessage := range conversation.LastReadMessages {
+		if readMessage.UserId == msg.SenderId {
+			conversation.LastReadMessages[i] = LastReadMessage{
+				UserId:  readMessage.UserId,
+				Message: *msg,
+			}
+		}
+	}
+}
+
+func (s *StubMessageModel) insertMessage(msg *Message) {
+	s.IdCount++
+	msg.Id = s.IdCount
+	s.messages[msg.Id] = *msg
+	if _, ok := s.conversationMessages[msg.ConversationId]; !ok {
+		s.conversationMessages[msg.ConversationId] = []int64{}
+	}
+	s.conversationMessages[msg.ConversationId] = append(s.conversationMessages[msg.ConversationId], msg.Id)
 }
 
 func (s *StubMessageModel) GetAllByConversationId(id int64) ([]Message, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	result := []Message{}
-	for conversationId, conversation := range s.conversations {
-		if conversationId == id {
-			result = append(result, conversation.Messages...)
-		}
+	conversationMessageIds := s.conversationMessages[id]
+	for _, msgId := range conversationMessageIds {
+		result = append(result, s.messages[msgId])
 	}
 	return result, nil
 }
@@ -69,27 +73,9 @@ func (s *StubMessageModel) GetAllByConversationId(id int64) ([]Message, error) {
 func (s *StubMessageModel) GetById(id int64) (Message, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	for _, conversation := range s.conversations {
-		for _, msg := range conversation.Messages {
-			if msg.Id == id {
-				return msg, nil
-			}
-		}
+	if msg, ok := s.messages[id]; !ok {
+		return Message{}, ErrRecordNotFound
+	} else {
+		return msg, nil
 	}
-	return Message{}, ErrRecordNotFound
-}
-
-func (s *StubMessageModel) DeleteById(id int64) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	for key, conversation := range s.conversations {
-		for i, msg := range conversation.Messages {
-			if msg.Id == id {
-				conversation.Messages = append(conversation.Messages[:i], conversation.Messages[i+1:]...)
-				s.conversations[key] = conversation
-				return nil
-			}
-		}
-	}
-	return ErrRecordNotFound
 }

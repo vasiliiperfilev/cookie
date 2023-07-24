@@ -21,7 +21,7 @@ func TestPostConversation(t *testing.T) {
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	conversationModel := data.NewStubConversationModel([]data.Conversation{})
 	userModel := data.NewStubUserModel(generateUsers(4))
-	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{})
+	messageModel := data.NewStubMessageModel(conversationModel, []data.Message{})
 	models := data.Models{User: userModel, Conversation: conversationModel, Message: messageModel}
 	t.Run("it POST conversation", func(t *testing.T) {
 		server := app.New(cfg, logger, models)

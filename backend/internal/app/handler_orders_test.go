@@ -36,7 +36,7 @@ func TestOrderPost(t *testing.T) {
 		},
 	})
 	conversationModel := data.NewStubConversationModel(generateConversation(4))
-	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0}})
+	messageModel := data.NewStubMessageModel(conversationModel, []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0}})
 	orderModel := data.NewStubOrderModel([]data.Order{}, itemModel, conversationModel, messageModel)
 	models := data.Models{
 		Conversation: data.NewStubConversationModel(generateConversation(4)),
@@ -151,7 +151,7 @@ func TestOrderGet(t *testing.T) {
 		},
 	})
 	conversationModel := data.NewStubConversationModel(generateConversation(4))
-	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0}})
+	messageModel := data.NewStubMessageModel(conversationModel, []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0}})
 	orderModel := data.NewStubOrderModel([]data.Order{}, itemModel, conversationModel, messageModel)
 	models := data.Models{
 		Conversation: data.NewStubConversationModel(generateConversation(4)),
@@ -230,7 +230,7 @@ func TestOrderGetAll(t *testing.T) {
 		},
 	})
 	conversationModel := data.NewStubConversationModel(generateConversation(4))
-	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0}})
+	messageModel := data.NewStubMessageModel(conversationModel, []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0}})
 	orderModel := data.NewStubOrderModel([]data.Order{}, itemModel, conversationModel, messageModel)
 	models := data.Models{
 		Conversation: data.NewStubConversationModel(generateConversation(4)),
@@ -320,7 +320,7 @@ func TestOrderPatch(t *testing.T) {
 		MessageId: 1,
 	}
 	conversationModel := data.NewStubConversationModel(generateConversation(4))
-	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0, Content: "Order created"}})
+	messageModel := data.NewStubMessageModel(conversationModel, []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0, Content: "Order created"}})
 	orderModel := data.NewStubOrderModel([]data.Order{testOrder}, itemModel, conversationModel, messageModel)
 	models := data.Models{
 		Conversation: data.NewStubConversationModel(generateConversation(4)),

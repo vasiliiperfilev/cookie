@@ -37,6 +37,8 @@ func (h *Hub) run() {
 			switch event.Type {
 			case EventMessage:
 				h.handleMessageEvent(event)
+			case EventConfirmation:
+				h.handleConfirmationEvent(event)
 			case EventOrder:
 				h.handleOrderEvent(event)
 			default:
@@ -89,6 +91,16 @@ func (h *Hub) handleMessageEvent(event WsEvent) {
 			client.messages <- msgEvt
 		}
 	}
+}
+
+func (h *Hub) handleConfirmationEvent(event WsEvent) {
+	var wsConfirm struct{ MessageId int64 }
+	err := readJson(bytes.NewReader(event.Payload), &wsConfirm)
+	if err != nil {
+		h.errors <- h.createErrorMessage(event.Sender, PayloadErrorMessage)
+		return
+	}
+
 }
 
 func (h *Hub) handleOrderEvent(event WsEvent) {

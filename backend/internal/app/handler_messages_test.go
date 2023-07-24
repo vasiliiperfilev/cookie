@@ -20,7 +20,7 @@ func TestMessagesHandler(t *testing.T) {
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 	conversationModel := data.NewStubConversationModel(generateConversation(4))
 	want := data.Message{Id: 1, ConversationId: 1, Content: "test", SenderId: 1, PrevMessageId: 0}
-	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{
+	messageModel := data.NewStubMessageModel(conversationModel, []data.Message{
 		want,
 	})
 	userModel := data.NewStubUserModel(generateUsers(4))
