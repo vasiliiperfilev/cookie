@@ -232,9 +232,10 @@ func TestOrderGetAll(t *testing.T) {
 	conversationModel := data.NewStubConversationModel(generateConversation(4))
 	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0}})
 	orderModel := data.NewStubOrderModel([]data.Order{}, itemModel, conversationModel, messageModel)
+	userModel := data.NewStubUserModel(generateUsers(4))
 	models := data.Models{
 		Conversation: data.NewStubConversationModel(generateConversation(4)),
-		User:         data.NewStubUserModel(generateUsers(4)),
+		User:         userModel,
 		Item:         itemModel,
 		Message:      messageModel,
 		Order:        orderModel,
@@ -256,10 +257,14 @@ func TestOrderGetAll(t *testing.T) {
 				},
 			},
 		}
+		client, err := userModel.GetById(1)
+		tester.AssertNoError(t, err)
 		order1, err := orderModel.Insert(dto)
 		tester.AssertNoError(t, err)
 		order2, err := orderModel.Insert(dto)
 		tester.AssertNoError(t, err)
+		order1.Client = client
+		order2.Client = client
 		want := []data.Order{order1, order2}
 
 		request := createGetAllOrdersRequest(t, 1)
@@ -320,7 +325,7 @@ func TestOrderPatch(t *testing.T) {
 		MessageId: 1,
 	}
 	conversationModel := data.NewStubConversationModel(generateConversation(4))
-	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0, Content: "Order created"}})
+	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0, Content: "Order created", SenderId: 1}})
 	orderModel := data.NewStubOrderModel([]data.Order{testOrder}, itemModel, conversationModel, messageModel)
 	models := data.Models{
 		Conversation: data.NewStubConversationModel(generateConversation(4)),
