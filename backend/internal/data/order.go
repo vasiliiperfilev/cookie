@@ -31,7 +31,7 @@ type Order struct {
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
 	Items     []ItemQuantity `json:"items"`
-	StateId   int            `json:"stateId"`
+	StateId   OrderStateId   `json:"stateId"`
 	Client    User           `json:"client"`
 }
 
@@ -43,18 +43,27 @@ type PostOrderDto struct {
 
 type PatchOrderDto struct {
 	Items   []ItemQuantity `json:"items,omitempty"`
-	StateId int            `json:"stateId,omitempty"`
+	StateId OrderStateId   `json:"stateId,omitempty"`
 }
 
+type OrderStateId int
+
 const (
-	OrderStateCreated              = 1
-	OrderStateAccepted             = 2
-	OrderStateDeclined             = 3
-	OrderStateFulfilled            = 4
-	OrderStateConfirmedFulfillment = 5
-	OrderStateSupplierChanges      = 6
-	OrderStateClientChanges        = 7
+	OrderStateCreated              OrderStateId = 1
+	OrderStateAccepted             OrderStateId = 2
+	OrderStateDeclined             OrderStateId = 3
+	OrderStateFulfilled            OrderStateId = 4
+	OrderStateConfirmedFulfillment OrderStateId = 5
+	OrderStateSupplierChanges      OrderStateId = 6
+	OrderStateClientChanges        OrderStateId = 7
 )
+
+var OrderStateMessage = map[OrderStateId]string{
+	OrderStateCreated:   "created",
+	OrderStateAccepted:  "accepted",
+	OrderStateDeclined:  "declined",
+	OrderStateFulfilled: "fulfilled",
+}
 
 func ValidatePostOrderInput(v *validator.Validator, dto PostOrderDto) {
 	v.Check(len(dto.Items) > 0, "itemIds", "must have at least 1 item")

@@ -4,7 +4,8 @@ import "encoding/json"
 
 const (
 	EventMessage        = "message"
-	EventOrder          = "order"
+	EventNewOrder       = "new_order"
+	EventUpdateOrder    = "update_order"
 	EventError          = "error"
 	PayloadErrorMessage = "Invalid payload"
 	ServerErrorMessage  = "Server error"

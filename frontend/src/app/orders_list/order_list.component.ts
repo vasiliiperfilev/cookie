@@ -67,7 +67,7 @@ export class OrderListComponent implements OnInit {
       .subscribe({
         next: (order) => {
           this.alertService.success('Order state updated!');
-          this.chatService.sendOrder(order);
+          this.chatService.sendUpdatedOrder(order);
         },
         error: (error: HttpErrorResponse) => {
           this.alertService.error(error.error.message);

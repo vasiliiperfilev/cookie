@@ -26,7 +26,7 @@
         <mat-label>Unit</mat-label>
         <mat-select required [formControl]="f.unit">
           <mat-option value="kg" selected>kg</mat-option>
-          <mat-option value="l">l</mat-option>
+          <mat-option value="l">liter</mat-option>
         </mat-select>
         <mat-error *ngIf="f.unit.errors">{{
           getErrorMessage('unit')

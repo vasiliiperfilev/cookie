@@ -51,7 +51,15 @@ export class ChatService {
 
   sendOrder(order: Order) {
     const wsMsgEvt: WsOrderEvent = {
-      type: WsEventType.ORDER,
+      type: WsEventType.NEW_ORDER,
+      payload: order,
+    };
+    this.wsConn.next(wsMsgEvt);
+  }
+
+  sendUpdatedOrder(order: Order) {
+    const wsMsgEvt: WsOrderEvent = {
+      type: WsEventType.UPDATE_ORDER,
       payload: order,
     };
     this.wsConn.next(wsMsgEvt);
@@ -60,7 +68,10 @@ export class ChatService {
   private receiveEvent(evt: WsMessageEvent | WsOrderEvent) {
     if (evt.type === WsEventType.MESSAGE) {
       this.historyService.pushToLocalHistory(evt.payload as Message);
-    } else if (evt.type === WsEventType.ORDER) {
+    } else if (
+      evt.type === WsEventType.NEW_ORDER ||
+      evt.type === WsEventType.UPDATE_ORDER
+    ) {
       this.historyService
         .getMessagesById((evt.payload as Order).messageId)
         .subscribe({

@@ -14,3 +14,8 @@ export interface PostItemDto {
   image?: File;
   imageId?: string;
 }
+
+export enum ItemUnit {
+  l = 'liters',
+  kg = 'kg',
+}

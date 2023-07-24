@@ -107,10 +107,12 @@ export class OrderDialogComponent {
   private toItemsArray() {
     const result: { itemId: number; quantity: number }[] = [];
     Object.keys(this.orderItems).map((k) => {
-      result.push({
-        itemId: Number.parseInt(k),
-        quantity: this.orderItems[Number.parseInt(k)],
-      });
+      if (this.orderItems[Number.parseInt(k)] > 0) {
+        result.push({
+          itemId: Number.parseInt(k),
+          quantity: this.orderItems[Number.parseInt(k)],
+        });
+      }
     });
     return result;
   }

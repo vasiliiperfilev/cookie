@@ -93,3 +93,7 @@ func (s *StubMessageModel) DeleteById(id int64) error {
 	}
 	return ErrRecordNotFound
 }
+
+func (s *StubMessageModel) Update(msg Message) error {
+	return nil
+}

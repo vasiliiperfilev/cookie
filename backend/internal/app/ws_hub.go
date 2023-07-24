@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 
 	"github.com/vasiliiperfilev/cookie/internal/data"
 	"golang.org/x/exp/slices"
@@ -37,8 +38,10 @@ func (h *Hub) run() {
 			switch event.Type {
 			case EventMessage:
 				h.handleMessageEvent(event)
-			case EventOrder:
-				h.handleOrderEvent(event)
+			case EventNewOrder:
+				h.handleNewOrderEvent(event)
+			case EventUpdateOrder:
+				h.handleUpdateOrderEvent(event)
 			default:
 				h.app.logger.Printf("Unsupported websocket event %v, payload %v", event.Type, string(event.Payload))
 			}
@@ -91,7 +94,7 @@ func (h *Hub) handleMessageEvent(event WsEvent) {
 	}
 }
 
-func (h *Hub) handleOrderEvent(event WsEvent) {
+func (h *Hub) handleNewOrderEvent(event WsEvent) {
 	var order data.Order
 	err := readJson(bytes.NewReader(event.Payload), &order)
 	if err != nil {
@@ -107,7 +110,51 @@ func (h *Hub) handleOrderEvent(event WsEvent) {
 
 	payload, _ := json.Marshal(order)
 	orderEvent := WsEvent{
-		Type:    EventOrder,
+		Type:    EventNewOrder,
+		Payload: payload,
+	}
+
+	conversation, err := h.getConversation(event, msg)
+	if err != nil {
+		h.errors <- h.createErrorMessage(event.Sender, PayloadErrorMessage)
+		return
+	}
+
+	for client := range h.clients {
+		if slices.Contains(conversation.UserIds, client.User.Id) {
+			client.Conversations[msg.ConversationId] = conversation
+			client.messages <- orderEvent
+		}
+	}
+}
+
+func (h *Hub) handleUpdateOrderEvent(event WsEvent) {
+	var order data.Order
+	err := readJson(bytes.NewReader(event.Payload), &order)
+	if err != nil {
+		h.errors <- h.createErrorMessage(event.Sender, PayloadErrorMessage)
+		return
+	}
+
+	msg, err := h.app.models.Message.GetById(order.MessageId)
+	if err != nil {
+		h.errors <- h.createErrorMessage(event.Sender, ServerErrorMessage)
+		return
+	}
+	msg.Content = fmt.Sprintf("New state of order with id %v: %v", order.Id, data.OrderStateMessage[order.StateId])
+	err = h.app.models.Message.Update(msg)
+	if err != nil {
+		h.errors <- h.createErrorMessage(event.Sender, ServerErrorMessage)
+		return
+	}
+	_, err = h.app.models.Order.Update(order)
+	if err != nil {
+		h.errors <- h.createErrorMessage(event.Sender, ServerErrorMessage)
+		return
+	}
+	payload, _ := json.Marshal(order)
+	orderEvent := WsEvent{
+		Type:    EventUpdateOrder,
 		Payload: payload,
 	}
 

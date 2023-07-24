@@ -11,6 +11,7 @@ type MessageModel interface {
 	Insert(msg *Message) error // TODO: use value, not pointer
 	GetAllByConversationId(id int64) ([]Message, error)
 	GetById(id int64) (Message, error)
+	Update(msg Message) error
 }
 
 type PsqlMessageModel struct {
@@ -114,4 +115,27 @@ func (m PsqlMessageModel) GetById(id int64) (Message, error) {
 	}
 
 	return msg, nil
+}
+
+func (m PsqlMessageModel) Update(msg Message) error {
+	if msg.Id < 1 {
+		return ErrRecordNotFound
+	}
+	query := `
+			UPDATE messages
+			SET content = $1
+			WHERE message_id = $2
+		`
+
+	args := []any{msg.Content, msg.Id}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := m.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

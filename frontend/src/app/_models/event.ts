@@ -3,7 +3,8 @@ import { Order } from './order';
 
 export enum WsEventType {
   MESSAGE = 'message',
-  ORDER = 'order',
+  NEW_ORDER = 'new_order',
+  UPDATE_ORDER = 'update_order',
 }
 
 export interface WsMessageEvent {
