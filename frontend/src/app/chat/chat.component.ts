@@ -125,7 +125,11 @@ export class ChatComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result: OrderDialogData) => {
       if (result && result.order) {
         this.orders[result.order.messageId] = result.order;
-        this.chatService.sendOrder(result.order);
+        if (result.action === CrudDialogAction.CREATE) {
+          this.chatService.sendOrder(result.order);
+        } else {
+          this.chatService.sendUpdatedOrder(result.order);
+        }
       }
     });
   }

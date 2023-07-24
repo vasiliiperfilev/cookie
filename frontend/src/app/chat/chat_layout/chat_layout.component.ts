@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 import { Conversation, User } from '@app/_models';
-import { UserService } from '@app/_services';
+import { ChatService, UserService } from '@app/_services';
 
 @Component({
   templateUrl: 'chat_layout.component.html',
@@ -11,7 +11,10 @@ export class ChatLayoutComponent {
   user: User | null;
   currentConversation: Conversation | undefined;
 
-  constructor(private userService: UserService) {
+  constructor(
+    private userService: UserService,
+    private chatService: ChatService
+  ) {
     this.user = this.userService.userValue;
   }
 
