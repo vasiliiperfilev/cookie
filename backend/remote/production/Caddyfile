@@ -1,0 +1,8 @@
+{
+  email vasily.perfilyev@gmail.com
+}
+
+project4495.canadacentral.cloudapp.azure.com {
+  respond /debug/* "Not Permitted" 403
+  reverse_proxy localhost:4000
+}

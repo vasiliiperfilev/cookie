@@ -75,3 +75,30 @@ start-docker-testing:
 	}
 	trap tearDown EXIT
 	docker compose -f docker-compose.testing.yml up --build
+
+# ==================================================================================== #
+# PRODUCTION
+# ==================================================================================== #
+
+production_host_ip = "project4495.canadacentral.cloudapp.azure.com"
+
+## production/connect: connect to the production server
+.PHONY: production/connect
+production/connect:
+	ssh cookie@${production_host_ip}
+
+## production/deploy/api: deploy the api to production
+.PHONY: production/deploy/api
+production/deploy/api:
+	rsync -P ./bin/linux_amd64/api cookie@${production_host_ip}:~
+	rsync -rP --delete ./migrations cookie@${production_host_ip}:~
+	rsync -P ./remote/production/Caddyfile cookie@${production_host_ip}:~
+	rsync -P ./remote/production/api.service cookie@${production_host_ip}:~
+	ssh -t cookie@${production_host_ip} '\
+		migrate -path ~/migrations -database $$COOKIE_DB_DSN up \
+		&& sudo mv ~/api.service /etc/systemd/system/ \
+		&& sudo systemctl enable api \
+		&& sudo systemctl restart api \
+		&& sudo mv ~/Caddyfile /etc/caddy/ \
+		&& sudo systemctl reload caddy \
+	'
