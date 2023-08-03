@@ -104,6 +104,10 @@ export class OrderDialogComponent {
     this.dialogRef.close({});
   }
 
+  public getOrderItems(items: Item[]) {
+    return items.filter((i) => this.orderItems[i.id] > 0);
+  }
+
   private toItemsArray() {
     const result: { itemId: number; quantity: number }[] = [];
     Object.keys(this.orderItems).map((k) => {

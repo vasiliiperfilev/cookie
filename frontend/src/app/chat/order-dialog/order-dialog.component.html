@@ -27,7 +27,12 @@
   Order {{ data.order?.id }} was fullfilled
 </h1>
 <div mat-dialog-content>
-  <table #table mat-table [dataSource]="items" class="mat-elevation-z8">
+  <table
+    #table
+    mat-table
+    [dataSource]="data.order ? getOrderItems(items) : items"
+    class="mat-elevation-z8"
+  >
     <!-- Image Column -->
     <ng-container matColumnDef="image">
       <th mat-header-cell *matHeaderCellDef>Image</th>
