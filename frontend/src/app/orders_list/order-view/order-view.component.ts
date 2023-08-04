@@ -31,7 +31,7 @@ export class OrderViewComponent {
       .getAllBySupplierId(userService.userValue!.id)
       .subscribe((items) => {
         this.items = data.items.map(({ itemId, quantity }) => ({
-          item: items.find((i) => (i.id = itemId))!,
+          item: items.find((i) => i.id === itemId)!,
           quantity,
         }));
       });
