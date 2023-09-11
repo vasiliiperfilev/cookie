@@ -16,8 +16,6 @@ func (a *Application) handleGetMessages(w http.ResponseWriter, r *http.Request) 
 		switch {
 		case errors.Is(err, ErrUnathorized):
 			a.invalidAuthenticationTokenResponse(w, r)
-		case errors.Is(err, data.ErrRecordNotFound):
-			a.notFoundResponse(w, r)
 		default:
 			a.serverErrorResponse(w, r, err)
 		}
@@ -58,8 +56,6 @@ func (a *Application) handleGetMessage(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, ErrUnathorized):
 			a.invalidAuthenticationTokenResponse(w, r)
-		case errors.Is(err, data.ErrRecordNotFound):
-			a.notFoundResponse(w, r)
 		default:
 			a.serverErrorResponse(w, r, err)
 		}

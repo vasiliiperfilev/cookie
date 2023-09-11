@@ -55,8 +55,6 @@ func (a *Application) handleGetUsers(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, ErrUnathorized):
 			a.invalidAuthenticationTokenResponse(w, r)
-		case errors.Is(err, data.ErrRecordNotFound):
-			a.notFoundResponse(w, r)
 		default:
 			a.serverErrorResponse(w, r, err)
 		}

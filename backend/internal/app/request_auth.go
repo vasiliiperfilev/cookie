@@ -34,7 +34,7 @@ func (a *Application) AuthenticateHttpRequest(w http.ResponseWriter, r *http.Req
 
 	user, err := a.models.User.GetForToken(data.ScopeAuthentication, token)
 	if err != nil {
-		return data.User{}, data.ErrRecordNotFound
+		return data.User{}, ErrUnathorized
 	}
 
 	return user, nil
@@ -50,7 +50,7 @@ func (a *Application) AuthenticateWsUpgradeRequest(w http.ResponseWriter, r *htt
 
 	user, err := a.models.User.GetForToken(data.ScopeAuthentication, token)
 	if err != nil {
-		return data.User{}, data.ErrRecordNotFound
+		return data.User{}, ErrUnathorized
 	}
 
 	return user, nil

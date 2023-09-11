@@ -22,8 +22,6 @@ func (a *Application) handlePostConversation(w http.ResponseWriter, r *http.Requ
 		switch {
 		case errors.Is(err, ErrUnathorized):
 			a.invalidAuthenticationTokenResponse(w, r)
-		case errors.Is(err, data.ErrRecordNotFound):
-			a.notFoundResponse(w, r)
 		default:
 			a.serverErrorResponse(w, r, err)
 		}
@@ -77,8 +75,6 @@ func (a *Application) handleGetConversation(w http.ResponseWriter, r *http.Reque
 		switch {
 		case errors.Is(err, ErrUnathorized):
 			a.invalidAuthenticationTokenResponse(w, r)
-		case errors.Is(err, data.ErrRecordNotFound):
-			a.notFoundResponse(w, r)
 		default:
 			a.serverErrorResponse(w, r, err)
 		}

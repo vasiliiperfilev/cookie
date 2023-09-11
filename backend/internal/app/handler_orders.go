@@ -12,9 +12,15 @@ import (
 func (a *Application) handlePostOrder(w http.ResponseWriter, r *http.Request) {
 	user, err := a.AuthenticateHttpRequest(w, r)
 	if err != nil {
-		a.invalidCredentialsResponse(w, r)
+		switch {
+		case errors.Is(err, ErrUnathorized):
+			a.invalidAuthenticationTokenResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
 		return
 	}
+
 	var dto data.PostOrderDto
 	err = readJsonFromBody(w, r, &dto)
 	if err != nil {

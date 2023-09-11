@@ -12,9 +12,15 @@ import (
 func (a *Application) handlePostItem(w http.ResponseWriter, r *http.Request) {
 	user, err := a.AuthenticateHttpRequest(w, r)
 	if err != nil {
-		a.invalidCredentialsResponse(w, r)
+		switch {
+		case errors.Is(err, ErrUnathorized):
+			a.invalidAuthenticationTokenResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
 		return
 	}
+
 	if user.Type != data.UserTypeSupplier {
 		a.forbiddenResponse(w, r)
 		return
