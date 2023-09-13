@@ -35,6 +35,8 @@ func generateToken(userID int64, ttl time.Duration, scope string) (Token, error)
 		return Token{}, err
 	}
 
+	// 16bytes*8=128bits, base32=5bit per char, so plaintext is 128/5=26 chars
+	// default padding "=", don't use it
 	token.Plaintext = base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(randomBytes)
 
 	// sha256.Sum256() function returns an *array* of length 32, so to make it easier to
