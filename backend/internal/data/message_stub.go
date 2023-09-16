@@ -10,7 +10,7 @@ type StubMessageModel struct {
 }
 
 type storage map[int64]struct {
-	UserIds  []int64
+	Users    []User
 	Messages []Message
 	IdCount  int64
 }
@@ -19,11 +19,11 @@ func NewStubMessageModel(conversations []Conversation, messages []Message) *Stub
 	msgStorage := storage{}
 	for _, conversation := range conversations {
 		msgStorage[conversation.Id] = struct {
-			UserIds  []int64
+			Users    []User
 			Messages []Message
 			IdCount  int64
 		}{
-			UserIds:  conversation.UserIds,
+			Users:    conversation.Users,
 			Messages: []Message{{Id: 0, SenderId: 0, ConversationId: conversation.Id, PrevMessageId: 0}},
 			IdCount:  int64(0),
 		}

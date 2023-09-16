@@ -175,7 +175,7 @@ func TestChat(t *testing.T) {
 		// create 3 users
 		userModel := data.NewStubUserModel(generateUsers(3))
 		// create only 1 conversation between user ids 1 and 2
-		conversationModel := data.NewStubConversationModel(generateConversation(2))
+		conversationModel := data.NewStubConversationModel(generateConversation(2), userModel)
 		messageModel := data.NewStubMessageModel(generateConversation(2), []data.Message{})
 		models := data.Models{Message: messageModel, User: userModel, Conversation: conversationModel}
 		appServer := app.New(cfg, logger, models)
@@ -302,9 +302,9 @@ func TestChatErrors(t *testing.T) {
 func createServer(numUsers int) (*data.StubMessageModel, *app.Application) {
 	cfg := app.Config{Port: 4000, Env: "development"}
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	conversationModel := data.NewStubConversationModel(generateConversation(numUsers))
 	messageModel := data.NewStubMessageModel(generateConversation(numUsers), []data.Message{})
 	userModel := data.NewStubUserModel(generateUsers(numUsers))
+	conversationModel := data.NewStubConversationModel(generateConversation(numUsers), userModel)
 	models := data.Models{Message: messageModel, User: userModel, Conversation: conversationModel}
 	appServer := app.New(cfg, logger, models)
 	return messageModel, appServer
@@ -315,7 +315,7 @@ func generateConversation(numUsers int) []data.Conversation {
 	id := 1
 	for i := 1; i <= numUsers; i++ {
 		for j := i + 1; j <= numUsers; j++ {
-			c = append(c, data.Conversation{Id: int64(id), UserIds: []int64{int64(i), int64(j)}})
+			c = append(c, data.Conversation{Id: int64(id), Users: generateUsers(numUsers)})
 			id++
 		}
 	}

@@ -2,7 +2,6 @@ package data
 
 import (
 	"errors"
-	"sort"
 	"testing"
 
 	"github.com/vasiliiperfilev/cookie/internal/tester"
@@ -13,21 +12,20 @@ var (
 )
 
 type Conversation struct {
-	Id            int64   `json:"id"`
-	UserIds       []int64 `json:"userIds"`
-	LastMessageId int64   `json:"lastMessageId"`
-	Version       int     `json:"version"`
+	Id          int64   `json:"id"`
+	Users       []User  `json:"users"`
+	LastMessage Message `json:"lastMessage"`
+	Version     int     `json:"version"`
 }
 
 func AssertConversation(t *testing.T, got Conversation, want Conversation) {
 	t.Helper()
 	tester.AssertValue(t, got.Id, want.Id, "Expected same conversation id")
-	tester.AssertValue(t, got.LastMessageId, want.LastMessageId, "Expected same last message id")
-	sort.Slice(got.UserIds, func(i, j int) bool {
-		return got.UserIds[i] >= got.UserIds[j]
-	})
-	sort.Slice(want.UserIds, func(i, j int) bool {
-		return want.UserIds[i] >= want.UserIds[j]
-	})
-	tester.AssertValue(t, got.UserIds, want.UserIds, "Expected same usersId")
+	tester.AssertValue(t, got.LastMessage.Id, want.LastMessage.Id, "Expected same last message")
+	getUserId := func(u User) int64 { return u.Id }
+	gotIds := Map(got.Users, getUserId)
+	wantIds := Map(got.Users, getUserId)
+	if !EqualArraysContent(gotIds, wantIds) {
+		t.Fatal("Expected same users")
+	}
 }

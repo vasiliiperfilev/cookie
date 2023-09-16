@@ -8,7 +8,7 @@ func ReverseMap[K comparable, V comparable](m map[K]V) map[V]K {
 	return n
 }
 
-func EqualArrays[T comparable](a1 []T, a2 []T) bool {
+func EqualArraysContent[T comparable](a1 []T, a2 []T) bool {
 	m := map[T]bool{}
 	for _, el := range a1 {
 		m[el] = true
@@ -25,4 +25,13 @@ func EqualArrays[T comparable](a1 []T, a2 []T) bool {
 	} else {
 		return true
 	}
+}
+
+func Map[T, U any](s []T, f func(T) U) []U {
+	result := []U{}
+	for _, v := range s {
+		newV := f(v)
+		result = append(result, newV)
+	}
+	return result
 }

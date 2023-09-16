@@ -1,37 +1,31 @@
 package data
 
-import (
-	"reflect"
-	"sort"
-)
-
 type StubConversationModel struct {
 	conversations []Conversation
 	idCount       int64
+	userModel     UserModel
 }
 
-func NewStubConversationModel(conversations []Conversation) *StubConversationModel {
-	return &StubConversationModel{conversations: conversations}
+func NewStubConversationModel(conversations []Conversation, userModel UserModel) *StubConversationModel {
+	return &StubConversationModel{conversations: conversations, userModel: userModel}
 }
 
 func (s *StubConversationModel) Insert(dto PostConversationDto) (Conversation, error) {
 	for _, existingConversation := range s.conversations {
-		sort.Slice(existingConversation.UserIds, func(i, j int) bool {
-			return existingConversation.UserIds[i] >= existingConversation.UserIds[j]
-		})
-		sort.Slice(dto.UserIds, func(i, j int) bool {
-			return dto.UserIds[i] >= dto.UserIds[j]
-		})
-		if reflect.DeepEqual(existingConversation.UserIds, dto.UserIds) {
+		userIds := Map(existingConversation.Users, func(u User) int64 { return u.Id })
+		if EqualArraysContent(userIds, dto.UserIds) {
 			return Conversation{}, ErrDuplicateConversation
 		}
 	}
 	s.idCount++
 	conversation := Conversation{
-		Id:            s.idCount,
-		UserIds:       dto.UserIds,
-		LastMessageId: 0,
-		Version:       1,
+		Id: s.idCount,
+		Users: Map(dto.UserIds, func(id int64) User {
+			u, _ := s.userModel.GetById(id)
+			return u
+		}),
+		LastMessage: Message{Id: 0},
+		Version:     1,
 	}
 	s.conversations = append(s.conversations, conversation)
 	return conversation, nil
@@ -40,8 +34,8 @@ func (s *StubConversationModel) Insert(dto PostConversationDto) (Conversation, e
 func (s *StubConversationModel) GetAllByUserId(userId int64) ([]Conversation, error) {
 	result := []Conversation{}
 	for _, conversation := range s.conversations {
-		for _, id := range conversation.UserIds {
-			if id == userId {
+		for _, u := range conversation.Users {
+			if u.Id == userId {
 				result = append(result, conversation)
 			}
 		}

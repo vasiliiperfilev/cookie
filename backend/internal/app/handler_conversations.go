@@ -10,12 +10,6 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type ExpandedConversation struct {
-	data.Conversation
-	LastMessage data.Message `json:"lastMessage"`
-	Users       []data.User  `json:"users"`
-}
-
 func (a *Application) handlePostConversation(w http.ResponseWriter, r *http.Request) {
 	user, err := a.AuthenticateHttpRequest(w, r)
 	if err != nil {
@@ -38,7 +32,7 @@ func (a *Application) handlePostConversation(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	v := validator.New()
-	cvs, err := a.models.Conversation.Insert(dto)
+	c, err := a.models.Conversation.Insert(dto)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrDuplicateConversation):
@@ -50,23 +44,7 @@ func (a *Application) handlePostConversation(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	msg, err := a.models.Message.GetById(cvs.LastMessageId)
-	if err != nil {
-		a.serverErrorResponse(w, r, err)
-		return
-	}
-	u := []data.User{}
-	for _, usrId := range cvs.UserIds {
-		usr, err := a.models.User.GetById(usrId)
-		if err != nil {
-			a.serverErrorResponse(w, r, err)
-			return
-		}
-		u = append(u, usr)
-	}
-	expandedConv := ExpandedConversation{Conversation: cvs, Users: u, LastMessage: msg}
-
-	writeJsonResponse(w, http.StatusCreated, expandedConv, nil)
+	writeJsonResponse(w, http.StatusCreated, c, nil)
 }
 
 func (a *Application) handleGetConversation(w http.ResponseWriter, r *http.Request) {
@@ -85,7 +63,6 @@ func (a *Application) handleGetConversation(w http.ResponseWriter, r *http.Reque
 		a.notFoundResponse(w, r)
 		return
 	}
-	expanded := r.URL.Query().Get("expanded")
 
 	conversations, err := a.models.Conversation.GetAllByUserId(userId)
 	if err != nil {
@@ -98,27 +75,5 @@ func (a *Application) handleGetConversation(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if expanded == "" {
-		writeJsonResponse(w, http.StatusOK, conversations, nil)
-	} else {
-		expandedConvs := []ExpandedConversation{}
-		for _, c := range conversations {
-			msg, err := a.models.Message.GetById(c.LastMessageId)
-			if err != nil {
-				a.serverErrorResponse(w, r, err)
-				return
-			}
-			u := []data.User{}
-			for _, usrId := range c.UserIds {
-				usr, err := a.models.User.GetById(usrId)
-				if err != nil {
-					a.serverErrorResponse(w, r, err)
-					return
-				}
-				u = append(u, usr)
-			}
-			expandedConvs = append(expandedConvs, ExpandedConversation{LastMessage: msg, Conversation: c, Users: u})
-		}
-		writeJsonResponse(w, http.StatusOK, expandedConvs, nil)
-	}
+	writeJsonResponse(w, http.StatusOK, conversations, nil)
 }

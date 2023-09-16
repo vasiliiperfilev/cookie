@@ -87,7 +87,7 @@ func (h *Hub) handleMessageEvent(event WsEvent) {
 	}
 
 	for client := range h.clients {
-		if slices.Contains(conversation.UserIds, client.User.Id) {
+		if slices.ContainsFunc(conversation.Users, func(u data.User) bool { return u.Id == client.User.Id }) {
 			client.Conversations[dto.ConversationId] = conversation
 			client.messages <- msgEvt
 		}
@@ -121,7 +121,7 @@ func (h *Hub) handleNewOrderEvent(event WsEvent) {
 	}
 
 	for client := range h.clients {
-		if slices.Contains(conversation.UserIds, client.User.Id) {
+		if slices.ContainsFunc(conversation.Users, func(u data.User) bool { return u.Id == client.User.Id }) {
 			client.Conversations[msg.ConversationId] = conversation
 			client.messages <- orderEvent
 		}
@@ -165,7 +165,7 @@ func (h *Hub) handleUpdateOrderEvent(event WsEvent) {
 	}
 
 	for client := range h.clients {
-		if slices.Contains(conversation.UserIds, client.User.Id) {
+		if slices.ContainsFunc(conversation.Users, func(u data.User) bool { return u.Id == client.User.Id }) {
 			client.Conversations[msg.ConversationId] = conversation
 			client.messages <- orderEvent
 		}

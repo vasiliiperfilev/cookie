@@ -58,9 +58,9 @@ func TestIntegrationConversations(t *testing.T) {
 			UserIds: []int64{user1.Id, user2.Id},
 		}
 		want := data.Conversation{
-			UserIds:       []int64{user1.Id, user2.Id},
-			LastMessageId: 0,
-			Version:       1,
+			Users:       []data.User{user1, user2},
+			LastMessage: data.Message{Id: 0},
+			Version:     1,
 		}
 		got := postConversation(t, server, userToken.Token.Plaintext, dto)
 		want.Id = got.Id

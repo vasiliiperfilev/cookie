@@ -32,7 +32,7 @@ func (a *Application) handleGetMessages(w http.ResponseWriter, r *http.Request) 
 		}
 		return
 	}
-	if !slices.Contains(cvs.UserIds, user.Id) {
+	if !slices.ContainsFunc(cvs.Users, func(u data.User) bool { return u.Id == user.Id }) {
 		a.notFoundResponse(w, r)
 		return
 	}

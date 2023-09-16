@@ -35,12 +35,13 @@ func TestOrderPost(t *testing.T) {
 			SupplierId: 4,
 		},
 	})
-	conversationModel := data.NewStubConversationModel(generateConversation(4))
+	userModel := data.NewStubUserModel(generateUsers(4))
+	conversationModel := data.NewStubConversationModel(generateConversation(4), userModel)
 	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0}})
 	orderModel := data.NewStubOrderModel([]data.Order{}, itemModel, conversationModel, messageModel)
 	models := data.Models{
-		Conversation: data.NewStubConversationModel(generateConversation(4)),
-		User:         data.NewStubUserModel(generateUsers(4)),
+		Conversation: conversationModel,
+		User:         userModel,
 		Item:         itemModel,
 		Message:      messageModel,
 		Order:        orderModel,
@@ -150,12 +151,13 @@ func TestOrderGet(t *testing.T) {
 			SupplierId: 4,
 		},
 	})
-	conversationModel := data.NewStubConversationModel(generateConversation(4))
+	userModel := data.NewStubUserModel(generateUsers(4))
+	conversationModel := data.NewStubConversationModel(generateConversation(4), userModel)
 	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0}})
 	orderModel := data.NewStubOrderModel([]data.Order{}, itemModel, conversationModel, messageModel)
 	models := data.Models{
-		Conversation: data.NewStubConversationModel(generateConversation(4)),
-		User:         data.NewStubUserModel(generateUsers(4)),
+		Conversation: conversationModel,
+		User:         userModel,
 		Item:         itemModel,
 		Message:      messageModel,
 		Order:        orderModel,
@@ -229,12 +231,12 @@ func TestOrderGetAll(t *testing.T) {
 			SupplierId: 4,
 		},
 	})
-	conversationModel := data.NewStubConversationModel(generateConversation(4))
+	userModel := data.NewStubUserModel(generateUsers(4))
+	conversationModel := data.NewStubConversationModel(generateConversation(4), userModel)
 	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0}})
 	orderModel := data.NewStubOrderModel([]data.Order{}, itemModel, conversationModel, messageModel)
-	userModel := data.NewStubUserModel(generateUsers(4))
 	models := data.Models{
-		Conversation: data.NewStubConversationModel(generateConversation(4)),
+		Conversation: conversationModel,
 		User:         userModel,
 		Item:         itemModel,
 		Message:      messageModel,
@@ -324,12 +326,13 @@ func TestOrderPatch(t *testing.T) {
 		StateId:   data.OrderStateCreated,
 		MessageId: 1,
 	}
-	conversationModel := data.NewStubConversationModel(generateConversation(4))
-	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0, Content: "Order created", SenderId: 1}})
+	userModel := data.NewStubUserModel(generateUsers(4))
+	conversationModel := data.NewStubConversationModel(generateConversation(4), userModel)
+	messageModel := data.NewStubMessageModel(generateConversation(4), []data.Message{{Id: 1, ConversationId: 1, PrevMessageId: 0, SenderId: 1}})
 	orderModel := data.NewStubOrderModel([]data.Order{testOrder}, itemModel, conversationModel, messageModel)
 	models := data.Models{
-		Conversation: data.NewStubConversationModel(generateConversation(4)),
-		User:         data.NewStubUserModel(generateUsers(4)),
+		Conversation: conversationModel,
+		User:         userModel,
 		Item:         itemModel,
 		Message:      messageModel,
 		Order:        orderModel,
@@ -492,7 +495,7 @@ func assertOrder(t *testing.T, got, want data.Order) {
 	if got.StateId != want.StateId {
 		t.Fatalf("Expected order with state id %v, got %v", want.StateId, got.StateId)
 	}
-	if !data.EqualArrays(got.Items, want.Items) {
+	if !data.EqualArraysContent(got.Items, want.Items) {
 		t.Fatalf("Expected order with item ids %v, got %v", want.Items, got.Items)
 	}
 	if got.MessageId != want.MessageId {

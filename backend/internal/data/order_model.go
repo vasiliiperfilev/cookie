@@ -243,7 +243,7 @@ func (m PsqlOrderModel) Update(order Order) (Order, error) {
 	}
 
 	// update items if required
-	if !EqualArrays(order.Items, prevOrder.Items) {
+	if !EqualArraysContent(order.Items, prevOrder.Items) {
 
 		for _, iq := range prevOrder.Items {
 			query := `

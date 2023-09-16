@@ -26,7 +26,7 @@ func (p Permissions) Include(code int) bool {
 }
 
 func AssertUserPermissions(t *testing.T, got Permissions, want Permissions) {
-	if !EqualArrays(got, want) {
+	if !EqualArraysContent(got, want) {
 		t.Fatalf("Expected equal arrays: want %v, got %v", want, got)
 	}
 }

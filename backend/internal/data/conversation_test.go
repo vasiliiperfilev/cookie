@@ -51,7 +51,8 @@ func TestConversationModelIntegration(t *testing.T) {
 		conversations, err := model.GetAllByUserId(userId)
 		tester.AssertNoError(t, err)
 		for _, conversation := range conversations {
-			if !slices.Contains(conversation.UserIds, userId) {
+			userIds := data.Map(conversation.Users, func(u data.User) int64 { return u.Id })
+			if !slices.Contains(userIds, userId) {
 				t.Fatalf("Expected to have user id %v in conversation", userId)
 			}
 		}

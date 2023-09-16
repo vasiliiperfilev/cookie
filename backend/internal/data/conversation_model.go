@@ -33,9 +33,7 @@ func (m PsqlConversationModel) Insert(dto PostConversationDto) (Conversation, er
         VALUES (0)
         RETURNING conversation_id, version`
 
-	cvs := Conversation{
-		UserIds: dto.UserIds,
-	}
+	cvs := Conversation{}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -44,7 +42,7 @@ func (m PsqlConversationModel) Insert(dto PostConversationDto) (Conversation, er
 		return Conversation{}, err
 	}
 
-	err = m.insertConversationUsers(&cvs)
+	err = m.insertConversationUsers(&cvs, dto.UserIds)
 	if err != nil {
 		// remove empty conversation
 		return Conversation{}, err
@@ -82,7 +80,17 @@ func (m PsqlConversationModel) GetAllByUserId(userId int64) ([]Conversation, err
 
 	for rows.Next() {
 		conversation := Conversation{}
-		if err := rows.Scan(&conversation.Id, &conversation.LastMessageId, &conversation.Version, (*pq.Int64Array)(&conversation.UserIds)); err != nil {
+		userIds := []int64{}
+		var lastMessageId int64
+		if err := rows.Scan(&conversation.Id, &lastMessageId, &conversation.Version, (*pq.Int64Array)(&userIds)); err != nil {
+			return nil, err
+		}
+		err = m.getUsers(&conversation, userIds)
+		if err != nil {
+			return nil, err
+		}
+		err = m.getLastMessage(&conversation, lastMessageId)
+		if err != nil {
 			return nil, err
 		}
 		conversations = append(conversations, conversation)
@@ -104,15 +112,17 @@ func (m PsqlConversationModel) GetById(id int64) (Conversation, error) {
 		GROUP BY c.conversation_id`
 
 	var conversation Conversation
+	var lastMessageId int64
+	userIds := []int64{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	err := m.db.QueryRowContext(ctx, query, id).Scan(
 		&conversation.Id,
-		&conversation.LastMessageId,
+		&lastMessageId,
 		&conversation.Version,
-		(*pq.Int64Array)(&conversation.UserIds),
+		(*pq.Int64Array)(&userIds),
 	)
 
 	if err != nil {
@@ -124,11 +134,20 @@ func (m PsqlConversationModel) GetById(id int64) (Conversation, error) {
 		}
 	}
 
+	err = m.getUsers(&conversation, userIds)
+	if err != nil {
+		return Conversation{}, err
+	}
+	err = m.getLastMessage(&conversation, lastMessageId)
+	if err != nil {
+		return Conversation{}, err
+	}
+
 	return conversation, nil
 }
 
-func (m PsqlConversationModel) insertConversationUsers(conversation *Conversation) error {
-	for _, userId := range conversation.UserIds {
+func (m PsqlConversationModel) insertConversationUsers(conversation *Conversation, userIds []int64) error {
+	for _, userId := range userIds {
 		query := `
 		INSERT INTO conversations_users(conversation_id, user_id)
 		VALUES ($1, $2)`
@@ -144,5 +163,69 @@ func (m PsqlConversationModel) insertConversationUsers(conversation *Conversatio
 		}
 
 	}
+	return nil
+}
+
+func (m PsqlConversationModel) getLastMessage(conversation *Conversation, messageId int64) error {
+	query := `
+	    SELECT message_id, sender_id, conversation_id, prev_message_id, created_at, content
+	    FROM messages
+	    WHERE message_id = $1`
+
+	msg := Message{}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.db.QueryRowContext(ctx, query, messageId).Scan(&msg.Id, &msg.SenderId, &msg.ConversationId, &msg.PrevMessageId, &msg.CreatedAt, &msg.Content)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
+	}
+	conversation.LastMessage = msg
+	return nil
+}
+
+func (m PsqlConversationModel) getUsers(conversation *Conversation, userIds []int64) error {
+	users := []User{}
+	for _, id := range userIds {
+		query := `
+        SELECT user_id, created_at, email, name, password_hash, user_type_id, version, image_id
+        FROM users
+        WHERE user_id = $1`
+
+		var user User
+
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
+		err := m.db.QueryRowContext(ctx, query, id).Scan(
+			&user.Id,
+			&user.CreatedAt,
+			&user.Email,
+			&user.Name,
+			&user.Password.hash,
+			&user.Type,
+			&user.Version,
+			&user.ImageId,
+		)
+
+		if err != nil {
+			switch {
+			case errors.Is(err, sql.ErrNoRows):
+				return ErrRecordNotFound
+			default:
+				return err
+			}
+		}
+
+		users = append(users, user)
+	}
+
+	conversation.Users = users
 	return nil
 }

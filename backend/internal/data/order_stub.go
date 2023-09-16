@@ -67,7 +67,7 @@ func (s *StubOrderModel) GetAllByUserId(id int64) ([]Order, error) {
 			return nil, ErrRecordNotFound
 		}
 		conversation, _ := s.conversation.GetById(message.ConversationId)
-		if slices.Contains(conversation.UserIds, id) {
+		if slices.ContainsFunc(conversation.Users, func(u User) bool { return u.Id == id }) {
 			result = append(result, order)
 		}
 	}
